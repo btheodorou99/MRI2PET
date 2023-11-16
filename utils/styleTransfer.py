@@ -6,9 +6,11 @@ from PIL import Image
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
+from ..config import MRI2PETConfig
 from torchvision import transforms, models
 from torchvision.utils import save_image as torch_save
 
+config = MRI2PETConfig()
 content_layers = ['conv_4']
 style_layers = ['conv_1', 'conv_2', 'conv_3', 'conv_4', 'conv_5']
 
@@ -102,7 +104,7 @@ def get_style_model_and_losses(style_img, content_img):
 
 def image_loader(image_name):
     loader = transforms.Compose([
-        transforms.Resize((256, 256)), 
+        transforms.Resize((config.pet_image_dim, config.pet_image_dim)), 
         transforms.ToTensor()])
     image = Image.open(image_name)
     image = loader(image).unsqueeze(0)
