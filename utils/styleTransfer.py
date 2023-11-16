@@ -168,12 +168,12 @@ def save_image(tensor, path):
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load all style images and compute the collective style
-style_dir = "test_pet"
+style_dir = "../data/pet_imgs/"
 style_imgs = [image_loader(os.path.join(style_dir, file)) for file in os.listdir(style_dir)]
 
 # Apply style transfer for each content image
-content_dir = "test_mri"
-output_dir = "test_out"
+content_dir = "../data/mri_imgs/"
+output_dir = "../data/style_imgs/"
 os.makedirs(output_dir, exist_ok=True)
 
 for content_file in os.listdir(content_dir):
