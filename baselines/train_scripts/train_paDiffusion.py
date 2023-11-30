@@ -5,9 +5,10 @@ import pickle
 import numpy as np
 from tqdm import tqdm
 from PIL import Image
+from copy import deepcopy
 from torchvision import transforms
-from ..config import MRI2PETConfig
-from ..models.diffusionModel import DiffusionModel
+from ...config import MRI2PETConfig
+from ..models.paDiffusion import DiffusionModel
 
 SEED = 4
 cudaNum = 0
@@ -20,15 +21,31 @@ device = torch.device(f"cuda:{cudaNum}" if torch.cuda.is_available() else "cpu")
 if torch.cuda.is_available():
     torch.cuda.manual_seed_all(SEED)
 
-pretrain_dataset = pickle.load(open('../data/pretrainDataset.pkl', 'rb'))
-pretrain_dataset = [(mri_path, style_transfer_path) for (mri_path, style_transfer_path) in pretrain_dataset]
-train_dataset = pickle.load(open('../data/trainDataset.pkl', 'rb'))
+pretrain_dataset = pickle.load(open('../../data/pretrainDataset.pkl', 'rb'))
+pretrain_dataset = [(mri_path, mri_path) for (mri_path, style_transfer_path) in pretrain_dataset]
+train_dataset = pickle.load(open('../../data/trainDataset.pkl', 'rb'))
 train_dataset = [(mri_path, pet_path) for (mri_path, pet_path) in train_dataset]
-val_dataset = pickle.load(open('../data/valDataset.pkl', 'rb'))
+val_dataset = pickle.load(open('../../data/valDataset.pkl', 'rb'))
 val_dataset = [(mri_path, pet_path) for (mri_path, pet_path) in val_dataset]
+LAMBDA1 = 0.5
+LAMBDA2 = 0.5
+LAMBDA3 = 0.05
+
+class AddGaussianNoise(object):
+    def __init__(self, mean=0., std=1.):
+        self.mean = mean
+        self.std = std
+
+    def __call__(self, tensor):
+        return tensor + torch.randn(tensor.size()) * self.std + self.mean
+
+    def __repr__(self):
+        return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean, self.std)
+
 image_transform_mri = transforms.Compose([
         transforms.Resize((config.mri_image_dim, config.mri_image_dim)),
         transforms.ToTensor(),
+        AddGaussianNoise(0., 1.),
         # transforms.Lambda(lambda x: 2*x - 1)  # Normalize to [-1, 1]
     ])
 image_transform_pet = transforms.Compose([
@@ -57,9 +74,9 @@ def shuffle_training_data(train_ehr_dataset):
 
 model = DiffusionModel(config).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
-if os.path.exists(f"../save/stylePretrainedDiffusion.pt"):
+if os.path.exists(f"../../save/paDiffusion.pt"):
     print("Loading previous model")
-    checkpoint = torch.load(f'../save/stylePretrainedDiffusion.pt', map_location=torch.device(device))
+    checkpoint = torch.load(f'../../save/paDiffusion.pt', map_location=torch.device(device))
     model.load_state_dict(checkpoint['model'])
     optimizer.load_state_dict(checkpoint['optimizer'])
 
@@ -82,8 +99,9 @@ for e in tqdm(range(config.pretrain_epoch)):
         'optimizer': optimizer.state_dict(),
         'mode': 'pretrain'
     }
-    torch.save(state, f'../save/stylePretrainedDiffusion.pt')
+    torch.save(state, f'../../save/paDiffusion.pt')
 
+model_S = deepcopy(model)
 optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
 
 for e in tqdm(range(config.epoch)):
@@ -93,7 +111,12 @@ for e in tqdm(range(config.epoch)):
     for i in range(0, len(train_dataset), config.batch_size):
         batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
         optimizer.zero_grad()
-        loss, _ = model(batch_context, batch_images, gen_loss=True)
+        l_simple, x_T = model(batch_context, batch_images, gen_loss=True, output_images=True)
+        _, x_S = model_S(batch_context, batch_images, gen_loss=True, output_images=True)
+        l_img = model.compute_pairwise_sim_loss(x_S, x_T)
+        l_hf, l_hfmse = model.compute_high_freq_loss(x_S, x_T, batch_images)
+        loss = l_simple + LAMBDA1 * l_img + LAMBDA2 * l_hf + LAMBDA3 * l_hfmse
+        
         loss.backward()
         optimizer.step()
         train_losses.append(loss.cpu().detach().item())
@@ -113,4 +136,4 @@ for e in tqdm(range(config.epoch)):
             'optimizer': optimizer.state_dict(),
             'mode': 'train'
         }
-        torch.save(state, f'../save/stylePretrainedDiffusion.pt')
+        torch.save(state, f'../../save/paDiffusion.pt')

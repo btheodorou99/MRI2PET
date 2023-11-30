@@ -1,3 +1,7 @@
+# Differentiable Augmentation for Data-Efficient GAN Training
+# Shengyu Zhao, Zhijian Liu, Ji Lin, Jun-Yan Zhu, and Song Han
+# https://arxiv.org/pdf/2006.10738
+
 import os
 import torch
 import random
@@ -6,8 +10,9 @@ import numpy as np
 from tqdm import tqdm
 from PIL import Image
 from torchvision import transforms
-from ..config import MRI2PETConfig
-from ..models.ganModel import Generator, Discriminator
+from ...config import MRI2PETConfig
+from ...models.ganModel import Generator, Discriminator
+from ..models.diffAugmentGAN import DiffAugment
 
 SEED = 4
 cudaNum = 0
@@ -20,11 +25,9 @@ device = torch.device(f"cuda:{cudaNum}" if torch.cuda.is_available() else "cpu")
 if torch.cuda.is_available():
     torch.cuda.manual_seed_all(SEED)
 
-pretrain_dataset = pickle.load(open('../data/pretrainDataset.pkl', 'rb'))
-pretrain_dataset = [(mri_path, style_transfer_path) for (mri_path, style_transfer_path) in pretrain_dataset]
-train_dataset = pickle.load(open('../data/trainDataset.pkl', 'rb'))
+train_dataset = pickle.load(open('../../data/trainDataset.pkl', 'rb'))
 train_dataset = [(mri_path, pet_path) for (mri_path, pet_path) in train_dataset]
-val_dataset = pickle.load(open('../data/valDataset.pkl', 'rb'))
+val_dataset = pickle.load(open('../../data/valDataset.pkl', 'rb'))
 val_dataset = [(mri_path, pet_path) for (mri_path, pet_path) in val_dataset]
 image_transform_mri = transforms.Compose([
         transforms.Resize((config.mri_image_dim, config.mri_image_dim)),
@@ -59,55 +62,13 @@ generator = Generator(config).to(device)
 discriminator = Discriminator(config).to(device)
 optimizer_G = torch.optim.Adam(generator.parameters(), lr=config.lr)
 optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=config.lr)
-if os.path.exists(f"../save/stylePretrainedGAN.pt"):
+if os.path.exists(f"../../save/diffAugmentGAN.pt"):
     print("Loading previous model")
-    checkpoint = torch.load(f'../save/stylePretrainedGAN.pt', map_location=torch.device(device))
+    checkpoint = torch.load(f'../../save/diffAugmentGAN.pt', map_location=torch.device(device))
     generator.load_state_dict(checkpoint['generator'])
     discriminator.load_state_dict(checkpoint['discriminator'])
     optimizer_G.load_state_dict(checkpoint['optimizer_g'])
     optimizer_D.load_state_dict(checkpoint['optimizer_d'])
-
-for e in tqdm(range(config.pretrain_epoch)):
-    shuffle_training_data(pretrain_dataset)
-    generator.train()
-    discriminator.train()
-    for i in range(0, len(pretrain_dataset), config.batch_size):
-        batch_context, batch_images = get_batch(pretrain_dataset, i, config.batch_size)
-        
-        # Train Discriminator
-        z = torch.randn(batch_context.size(0), config.z_dim, device=batch_context.device)
-        fake_imgs = generator(z, batch_context)
-
-        real_validity = discriminator(batch_images, batch_context)
-        fake_validity = discriminator(fake_imgs, batch_context)
-        gradient_penalty = discriminator.compute_gradient_penalty(batch_images.data, fake_imgs.data, batch_context.data)
-        d_loss = -torch.mean(real_validity) + torch.mean(fake_validity) + config.lambda_gp * gradient_penalty
-
-        optimizer_D.zero_grad()
-        d_loss.backward()
-        optimizer_D.step()
-
-        if i % (config.generator_interval * config.batch_size) == 0:
-            # Train Generator
-            fake_imgs = generator(z, batch_context)
-            fake_validity = discriminator(fake_imgs, batch_context)
-            g_loss = -torch.mean(fake_validity)
-
-            optimizer_G.zero_grad()
-            g_loss.backward()
-            optimizer_G.step()
-
-    state = {
-        'generator': generator.state_dict(),
-        'discriminator': discriminator.state_dict(),
-        'optimizer_G': optimizer_G,
-        'optimizer_D': optimizer_D,
-        'epoch': e
-    }
-    torch.save(state, f'../save/stylePretrainedGAN.pt')
-
-optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=config.lr)
-optimizer_G = torch.optim.Adam(generator.parameters(), lr=config.lr)
 
 for e in tqdm(range(config.epoch)):
     shuffle_training_data(train_dataset)
@@ -115,10 +76,12 @@ for e in tqdm(range(config.epoch)):
     discriminator.train()
     for i in range(0, len(train_dataset), config.batch_size):
         batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
+        batch_images = DiffAugment(batch_images, policy='color,translation,cutout')
         
         # Train Discriminator
         z = torch.randn(batch_context.size(0), config.z_dim, device=batch_context.device)
         fake_imgs = generator(z, batch_context)
+        fake_imgs = DiffAugment(fake_imgs, policy='color,translation,cutout')
 
         real_validity = discriminator(batch_images, batch_context)
         fake_validity = discriminator(fake_imgs, batch_context)
@@ -132,6 +95,7 @@ for e in tqdm(range(config.epoch)):
         if i % (config.generator_interval * config.batch_size) == 0:
             # Train Generator
             fake_imgs = generator(z, batch_context)
+            fake_imgs = DiffAugment(fake_imgs, policy='color,translation,cutout')
             fake_validity = discriminator(fake_imgs, batch_context)
             g_loss = -torch.mean(fake_validity)
 
@@ -146,4 +110,4 @@ for e in tqdm(range(config.epoch)):
         'optimizer_D': optimizer_D,
         'epoch': e
     }
-    torch.save(state, f'../save/stylePretrainedGAN.pt')
+    torch.save(state, f'../../save/diffAugmentGAN.pt')

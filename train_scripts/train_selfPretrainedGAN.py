@@ -106,6 +106,9 @@ for e in tqdm(range(config.pretrain_epoch)):
     }
     torch.save(state, f'../save/selfPretrainedGAN.pt')
 
+optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=config.lr)
+optimizer_G = torch.optim.Adam(generator.parameters(), lr=config.lr)
+
 for e in tqdm(range(config.epoch)):
     shuffle_training_data(train_dataset)
     generator.train()

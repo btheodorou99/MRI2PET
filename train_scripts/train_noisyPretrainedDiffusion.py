@@ -97,6 +97,8 @@ for e in tqdm(range(config.pretrain_epoch)):
     }
     torch.save(state, f'../save/noisyPretrainedDiffusion.pt')
 
+optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
+
 for e in tqdm(range(config.epoch)):
     shuffle_training_data(train_dataset)
     train_losses = []
