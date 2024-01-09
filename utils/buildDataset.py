@@ -63,6 +63,7 @@ print("MRI Heights:", mri_heights)
 print("MRI Channels:", mri_channels)
 
 # Save the filtered MRI paths
+print("MRI Paths:", len(filtered_mri_paths))
 save_data('./data/mriDataset.pkl', filtered_mri_paths)
 
 # Load the PET data dictionary
