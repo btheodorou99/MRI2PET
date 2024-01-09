@@ -44,8 +44,8 @@ def load_image(image_path, is_mri=True):
 def get_batch(dataset, loc, batch_size):
     image_paths = dataset[loc:loc+batch_size]
     bs = len(image_paths)
-    batch_context = torch.zeros(bs, config.n_channels, config.mri_image_dim, config.mri_image_dim, dtype=torch.float, device=device)
-    batch_image = torch.zeros(bs, config.n_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
+    batch_context = torch.zeros(bs, config.n_mri_channels, config.mri_image_dim, config.mri_image_dim, dtype=torch.float, device=device)
+    batch_image = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
     for i, (m, p) in enumerate(image_paths):
         batch_context[i] = load_image(m, is_mri=True)
         batch_image[i] = load_image(p, is_mri=False)
@@ -55,7 +55,7 @@ def get_batch(dataset, loc, batch_size):
 def shuffle_training_data(train_ehr_dataset):
     random.shuffle(train_ehr_dataset)
 
-mean_mri = torch.zeros(config.n_channels, config.mri_image_dim, config.mri_image_dim, dtype=torch.float, device=device)
+mean_mri = torch.zeros(config.n_mri_channels, config.mri_image_dim, config.mri_image_dim, dtype=torch.float, device=device)
 for i in tqdm(range(0, len(pretrain_dataset), config.batch_size)):
     batch_context, _ = get_batch(pretrain_dataset, i, config.batch_size)
     mean_mri += torch.sum(batch_context, dim=0)

@@ -124,7 +124,7 @@ class Generator(nn.Module):
         super(Generator, self).__init__()
         ngf=64, 
         nz=config.z_dim 
-        nc=config.n_channels
+        nc=config.n_pet_channels
         im_size=config.pet_image_dim
 
         nfc_multi = {4:16, 8:8, 16:4, 32:2, 64:2, 128:1, 256:0.5, 512:0.25, 1024:0.125}
@@ -223,7 +223,7 @@ class Discriminator(nn.Module):
     def __init__(self, config):
         super(Discriminator, self).__init__()
         ndf=64
-        nc=config.n_channels * 2
+        nc=config.n_pet_channels * 2
         im_size=config.pet_image_dim
         self.ndf = ndf
         self.im_size = im_size

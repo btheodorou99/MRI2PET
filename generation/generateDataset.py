@@ -36,7 +36,7 @@ def load_image(image_path):
 def get_batch(dataset, loc, batch_size):
     image_paths = dataset[loc:loc+batch_size]
     bs = len(image_paths)
-    batch_context = torch.zeros(bs, config.n_channels, config.mri_image_dim, config.mri_image_dim, device=device)
+    batch_context = torch.zeros(bs, config.n_mri_channels, config.mri_image_dim, config.mri_image_dim, device=device)
     for i, p in enumerate(image_paths):
         batch_context[i] = load_image(p)
         

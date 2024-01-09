@@ -11,7 +11,7 @@ from einops import rearrange, repeat
 class ImageEncoder(nn.Module):
     def __init__(self, config, isMri=True):
         super(ImageEncoder, self).__init__()
-        self.n_channels = config.n_channels
+        self.n_channels = config.n_mri_channels if isMri else config.n_pet_channels
         self.image_dim = config.mri_image_dim if isMri else config.pet_image_dim
 
         self.conv1 = nn.Conv2d(self.n_channels, 32, kernel_size=3, stride=1, padding=1)
@@ -46,7 +46,7 @@ class ImageEncoder(nn.Module):
     
 class ImageToImage(nn.Module):
     def __init__(self, config):
-        self.n_channels = config.n_channels
+        self.n_channels = config.n_mri_channels
         self.output_image_dim = config.mri_image_dim
 
         self.image_encoder = ImageEncoder(config, isMri=False)
@@ -58,7 +58,7 @@ class ImageToImage(nn.Module):
             nn.ReLU(),
             nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1),
             nn.ReLU(),
-            nn.ConvTranspose2d(32, self.n_channels, kernel_size=4, stride=2, padding=1),
+            nn.ConvTranspose2d(32, self.n_mri_channels, kernel_size=4, stride=2, padding=1),
         )
 
     def forward(self, x):
@@ -197,12 +197,12 @@ class DiffusionModel(nn.Module):
         self.alpha = 1 - self.beta
         self.alpha_hat = torch.cumprod(self.alpha, dim=0)
         self.image_dim = config.pet_image_dim
-        self.n_channels = config.n_channels
+        self.n_channels = config.n_pet_channels
         self.embed_dim = config.embed_dim
         self.lambda1 = 0.25
         
         self.contextEmbedding = ImageEncoder(config)
-        self.inc = DoubleConv(config.n_channels, 16)
+        self.inc = DoubleConv(config.n_pet_channels, 16)
         
         self.down1 = DownBlock(16, 32, self.embed_dim)
         self.sa1 = LinearAttention(32)
@@ -220,7 +220,7 @@ class DiffusionModel(nn.Module):
         self.sa5 = LinearAttention(32)
         self.up3 = UpBlock(48, 16, self.embed_dim)
         self.sa6 = LinearAttention(16)
-        self.outc = nn.Conv2d(16, config.n_channels, kernel_size=1)
+        self.outc = nn.Conv2d(16, config.n_pet_channels, kernel_size=1)
         
         self.backNet = ImageToImage(config)
 

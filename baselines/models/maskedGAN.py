@@ -7,7 +7,7 @@ import torch.nn.functional as F
 class ImageEncoder(nn.Module):
     def __init__(self, config, is_mri=True):
         super(ImageEncoder, self).__init__()
-        self.n_channels = config.n_channels
+        self.n_channels = config.n_mri_channels if is_mri else config.n_pet_channels
         self.image_dim = config.mri_image_dim if is_mri else config.pet_image_dim
 
         self.conv1 = nn.Conv2d(self.n_channels, 32, kernel_size=3, stride=1, padding=1)
@@ -57,7 +57,7 @@ class Generator(nn.Module):
         self.output = nn.Sequential(
             nn.Conv2d(32, 16, kernel_size=3, stride=1, padding=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(16, config.n_channels, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(16, config.n_pet_channels, kernel_size=3, stride=1, padding=1),
             nn.Tanh()
         )
 

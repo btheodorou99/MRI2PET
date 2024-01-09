@@ -39,8 +39,8 @@ def load_image(image_path, is_mri=True):
 def get_batch(dataset, loc, batch_size):
     image_paths = dataset[loc:loc+batch_size]
     bs = len(image_paths)
-    batch_context = torch.zeros(bs, config.n_channels, config.mri_image_dim, config.mri_image_dim, dtype=torch.float, device=device)
-    batch_image = torch.zeros(bs, config.n_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
+    batch_context = torch.zeros(bs, config.n_mri_channels, config.mri_image_dim, config.mri_image_dim, dtype=torch.float, device=device)
+    batch_image = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
     for i, (m, p) in enumerate(image_paths):
         batch_context[i] = load_image(m, is_mri=True)
         batch_image[i] = load_image(p, is_mri=False)
@@ -91,8 +91,8 @@ for k in tqdm(model_keys):
         sample_images = model.generate(sample_contexts)
 
     num_per_row = NUM_SAMPLES ** 0.5
-    grid = Image.new('RGB' if config.n_channels == 3 else 'L', (config.pet_image_dim * num_per_row, config.pet_image_dim * num_per_row), color='white')
-    paired_grid = Image.new('RGB' if config.n_channels == 3 else 'L', (config.pet_image_dim * num_per_row * 2, config.pet_image_dim * num_per_row), color='white')
+    grid = Image.new('RGB' if config.n_pet_channels == 3 else 'L', (config.pet_image_dim * num_per_row, config.pet_image_dim * num_per_row), color='white')
+    paired_grid = Image.new('RGB' if config.n_pet_channels == 3 else 'L', (config.pet_image_dim * num_per_row * 2, config.pet_image_dim * num_per_row), color='white')
     for i in tqdm(range(NUM_SAMPLES)):
         sample_image = tensor_to_image(sample_images[i].cpu())
         sample_image.save(f'../results/image_samples/sampleImage_{i}.jpg')

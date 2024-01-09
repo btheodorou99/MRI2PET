@@ -92,7 +92,7 @@ class ConvTranspose2d_kml(nn.Module):
 class ImageEncoder(nn.Module):
     def __init__(self, config, is_mri=True):
         super(ImageEncoder, self).__init__()
-        self.n_channels = config.n_channels
+        self.n_channels = config.n_mri_channels if is_mri else config.n_pet_channels
         self.image_dim = config.mri_image_dim if is_mri else config.pet_image_dim
 
         self.conv1 = Conv2d_kml(self.n_channels, 32, kernel_size=3, stride=1, padding=1)
@@ -142,7 +142,7 @@ class Generator(nn.Module):
             self._gen_block(64, 32),
             Conv2d_kml(32, 16, kernel_size=3, stride=1, padding=1),
             nn.ReLU(inplace=True),
-            Conv2d_kml(16, config.n_channels, kernel_size=3, stride=1, padding=1),
+            Conv2d_kml(16, config.n_pet_channels, kernel_size=3, stride=1, padding=1),
             nn.Tanh()
         )
 

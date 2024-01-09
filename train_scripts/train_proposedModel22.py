@@ -55,8 +55,8 @@ def load_image(image_path, is_mri=True):
 def get_batch(dataset, loc, batch_size):
     image_paths = dataset[loc:loc+batch_size]
     bs = len(image_paths)
-    batch_context = torch.zeros(bs, config.n_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
-    batch_image = torch.zeros(bs, config.n_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
+    batch_context = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
+    batch_image = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
     for i, (m, p) in enumerate(image_paths):
         batch_context[i] = load_image(m, is_mri=True)
         batch_image[i] = load_image(p, is_mri=False)
@@ -66,7 +66,7 @@ def get_batch(dataset, loc, batch_size):
 def get_batch_cls(dataset, loc, batch_size):
     image_paths = dataset[loc:loc+batch_size]
     bs = len(image_paths)
-    batch_image = torch.zeros(bs, config.n_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
+    batch_image = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
     batch_labels = torch.zeros(bs, NUM_LABELS, dtype=torch.float, device=device)
     for i, (img, l) in enumerate(image_paths):
         batch_context[i] = load_image(img)

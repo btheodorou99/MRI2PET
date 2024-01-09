@@ -59,8 +59,8 @@ def load_image(image_path, is_mri=True):
 def get_batch(dataset, loc, batch_size):
     image_paths = dataset[loc:loc+batch_size]
     bs = len(image_paths)
-    batch_context = torch.zeros(bs, config.n_channels, config.mri_image_dim, config.mri_image_dim, dtype=torch.float, device=device)
-    batch_image = torch.zeros(bs, config.n_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
+    batch_context = torch.zeros(bs, config.n_mri_channels, config.mri_image_dim, config.mri_image_dim, dtype=torch.float, device=device)
+    batch_image = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
     for i, (m, p) in enumerate(image_paths):
         batch_context[i] = load_image(m, is_mri=True)
         batch_image[i] = load_image(p, is_mri=False)
@@ -206,8 +206,8 @@ for i in range(0, len(probing_dataset), config.batch_size):
         generator.zero_grad()
         discriminator.zero_grad()
         img_noise = noise_fisher[fisher_idx].view(1,-1)
-        img_context = batch_context[fisher_idx].view(1,config.n_channels,config.mri_image_dim,config.mri_image_dim)
-        img_real = batch_images[fisher_idx].view(1,config.n_channels,config.pet_image_dim,config.pet_image_dim)
+        img_context = batch_context[fisher_idx].view(1,config.n_mir_channels,config.mri_image_dim,config.mri_image_dim)
+        img_real = batch_images[fisher_idx].view(1,config.n_pet_channels,config.pet_image_dim,config.pet_image_dim)
 
         # 1) Obtain predicted results
         img_fake, _ = generator(img_noise, img_context)
