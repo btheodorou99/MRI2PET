@@ -55,7 +55,7 @@ def map_pet_to_mri(mri_dict, pet_dict):
     return paired_images, height_counter, channel_counter
 
 # Load the MRI data dictionary
-mri_dict = load_data_dict('./data/mri_dict.pkl')
+mri_dict = load_data_dict('../data/mri_dict.pkl')
 
 # Filter MRI images and count dimensions
 filtered_mri_paths, mri_heights, mri_channels = filter_mri_images(mri_dict)
@@ -64,10 +64,10 @@ print("MRI Channels:", mri_channels)
 
 # Save the filtered MRI paths
 print("MRI Paths:", len(filtered_mri_paths))
-save_data('./data/mriDataset.pkl', filtered_mri_paths)
+save_data('../data/mriDataset.pkl', filtered_mri_paths)
 
 # Load the PET data dictionary
-pet_dict = load_data_dict('./data/pet_dict.pkl')
+pet_dict = load_data_dict('../data/pet_dict.pkl')
 
 # Map PET to MRI
 pet_mri_pairs, pet_heights, pet_channels = map_pet_to_mri(mri_dict, pet_dict)
@@ -76,4 +76,4 @@ print("PET Channels:", pet_channels)
 
 # Save the PET-MRI pairs
 print("PET-MRI Pairs:", len(pet_mri_pairs))
-save_data('./data/pet_mri_pairs.pkl', pet_mri_pairs)
+save_data('../data/pet_mri_pairs.pkl', pet_mri_pairs)
