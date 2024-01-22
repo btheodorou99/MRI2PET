@@ -1,14 +1,14 @@
 import os
-import copy
 import torch
 import random
-from PIL import Image
+import pickle
+import numpy as np
 import torch.nn as nn
+from tqdm import tqdm
 import torch.optim as optim
+from torchvision import models
 import torch.nn.functional as F
 from ..config import MRI2PETConfig
-from torchvision import transforms, models
-from torchvision.utils import save_image as torch_save
 
 config = MRI2PETConfig()
 content_layers = ['conv_4']
@@ -102,14 +102,6 @@ def get_style_model_and_losses(style_img, content_img):
 
     return model, style_losses, content_losses
 
-def image_loader(image_name):
-    loader = transforms.Compose([
-        transforms.Resize((config.pet_image_dim, config.pet_image_dim)), 
-        transforms.ToTensor()])
-    image = Image.open(image_name)
-    image = loader(image).unsqueeze(0)
-    return image.to(device, torch.float)
-
 def run_style_transfer(content_img, style_img, input_img, num_steps=250, 
                        style_weight=1000, content_weight=1):
     """Run the style transfer."""
@@ -158,31 +150,51 @@ def run_style_transfer(content_img, style_img, input_img, num_steps=250,
 
     return input_img
 
+def run_style_transfer_on_slices(content_slices, style_slices, num_steps=250, style_weight=1000, content_weight=1):
+    """Run style transfer on each slice."""
+    styled_slices = []
+
+    for slice_idx in range(content_slices.size(1)):
+        content_img = content_slices[:, slice_idx, :, :].unsqueeze(1).repeat(1, 3, 1, 1)
+        style_img = style_slices[:, slice_idx, :, :].unsqueeze(1).repeat(1, 3, 1, 1)
+        input_img = content_img.clone()
+        styled_slice = run_style_transfer(content_img, style_img, input_img, num_steps, style_weight, content_weight)
+        styled_slice = styled_slice.mean(dim=1)
+        styled_slices.append(styled_slice)
+
+    return torch.stack(styled_slices, dim=1) # Stack the slices back together while preserving the batch dimension
+
 def save_image(tensor, path):
     """Save a torch tensor as an image."""
     # Convert the tensor to a PIL image and save
-    image = tensor.cpu().clone()  # Clone the tensor to not do changes on it
-    image = image.squeeze(0)      # Remove the fake batch dimension
-    image = torch_save(image, path)
+    image = tensor.cpu().clone()       # Clone the tensor to not do changes on it
+    image = image.squeeze(0)           # Remove the fake batch dimension
+    image = image.numpy()              # Convert to numpy array
+    image = image.transpose((1, 2, 0)) # Convert back to HxWxC
+    np.save(path, image)
+    
+def load_image(path):
+    """Load an image as a torch tensor."""
+    image = np.load(path)
+    image = image.transpose((2, 0, 1)) # Convert to CxHxW
+    image = torch.from_numpy(image).float() # Convert to torch tensor
+    image = image.unsqueeze(0) # Add fake batch dimension
+    return image
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load all style images and compute the collective style
-style_dir = "../data/pet_imgs/"
-style_imgs = [image_loader(os.path.join(style_dir, file)) for file in os.listdir(style_dir)]
+style_dir = "../data/PET_Processed/"
+style_imgs = [load_image(os.path.join(style_dir, file)) for file in os.listdir(style_dir)]
 
 # Apply style transfer for each content image
-content_dir = "../data/mri_imgs/"
-output_dir = "../data/style_imgs/"
+content_dir = "../data/MRI_Pretrain/"
+output_dir = "../data/MRI_Style/"
 os.makedirs(output_dir, exist_ok=True)
 
-for content_file in os.listdir(content_dir):
-    content_img = image_loader(os.path.join(content_dir, content_file))
-    # Option 1: Apply collective style
-    # style_img = combine_styles(style_imgs)  # You need to implement combine_styles
-    # Option 2: Apply style from a random image
-    style_img = random.choice(style_imgs)
-
-    input_img = content_img.clone()
-    output = run_style_transfer(content_img, style_img, input_img)
+content_imgs = pickle.load(open('../data/mriDataset.pkl', 'rb'))
+for content_file in tqdm(content_imgs):
+    content_img = load_image(os.path.join(content_dir, content_file)).to(device)
+    style_img = random.choice(style_imgs).to(device)
+    output = run_style_transfer_on_slices(content_img, style_img)
     save_image(output, os.path.join(output_dir, content_file))

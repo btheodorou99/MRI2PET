@@ -2,8 +2,8 @@ import os
 import shutil
 from tqdm import tqdm
 
-source_dir = '../data/ADNI_MRI3'
-target_dir = '../data/ADNI_MRI'
+source_dir = '../data/ADNI_PET2'
+target_dir = '../data/ADNI_PET'
 
 # Iterate through each SubjectID in the source directory
 for subject_id in tqdm(os.listdir(source_dir)):

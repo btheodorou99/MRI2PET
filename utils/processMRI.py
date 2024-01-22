@@ -78,7 +78,7 @@ for subject_id in tqdm(os.listdir(mri_dir)):
                     continue
 
                 # Convert DICOM to NIfTI
-                subprocess.run(["dcm2niix", "-o", tempdir, some_ids_path])
+                subprocess.run(["dcm2niix", "-o", tempdir, some_ids_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
                 # Process the NIfTI file
                 nifti_files = [f for f in os.listdir(tempdir) if f.endswith(('.nii', '.nii.gz')) and not f.endswith('.json')]

@@ -19,7 +19,7 @@ def filter_mri_images(mri_dict):
         for date, info in dates.items():
             height_counter[info['shape'][0]] += 1
             channel_counter[info['shape'][2]] += 1
-            if info['shape'][2] > 1:  # Assuming the third dimension is channels
+            if len(info['shape']) == 3 and info['shape'][2] > 1:  # Assuming the third dimension is channels
                 filtered_mri_paths.append(info['filename'])
 
     return filtered_mri_paths, height_counter, channel_counter
@@ -43,6 +43,9 @@ def map_pet_to_mri(mri_dict, pet_dict):
             continue
 
         for pet_date, pet_info in pet_dates.items():
+            if not mri_dates[sub_id]:
+                continue
+            
             pet_date = datetime.strptime(pet_date, "%Y-%m-%d")
             closest_mri_date = min(mri_dates[sub_id], key=lambda d: abs(d - pet_date))
             dateDistance = abs(closest_mri_date - pet_date).days
