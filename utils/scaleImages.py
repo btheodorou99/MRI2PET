@@ -32,6 +32,7 @@ def standardize_shape(img, target_resolution, target_slices):
     # Adjusting the number of slices
     slice_zoom = target_slices / current_slices
     standardized_img = zoom(resized_img, (1, 1, slice_zoom), order=5)
+    standardized_img = standardized_img.clip(0, 1)
 
     return standardized_img
 

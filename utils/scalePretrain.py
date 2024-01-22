@@ -28,6 +28,7 @@ def scale_image(mri_image):
     # Resizing each slice to the target resolution
     resized_mri = zoom(mri_image, (height_zoom, width_zoom, 1), order=5)
     resized_mri = zoom(resized_mri, (1, 1, slice_zoom), order=5)
+    resized_mri = resized_mri.clip(0, 1)
     return resized_mri
 
 mri_paths = pickle.load(open('../data/mriDataset.pkl', 'rb'))
