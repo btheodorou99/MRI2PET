@@ -17,7 +17,10 @@ class MRI2PETConfig(object):
             z_dim = 128,
             lambda_gp = 10,
             generator_interval = 2,
-            image_dir = '/srv/local/data/MIMIC-CXR/images',
+            mri_image_dir = './data/MRI_Processed',
+            pet_image_dir = './data/PET_Processed',
+            mri_pretrain_dir = './data/MRI_Pretrain',
+            mri_style_dir = './data/MRI_Style',
     ):
         self.batch_size = batch_size
         self.epoch = epoch
@@ -35,4 +38,7 @@ class MRI2PETConfig(object):
         self.z_dim = z_dim
         self.lambda_gp = lambda_gp
         self.generator_interval = generator_interval
-        self.image_dir = image_dir
+        self.mri_image_dir = mri_image_dir
+        self.pet_image_dir = pet_image_dir
+        self.mri_pretrain_dir = mri_pretrain_dir
+        self.mri_style_dir = mri_style_dir

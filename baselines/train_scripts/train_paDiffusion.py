@@ -4,9 +4,7 @@ import random
 import pickle
 import numpy as np
 from tqdm import tqdm
-from PIL import Image
 from copy import deepcopy
-from torchvision import transforms
 from ...config import MRI2PETConfig
 from ..models.paDiffusion import DiffusionModel
 
@@ -21,42 +19,25 @@ device = torch.device(f"cuda:{cudaNum}" if torch.cuda.is_available() else "cpu")
 if torch.cuda.is_available():
     torch.cuda.manual_seed_all(SEED)
 
-pretrain_dataset = pickle.load(open('../../data/pretrainDataset.pkl', 'rb'))
-pretrain_dataset = [(mri_path, mri_path) for (mri_path, style_transfer_path) in pretrain_dataset]
+pretrain_dataset = pickle.load(open('../../data/mriDataset.pkl', 'rb'))
+pretrain_dataset = [(os.path.join(config.mri_image_dir, mri_path), os.path.join(config.mri_pretrain_dir, mri_path)) for mri_path in pretrain_dataset]
 train_dataset = pickle.load(open('../../data/trainDataset.pkl', 'rb'))
-train_dataset = [(mri_path, pet_path) for (mri_path, pet_path) in train_dataset]
+train_dataset = [(os.path.join(config.mri_image_dir, mri_path), os.path.join(config.pet_image_dir, pet_path)) for (mri_path, pet_path) in train_dataset]
 val_dataset = pickle.load(open('../../data/valDataset.pkl', 'rb'))
-val_dataset = [(mri_path, pet_path) for (mri_path, pet_path) in val_dataset]
+val_dataset = [(os.path.join(config.mri_image_dir, mri_path), os.path.join(config.pet_image_dir, pet_path)) for (mri_path, pet_path) in val_dataset]
 LAMBDA1 = 0.5
 LAMBDA2 = 0.5
 LAMBDA3 = 0.05
 
-class AddGaussianNoise(object):
-    def __init__(self, mean=0., std=1.):
-        self.mean = mean
-        self.std = std
-
-    def __call__(self, tensor):
-        return tensor + torch.randn(tensor.size()) * self.std + self.mean
-
-    def __repr__(self):
-        return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean, self.std)
-
-image_transform_mri = transforms.Compose([
-        transforms.Resize((config.mri_image_dim, config.mri_image_dim)),
-        transforms.ToTensor(),
-        AddGaussianNoise(0., 1.),
-        # transforms.Lambda(lambda x: 2*x - 1)  # Normalize to [-1, 1]
-    ])
-image_transform_pet = transforms.Compose([
-        transforms.Resize((config.pet_image_dim, config.pet_image_dim)),
-        transforms.ToTensor(),
-        transforms.Lambda(lambda x: 2*x - 1)  # Normalize to [-1, 1]
-    ])
-
 def load_image(image_path, is_mri=True):
-    with Image.open(f'{config.image_dir}/{image_path}.jpg') as img:
-        return image_transform_mri(img) if is_mri else image_transform_pet(img)
+    img = np.load(image_path)
+    img = img.transpose((2,0,1))
+    img = torch.from_numpy(img)
+    if is_mri:
+        img += torch.randn(img.size())
+    else:
+        img = 2 * img - 1
+    return img
 
 def get_batch(dataset, loc, batch_size):
     image_paths = dataset[loc:loc+batch_size]

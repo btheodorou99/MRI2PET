@@ -5,7 +5,6 @@ import pickle
 import numpy as np
 from tqdm import tqdm
 from PIL import Image
-from torchvision import transforms
 from ..config import MRI2PETConfig
 from ..models.diffusionModel import DiffusionModel
 from ..models.ganModel import Generator
