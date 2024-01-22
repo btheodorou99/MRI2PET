@@ -4,7 +4,6 @@ import random
 import pickle
 import numpy as np
 from tqdm import tqdm
-from PIL import Image
 from ..config import MRI2PETConfig
 from ..models.diffusionModel import DiffusionModel
 from ..models.ganModel import Generator
@@ -21,16 +20,13 @@ if torch.cuda.is_available():
     torch.cuda.manual_seed_all(SEED)
 
 test_dataset = pickle.load(open('../data/testDataset.pkl', 'rb'))
-test_dataset = [(mri_path, _) for (mri_path, _) in test_dataset]
-image_transform = transforms.Compose([
-        transforms.Resize((config.mri_image_dim, config.mri_image_dim)),
-        transforms.ToTensor(),
-        # transforms.Lambda(lambda x: 2*x - 1)  # Normalize to [-1, 1]
-    ])
+test_dataset = [os.path.join(config.mri_image_dir, mri_path) for (mri_path, pet_path) in test_dataset]
 
 def load_image(image_path):
-    with Image.open(f'{config.image_dir}/{image_path}.jpg') as img:
-        return image_transform(img)
+    img = np.load(image_path)
+    img = img.transpose((2,0,1))
+    img = torch.from_numpy(img)
+    return img
 
 def get_batch(dataset, loc, batch_size):
     image_paths = dataset[loc:loc+batch_size]
@@ -41,12 +37,14 @@ def get_batch(dataset, loc, batch_size):
         
     return batch_context
   
-def tensor_to_image(tensor):
-    # First de-normalize from [-1, 1] to [0, 1]
-    tensor = (tensor + 1) / 2.0
-    # Convert to PIL image
-    img = transforms.ToPILImage()(tensor)
-    return img
+def save_image(tensor, path):
+    """Save a torch tensor as an image."""
+    # Convert the tensor to a PIL image and save
+    image = tensor.cpu().clone()
+    image = (image + 1) / 2.0
+    image = image.numpy()
+    image = image.transpose((1, 2, 0))
+    np.save(path, image)
         
 model_keys = [
     'baseDiffusion',
@@ -77,5 +75,4 @@ for k in tqdm(model_keys):
             sample_contexts = get_batch(test_dataset, i, config.batch_size)
             sample_images = model.generate(sample_contexts)
             for j in range(sample_images.size(0)):
-                sample_image = tensor_to_image(sample_images[j].cpu())
-                sample_image.save(f'../results/generated_datasets/{k}/sampleImage_{i+j}.jpg')
+                save_image(sample_images[j], f'../results/generated_datasets/{k}/sampleImage_{i+j}.npy')

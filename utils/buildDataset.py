@@ -1,6 +1,7 @@
 import pickle
 from datetime import datetime
 from collections import Counter
+from sklearn.model_selection import train_test_split
 
 def load_data_dict(file_path):
     with open(file_path, 'rb') as file:
@@ -80,3 +81,11 @@ print("PET Channels:", pet_channels)
 # Save the PET-MRI pairs
 print("PET-MRI Pairs:", len(pet_mri_pairs))
 save_data('../data/pet_mri_pairs.pkl', pet_mri_pairs)
+
+# Split the PET-MRI pairs into train, validation, and test sets
+train_pairs, test_pairs = train_test_split(pet_mri_pairs, test_size=0.1, random_state=0)
+train_pairs, val_pairs = train_test_split(train_pairs, test_size=0.1, random_state=0)
+
+pickle.dump(train_pairs, open('../data/trainDataset.pkl', 'wb'))
+pickle.dump(val_pairs, open('../data/valDataset.pkl', 'wb'))
+pickle.dump(test_pairs, open('../data/testDataset.pkl', 'wb'))

@@ -4,7 +4,6 @@ import random
 import pickle
 import numpy as np
 from tqdm import tqdm
-from PIL import Image
 from ..config import MRI2PETConfig
 from ..models.diffusionModel import DiffusionModel
 from ..models.ganModel import Generator
@@ -21,6 +20,7 @@ if torch.cuda.is_available():
     torch.cuda.manual_seed_all(SEED)
 
 test_dataset = pickle.load(open('../data/testDataset.pkl', 'rb'))
+test_dataset = [(os.path.join(config.mri_image_dir, mri_path), os.path.join(config.pet_image_dir, pet_path)) for (mri_path, pet_path) in test_dataset]
 
 def load_image(image_path, is_mri=True):
     img = np.load(image_path)
@@ -41,22 +41,11 @@ def get_batch(dataset, loc, batch_size):
         
     return batch_context, batch_image
 
-def tensor_to_image(tensor):
-    # First de-normalize from [-1, 1] to [0, 1]
-    tensor = (tensor + 1) / 2.0
-    # Convert to PIL image
-    img = transforms.ToPILImage()(tensor)
-    return img
-
 model_keys = [
     'baseDiffusion',
-    'baseGAN',
     'noisyPretrainedDiffusion',
-    'noisyPretrainedGAN',
     'selfPretrainedDiffusion',
-    'selfPretrainedGAN',
     'stylePretrainedDiffusion',
-    'stylePretrainedGAN',
     'mri2pet',
 ]
 

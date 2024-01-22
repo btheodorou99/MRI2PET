@@ -164,6 +164,15 @@ def run_style_transfer_on_slices(content_slices, style_slices, num_steps=250, st
 
     return torch.stack(styled_slices, dim=1) # Stack the slices back together while preserving the batch dimension
 
+
+def load_image(path):
+    """Load an image as a torch tensor."""
+    image = np.load(path)
+    image = image.transpose((2, 0, 1)) # Convert to CxHxW
+    image = torch.from_numpy(image).float() # Convert to torch tensor
+    image = image.unsqueeze(0) # Add fake batch dimension
+    return image
+
 def save_image(tensor, path):
     """Save a torch tensor as an image."""
     # Convert the tensor to a PIL image and save
@@ -172,14 +181,7 @@ def save_image(tensor, path):
     image = image.numpy()              # Convert to numpy array
     image = image.transpose((1, 2, 0)) # Convert back to HxWxC
     np.save(path, image)
-    
-def load_image(path):
-    """Load an image as a torch tensor."""
-    image = np.load(path)
-    image = image.transpose((2, 0, 1)) # Convert to CxHxW
-    image = torch.from_numpy(image).float() # Convert to torch tensor
-    image = image.unsqueeze(0) # Add fake batch dimension
-    return image
+
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

@@ -1,3 +1,4 @@
+import os
 import torch
 import pickle
 import numpy as np
@@ -15,15 +16,35 @@ model = inception_v3(pretrained=True).to(device)
 model.fc = torch.nn.Identity()
 transform = Compose([Resize(299), CenterCrop(299), ToTensor(), Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
 
-def get_inception_features(model, dataloader):
+BATCH_SIZE = 64 // config.n_pet_channels
+
+def load_image(image_path):
+    img = np.load(image_path)
+    img = img.transpose((2,0,1))
+    img = torch.from_numpy(img)
+    return img
+
+def get_batch(dataset, loc, batch_size):
+    image_paths = dataset[loc:loc+batch_size]
+    bs = len(image_paths)
+    batch_image = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
+    for i, p in enumerate(image_paths):
+        batch_image[i] = load_image(p, is_mri=False)
+        
+    batch_image = batch_image.reshape(bs * config.n_pet_channels, config.pet_image_dim, config.pet_image_dim)
+    batch_image = batch_image.unsqueeze(1)
+    batch_image = batch_image.repeat(1, 3, 1, 1)
+    batch_image = transform(batch_image)
+    return batch_image
+
+def get_inception_features(model, dataset):
     model.eval()
     features = []
-
     with torch.no_grad():
-        for data in dataloader:
-            inputs, _ = data
-            inputs = inputs.to(device)
-            output = model(inputs)
+        for i in range(0, len(dataset), BATCH_SIZE):
+            batch_images = get_batch(dataset, i, BATCH_SIZE)
+            batch_images = batch_images.to(device)
+            output = model(batch_images)
             features.append(output.cpu().numpy())
 
     features = np.concatenate(features, axis=0)
@@ -38,10 +59,9 @@ def calculate_fid(act1, act2):
     return np.real(fid)
 
 
-test_path = '../data/test_images/'
-test_dataset = ImageFolder(root=test_path, transform=transform)
-test_dataloader = DataLoader(test_dataset, batch_size=32, shuffle=False)
-test_act = get_inception_features(model, test_dataloader)
+test_dataset = '../data/testDataset.pkl'
+test_dataset = [os.path.join(config.pet_image_dir, pet_path) for (mri_path, pet_path) in test_dataset]
+test_act = get_inception_features(model, test_dataset)
 
 model_keys = [
     'baseDiffusion',
@@ -57,9 +77,8 @@ model_keys = [
 
 for k in tqdm(model_keys):
     model_path = f'../results/generated_datasets/{k}/'
-    model_dataset = ImageFolder(root=model_path, transform=transform)
-    model_dataloader = DataLoader(model_dataset, batch_size=32, shuffle=False)
-    model_act = get_inception_features(model, model_dataloader)
+    model_dataset = [os.path.join(model_path, file) for file in os.listdir(model_path)]
+    model_act = get_inception_features(model, model_dataset)
     fid_value = calculate_fid(test_act, model_act)
     print('{k} FID:', fid_value)
     pickle.dump(fid_value, open(f'../results/quantitative_evaluations/{k}_fid.pkl', 'wb'))

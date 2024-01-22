@@ -1,3 +1,4 @@
+import os
 import torch
 import pickle
 import numpy as np
@@ -14,15 +15,36 @@ model = inception_v3(pretrained=True, transform_input=False).to(device)
 model.fc = torch.nn.Identity()
 transform = Compose([Resize(299), CenterCrop(299), ToTensor(), Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
 
-def get_inception_score(model, dataloader):
+BATCH_SIZE = 64 // config.n_pet_channels
+
+def load_image(image_path):
+    img = np.load(image_path)
+    img = img.transpose((2,0,1))
+    img = torch.from_numpy(img)
+    return img
+
+def get_batch(dataset, loc, batch_size):
+    image_paths = dataset[loc:loc+batch_size]
+    bs = len(image_paths)
+    batch_image = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
+    for i, p in enumerate(image_paths):
+        batch_image[i] = load_image(p, is_mri=False)
+        
+    batch_image = batch_image.reshape(bs * config.n_pet_channels, config.pet_image_dim, config.pet_image_dim)
+    batch_image = batch_image.unsqueeze(1)
+    batch_image = batch_image.repeat(1, 3, 1, 1)
+    batch_image = transform(batch_image)
+    return batch_image
+
+def get_inception_score(model, dataset):
     model.eval()
     preds = []
 
     with torch.no_grad():
-        for data in dataloader:
-            inputs, _ = data
-            inputs = inputs.to(device)
-            output = model(inputs)
+        for i in range(0, len(dataset), BATCH_SIZE):
+            batch_images = get_batch(dataset, i, BATCH_SIZE)
+            batch_images = batch_images.to(device)
+            output = model(batch_images)
             preds.append(torch.nn.functional.softmax(output, dim=1).cpu().numpy())
 
     preds = np.concatenate(preds, axis=0)
@@ -44,8 +66,7 @@ model_keys = [
 
 for k in tqdm(model_keys):
     model_path = f'../results/generated_datasets/{k}/'
-    model_dataset = ImageFolder(root=model_path, transform=transform)
-    model_dataloader = DataLoader(model_dataset, batch_size=32, shuffle=False)
-    is_score = get_inception_score(model, model_dataloader)
+    model_dataset = [os.path.join(model_path, file) for file in os.listdir(model_path)]
+    is_score = get_inception_score(model, model_dataset)
     print('{k} Inception Score:', is_score)
     pickle.dump(is_score, open(f'../results/quantitative_evaluations/{k}_is.pkl', 'wb'))

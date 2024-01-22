@@ -1,16 +1,17 @@
+import os
 import torch
 import random
 import pickle
 import numpy as np
 from tqdm import tqdm
-from PIL import Image
+import matplotlib.pyplot as plt
 from ..config import MRI2PETConfig
-from ..models.diffusionModel import DiffusionModel
 from ..models.ganModel import Generator
+from ..models.diffusionModel import DiffusionModel
 
 SEED = 4
 cudaNum = 0
-NUM_SAMPLES = 25
+NUM_SAMPLES = 5
 random.seed(SEED)
 np.random.seed(SEED)
 torch.manual_seed(SEED)
@@ -20,6 +21,7 @@ if torch.cuda.is_available():
     torch.cuda.manual_seed_all(SEED)
 
 test_dataset = pickle.load(open('../data/testDataset.pkl', 'rb'))
+test_dataset = [os.path.join(config.mri_image_dir, mri_path) for (mri_path, pet_path) in test_dataset]
 
 def load_image(image_path, is_mri=True):
     img = np.load(image_path)
@@ -39,23 +41,45 @@ def get_batch(dataset, loc, batch_size):
         batch_image[i] = load_image(p, is_mri=False)
         
     return batch_context, batch_image
-  
-def tensor_to_image(tensor):
-    # First de-normalize from [-1, 1] to [0, 1]
-    tensor = (tensor + 1) / 2.0
-    # Convert to PIL image
-    img = transforms.ToPILImage()(tensor)
-    return img
+
+def tensor_to_numpy(tensor):
+    """Convert a torch tensor to a numpy array."""
+    # Convert to a numpy array
+    image = tensor.cpu().clone()
+    image = (image + 1) / 2.0
+    image = image.numpy()
+    image = image.transpose((1, 2, 0))
+    return image
+
+def save_slice_plots(array, path_prefix):
+    # Array: (Height, Width, Slices)
+    # Directions: Transversal, Sagittal, Coronal
+    
+    # Transversal
+    for i in range(array.shape[2]):
+        slice = array[:, :, i]
+        plt.imsave(f'{path_prefix}_Transversal{i}.png', slice, cmap='gray')
+        
+    # Sagittal
+    for i in range(array.shape[1]):
+        slice = array[:, i, :]
+        plt.imsave(f'{path_prefix}_Sagittal{i}.png', slice, cmap='gray')
+        
+    # Coronal
+    for i in range(array.shape[0]):
+        slice = array[i, :, :]
+        plt.imsave(f'{path_prefix}_Coronal{i}.png', slice, cmap='gray')
+        
 
 # Generate Samples
 sampleIdx = np.random.choice(len(test_dataset), size=NUM_SAMPLES)
 sample_data = [test_dataset[i] for i in sampleIdx]
 sample_contexts, real_images = get_batch(sample_data, 0, NUM_SAMPLES)
-resized_context_images = [Image.open(mri_path).resize((config.pet_image_dim, config.pet_image_dim)) for mri_path, _ in test_dataset]
 
-for i in tqdm(range(NUM_SAMPLES)):
-    real_image = tensor_to_image(real_images[i].cpu())
-    real_image.save(f'../results/image_samples/realImage_{i}.jpg')
+
+for i in range(NUM_SAMPLES):
+    real_image = tensor_to_numpy(real_images[i].cpu())
+    save_slice_plots(real_image, f'../results/image_samples/realImage_{i}')
 
 model_keys = [
     'baseDiffusion',
@@ -83,28 +107,6 @@ for k in tqdm(model_keys):
     with torch.no_grad():
         sample_images = model.generate(sample_contexts)
 
-    num_per_row = NUM_SAMPLES ** 0.5
-    grid = Image.new('RGB' if config.n_pet_channels == 3 else 'L', (config.pet_image_dim * num_per_row, config.pet_image_dim * num_per_row), color='white')
-    paired_grid = Image.new('RGB' if config.n_pet_channels == 3 else 'L', (config.pet_image_dim * num_per_row * 2, config.pet_image_dim * num_per_row), color='white')
-    for i in tqdm(range(NUM_SAMPLES)):
-        sample_image = tensor_to_image(sample_images[i].cpu())
-        sample_image.save(f'../results/image_samples/sampleImage_{i}.jpg')
-
-        x = (i % num_per_row) * config.pet_image_dim
-        y = (i // num_per_row) * config.pet_image_dim
-        grid.paste(sample_images[i], (x, y))
-
-        row = i // 5
-        col = (i % 5) * 2
-
-        x_main = col * config.pet_image_dim
-        y_main = row * config.pet_image_dim
-        paired_grid.paste(sample_images[i], (x_main, y_main))
-
-        x_context = x_main + config.pet_image_dim
-        y_context = y_main
-        paired_grid.paste(resized_context_images[i], (x_context, y_context))
-
-    
-    grid.save(f'../results/image_grids/{k}.jpg')
-    paired_grid.save(f'../results/image_grids/{k}_paired.jpg')
+    for i in range(NUM_SAMPLES):
+        sample_image = tensor_to_numpy(sample_images[i].cpu())
+        save_slice_plots(sample_image, f'../results/image_samples/{k}_{i}')
