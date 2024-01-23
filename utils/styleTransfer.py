@@ -105,14 +105,13 @@ def get_style_model_and_losses(style_img, content_img):
 def run_style_transfer(content_img, style_img, input_img, num_steps=250, 
                        style_weight=1000, content_weight=1):
     """Run the style transfer."""
-    print('Building the style transfer model..')
+    # print('Building the style transfer model..')
     model, style_losses, content_losses = get_style_model_and_losses(style_img, content_img)
     
     optimizer = optim.LBFGS([input_img.requires_grad_()])
 
-    print('Optimizing..')
-    run = [0]
-    while run[0] <= num_steps:
+    # print('Optimizing..')
+    for step in tqdm(range(num_steps), desc='Steps', leave=False):
 
         def closure():
             # correct the values of updated input image
@@ -134,12 +133,12 @@ def run_style_transfer(content_img, style_img, input_img, num_steps=250,
             loss = style_score + content_score
             loss.backward()
 
-            run[0] += 1
-            if run[0] % 50 == 0:
-                print("run {}:".format(run))
-                print('Style Loss : {:4f} Content Loss: {:4f}'.format(
-                    style_score.item(), content_score.item()))
-                print()
+
+            # if step % 50 == 0:
+                # print("step {}:".format(step))
+                # print('Style Loss : {:4f} Content Loss: {:4f}'.format(
+                #     style_score.item(), content_score.item()))
+                # print()
 
             return style_score + content_score
 
@@ -152,32 +151,24 @@ def run_style_transfer(content_img, style_img, input_img, num_steps=250,
 
 def run_style_transfer_on_slices(content_slices, style_slices, num_steps=250, style_weight=1000, content_weight=1):
     """Run style transfer on each slice."""
-    styled_slices = []
-
-    for slice_idx in range(content_slices.size(1)):
-        content_img = content_slices[:, slice_idx, :, :].unsqueeze(1).repeat(1, 3, 1, 1)
-        style_img = style_slices[:, slice_idx, :, :].unsqueeze(1).repeat(1, 3, 1, 1)
-        input_img = content_img.clone()
-        styled_slice = run_style_transfer(content_img, style_img, input_img, num_steps, style_weight, content_weight)
-        styled_slice = styled_slice.mean(dim=1)
-        styled_slices.append(styled_slice)
-
-    return torch.stack(styled_slices, dim=1) # Stack the slices back together while preserving the batch dimension
-
+    content_img = content_slices.unsqueeze(1).repeat(1, 3, 1, 1)
+    style_img = style_slices.unsqueeze(1).repeat(1, 3, 1, 1)
+    input_img = content_img.clone()
+    styled_img = run_style_transfer(content_img, style_img, input_img, num_steps, style_weight, content_weight)
+    styled_img = styled_img.mean(dim=1)
+    return styled_img
 
 def load_image(path):
     """Load an image as a torch tensor."""
     image = np.load(path)
     image = image.transpose((2, 0, 1)) # Convert to CxHxW
     image = torch.from_numpy(image).float() # Convert to torch tensor
-    image = image.unsqueeze(0) # Add fake batch dimension
     return image
 
 def save_image(tensor, path):
     """Save a torch tensor as an image."""
     # Convert the tensor to a PIL image and save
     image = tensor.cpu().clone()       # Clone the tensor to not do changes on it
-    image = image.squeeze(0)           # Remove the fake batch dimension
     image = image.numpy()              # Convert to numpy array
     image = image.transpose((1, 2, 0)) # Convert back to HxWxC
     np.save(path, image)
@@ -195,7 +186,7 @@ output_dir = "../data/MRI_Style/"
 os.makedirs(output_dir, exist_ok=True)
 
 content_imgs = pickle.load(open('../data/mriDataset.pkl', 'rb'))
-for content_file in tqdm(content_imgs):
+for content_file in tqdm(content_imgs, desc='MRI Images'):
     content_img = load_image(os.path.join(content_dir, content_file)).to(device)
     style_img = random.choice(style_imgs).to(device)
     output = run_style_transfer_on_slices(content_img, style_img)
