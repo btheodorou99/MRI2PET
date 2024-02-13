@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 from tqdm import tqdm
 from scipy.ndimage import zoom
-from ..config import MRI2PETConfig
+from ...config import MRI2PETConfig
 
 input_mri_dir = "../data/MRI/"
 output_mri_dir = "../data/MRI_Processed/"

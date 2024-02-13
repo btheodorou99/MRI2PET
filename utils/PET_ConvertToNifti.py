@@ -14,15 +14,11 @@
 import os
 import pickle
 import subprocess
-import numpy as np
 from tqdm import tqdm
-
-import ants
 from pypet2bids.ecat import Ecat
 
-pet_dir = "../data/ADNI_PET/"
-output_dir = "../data/PET/"
-data_dict = {}
+pet_dir = "/data/CARD_AA/data/ADNI/PET_ADNI/"
+output_dir = "/data/CARD_AA/data/ADNI/PET_Nifti/"
 
 # Create a temporary directory
 tempdir = "./temp/"
@@ -30,6 +26,8 @@ if not os.path.exists(tempdir):
     os.makedirs(tempdir)
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
+
+missing = []
 
 for subject_id in tqdm(os.listdir(pet_dir)):
     subject_path = os.path.join(pet_dir, subject_id)
@@ -56,12 +54,9 @@ for subject_id in tqdm(os.listdir(pet_dir)):
                 if not files:
                     continue
                 
-                npy_filename = f"{subject_id}---{date}.npy"
-                output_filename = os.path.join(output_dir, npy_filename)
+                nii_filename = f"{subject_id}--{date}--{some_ids}.nii"
+                output_filename = os.path.join(output_dir, nii_filename)
                 if os.path.exists(output_filename):
-                    if subject_id not in data_dict:
-                        data_dict[subject_id] = {}
-                    data_dict[subject_id][date] = {'shape': np.load(output_filename).shape, 'filename': npy_filename}
                     continue
 
                 file = files[0]
@@ -79,35 +74,12 @@ for subject_id in tqdm(os.listdir(pet_dir)):
                     nifti_files = [f for f in os.listdir(tempdir) if f.endswith(('.nii', '.nii.gz'))]
                     if nifti_files:
                         niix_file = os.path.join(tempdir, nifti_files[0])
-                        img = ants.image_read(niix_file)
-                        if len(img.shape) == 4:
-                            num_time_points = img.shape[3]
-                            reference_frame = img[:, :, :, 0]
-                            registered_frames = [reference_frame]
-                            for i in range(1, num_time_points):
-                                moving_frame = img[:, :, :, i]
-                                registration = ants.registration(fixed=ants.  from_numpy(reference_frame), moving=ants.from_numpy(moving_frame), type_of_transform='Rigid')
-                                registered_frames.append(registration['warpedmovout'].numpy())
-
-                            img = ants.from_numpy(np.mean(np.array(registered_frames), axis=0))
-                        
-                        data = img.numpy()
-                        data = (data - data.min()) / (data.max() - data.min())
-
-                        # Save processed data
-                        np.save(output_filename, data)
-
-                        # Update dictionary
-                        if subject_id not in data_dict:
-                            data_dict[subject_id] = {}
-                        data_dict[subject_id][date] = {'shape': data.shape, 'filename': npy_filename}
-
-                    # Clean up temporary directory
-                    for f in os.listdir(tempdir):
-                        os.remove(os.path.join(tempdir, f))
+                        os.rename(niix_file, output_filename)
                 except:
-                    print(f"Error processing {file} in {some_ids_path}")
-                    continue
-                
+                    missing.append(nii_filename)
+
+                for f in os.listdir(tempdir):
+                    os.remove(os.path.join(tempdir, f))
+
 os.rmdir(tempdir)
-pickle.dump(data_dict, open('../data/pet_dict.pkl', 'wb'))
+pickle.dump(missing, open('../data/missing_pet.pkl', 'wb'))

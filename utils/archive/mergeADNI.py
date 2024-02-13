@@ -39,8 +39,5 @@ for subject_id in tqdm(os.listdir(source_dir)):
                     date_path_source = os.path.join(keyword_path_source, date)
                     date_path_target = os.path.join(keyword_path_target, date)
 
-                    # Check if Date exists under the same Keyword in target
                     if not os.path.exists(date_path_target):
-                        # If Date does not exist in target, copy the entire directory
                         shutil.copytree(date_path_source, date_path_target)
-                    # If Date exists, you can add additional logic here as needed
