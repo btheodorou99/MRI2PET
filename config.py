@@ -9,7 +9,7 @@ class MRI2PETConfig(object):
             mri_image_dim=192,
             pet_image_dim=128,
             n_mri_channels=5,
-            n_pet_channels=47,
+            n_pet_channels=60,
             embed_dim = 128,
             beta_start = 0.0015,
             beta_end = 0.02,
