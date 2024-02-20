@@ -1,0 +1,170 @@
+import os
+import torch
+import random
+import pickle
+import numpy as np
+from tqdm import tqdm
+from ..config import MRI2PETConfig
+from ..models.proposedModel17 import DiffusionModel, ImagePairClassifier
+
+SEED = 4
+cudaNum = 0
+NUM_NEG_PAIRS = 4
+NUM_SAMPLES = 25
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+config = MRI2PETConfig()
+device = torch.device(f"cuda:{cudaNum}" if torch.cuda.is_available() else "cpu")
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(SEED)
+
+pretrain_dataset = pickle.load(open('./src/data/mriDataset.pkl', 'rb'))
+pretrain_dataset = [(os.path.join(config.mri_image_dir, mri_path), os.path.join(config.mri_style_dir, mri_path)) for mri_path in pretrain_dataset]
+train_dataset = pickle.load(open('./src/data/trainDataset.pkl', 'rb'))
+train_dataset = [(os.path.join(config.mri_image_dir, mri_path), os.path.join(config.pet_image_dir, pet_path)) for (mri_path, pet_path) in train_dataset]
+mri_paths = [mri_path for (mri_path, _) in train_dataset]
+train_pair_dataset = [(mri_path, pet_path, 1) for (mri_path, pet_path) in train_dataset] + [(random.choice([p for p in mri_paths if p != mri_path]), pet_path, 0) for mri_path, pet_path in train_dataset for _ in range(NUM_NEG_PAIRS)]
+val_dataset = pickle.load(open('./src/data/valDataset.pkl', 'rb'))
+val_dataset = [(os.path.join(config.mri_image_dir, mri_path), os.path.join(config.pet_image_dir, pet_path)) for (mri_path, pet_path) in val_dataset]
+mri_paths = [mri_path for (mri_path, _) in val_dataset]
+val_pair_dataset = [(mri_path, pet_path, 1) for (mri_path, pet_path) in val_dataset] + [(random.choice([p for p in mri_paths if p != mri_path]), pet_path, 0) for mri_path, pet_path in val_dataset for _ in range(NUM_NEG_PAIRS)]
+
+def load_image(image_path, is_mri=True):
+    img = np.load(image_path)
+    img = img.transpose((2,0,1))
+    img = torch.from_numpy(img)
+    if not is_mri:
+        img = 2 * img - 1
+    return img
+
+def get_batch(dataset, loc, batch_size):
+    image_paths = dataset[loc:loc+batch_size]
+    bs = len(image_paths)
+    batch_context = torch.zeros(bs, config.n_mri_channels, config.mri_image_dim, config.mri_image_dim, dtype=torch.float, device=device)
+    batch_image = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
+    for i, (m, p) in enumerate(image_paths):
+        batch_context[i] = load_image(m, is_mri=True)
+        batch_image[i] = load_image(p, is_mri=False)
+        
+    return batch_context, batch_image
+
+def get_batch_cls(dataset, loc, batch_size):
+    image_paths = dataset[loc:loc+batch_size]
+    bs = len(image_paths)
+    batch_context = torch.zeros(bs, config.n_mri_channels, config.mri_image_dim, config.mri_image_dim, dtype=torch.float, device=device)
+    batch_image = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
+    batch_labels = torch.zeros(bs, dtype=torch.float, device=device)
+    for i, (m, p, l) in enumerate(image_paths):
+        batch_context[i] = load_image(m, is_mri=True)
+        batch_image[i] = load_image(p, is_mri=False)
+        batch_labels[i] = l
+        
+    return batch_context, batch_image, batch_labels
+
+def shuffle_training_data(train_ehr_dataset):
+    random.shuffle(train_ehr_dataset)
+
+model = DiffusionModel(config).to(device)
+optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
+if os.path.exists(f"./src/save/proposedModel17.pt"):
+    print("Loading previous model")
+    checkpoint = torch.load(f'./src/save/proposedModel17.pt', map_location=torch.device(device))
+    model.load_state_dict(checkpoint['model'])
+    optimizer.load_state_dict(checkpoint['optimizer'])
+
+for e in tqdm(range(config.pretrain_epoch)):
+    shuffle_training_data(pretrain_dataset)
+    pretrain_losses = []
+    model.train()
+    for i in range(0, len(pretrain_dataset), config.batch_size):
+        batch_context, batch_images = get_batch(pretrain_dataset, i, config.batch_size)
+        optimizer.zero_grad()
+        loss, _ = model(batch_context, batch_images, gen_loss=True)
+        loss.backward()
+        optimizer.step()
+        pretrain_losses.append(loss.cpu().detach().item())
+    
+    cur_pretrain_loss = np.mean(pretrain_losses)
+    print("Epoch %d Training Loss:%.7f"%(e, cur_pretrain_loss))
+    state = {
+        'model': model.state_dict(),
+        'optimizer': optimizer.state_dict(),
+        'mode': 'pretrain'
+    }
+    torch.save(state, f'./src/save/proposedModel17.pt')
+    
+cls_model = ImagePairClassifier(config).to(device)
+optimizer = torch.optim.Adam(cls_model.parameters(), lr=config.lr)
+bce = torch.nn.BCELoss()
+global_loss = 1e10
+for e in tqdm(range(config.pretrain_epoch)):
+    shuffle_training_data(train_pair_dataset)
+    cls_losses = []
+    cls_model.train()
+    for i in range(0, len(train_pair_dataset), config.batch_size):
+        batch_mri, batch_pet, batch_labels = get_batch_cls(train_pair_dataset, i, config.batch_size)
+        preds = cls_model(batch_mri, batch_pet)
+        loss = bce(preds, batch_labels)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        cls_losses.append(loss.cpu().detach().item())
+    
+    cur_cls_loss = np.mean(pretrain_losses)
+    cls_val_losses = []
+    cls_val_accs = []
+    for i in range(0, len(val_pair_dataset), config.batch_size):
+        batch_mri, batch_pet, batch_labels = get_batch_cls(val_pair_dataset, i, config.batch_size)
+        preds = cls_model(batch_mri, batch_pet)
+        loss = bce(preds, batch_labels)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        cls_val_losses.append(loss.cpu().detach().item())
+        cls_val_accs.extend(((preds > 0.5) == batch_labels).cpu().detach().numpy().tolist())
+        
+    cur_cls_val_loss = np.mean(cls_val_losses)
+    cur_cls_val_acc = np.mean(cls_val_accs)
+    print("Classifier Epoch %d Training Loss:%.7f Validation Loss:%.7f Validation Accuracy:%.3f"%(e, cur_cls_loss, cur_cls_val_loss, cur_cls_val_acc))
+    if cur_cls_val_loss < global_loss:
+        global_loss = cur_cls_val_loss
+        state = {
+            'model': cls_model.state_dict(),
+            'optimizer': optimizer.state_dict(),
+        }
+        torch.save(state, f'./src/save/proposedModel17_cls.pt')
+        
+cls_model.load_state_dict(torch.load(f'./src/save/proposedModel17_cls.pt')['model'])
+cls_model.eval()
+cls_model.requires_grad_(False)
+optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
+
+for e in tqdm(range(config.epoch)):
+    shuffle_training_data(train_dataset)
+    train_losses = []
+    model.train()
+    for i in range(0, len(train_dataset), config.batch_size):
+        batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
+        optimizer.zero_grad()
+        loss, _ = model(batch_context, batch_images, gen_loss=True, pairModel=cls_model)
+        loss.backward()
+        optimizer.step()
+        train_losses.append(loss.cpu().detach().item())
+    
+    model.eval()
+    with torch.no_grad():
+        val_losses = []
+        for v_i in range(0, len(val_dataset), config.batch_size):
+            batch_context, batch_images = get_batch(val_dataset, v_i, config.batch_size)                 
+            val_loss, _ = model(batch_context, batch_images, gen_loss=True)
+            val_losses.append((val_loss).cpu().detach().item())
+        
+        cur_val_loss = np.mean(val_losses)
+        print("Epoch %d Validation Loss:%.7f"%(e, cur_val_loss))
+        state = {
+            'model': model.state_dict(),
+            'optimizer': optimizer.state_dict(),
+            'mode': 'train'
+        }
+        torch.save(state, f'./src/save/proposedModel17.pt')

@@ -1,2 +1,2 @@
-data/
-utils/deleteProcessed.py
+src/data/
+src/utils/deleteProcessed.py

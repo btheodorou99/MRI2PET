@@ -1,0 +1,84 @@
+import os
+import torch
+import pickle
+import numpy as np
+from tqdm import tqdm
+from scipy import linalg
+from ..config import MRI2PETConfig
+from torch.utils.data import DataLoader
+from torchvision.models import inception_v3
+from torchvision.datasets import ImageFolder
+from torchvision.transforms import Compose, Resize, CenterCrop, ToTensor, Normalize
+
+config = MRI2PETConfig()
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = inception_v3(pretrained=True).to(device)
+model.fc = torch.nn.Identity()
+transform = Compose([Resize(299), CenterCrop(299), ToTensor(), Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
+
+BATCH_SIZE = 64 // config.n_pet_channels
+
+def load_image(image_path):
+    img = np.load(image_path)
+    img = img.transpose((2,0,1))
+    img = torch.from_numpy(img)
+    return img
+
+def get_batch(dataset, loc, batch_size):
+    image_paths = dataset[loc:loc+batch_size]
+    bs = len(image_paths)
+    batch_image = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
+    for i, p in enumerate(image_paths):
+        batch_image[i] = load_image(p, is_mri=False)
+        
+    batch_image = batch_image.reshape(bs * config.n_pet_channels, config.pet_image_dim, config.pet_image_dim)
+    batch_image = batch_image.unsqueeze(1)
+    batch_image = batch_image.repeat(1, 3, 1, 1)
+    batch_image = transform(batch_image)
+    return batch_image
+
+def get_inception_features(model, dataset):
+    model.eval()
+    features = []
+    with torch.no_grad():
+        for i in range(0, len(dataset), BATCH_SIZE):
+            batch_images = get_batch(dataset, i, BATCH_SIZE)
+            batch_images = batch_images.to(device)
+            output = model(batch_images)
+            features.append(output.cpu().numpy())
+
+    features = np.concatenate(features, axis=0)
+    return features
+
+def calculate_fid(act1, act2):
+    mu1, sigma1 = act1.mean(axis=0), np.cov(act1, rowvar=False)
+    mu2, sigma2 = act2.mean(axis=0), np.cov(act2, rowvar=False)
+    ssdiff = np.sum((mu1 - mu2) ** 2)
+    covmean = linalg.sqrtm(sigma1.dot(sigma2), disp=False)[0]
+    fid = ssdiff + np.trace(sigma1 + sigma2 - 2 * covmean)
+    return np.real(fid)
+
+
+test_dataset = './src/data/testDataset.pkl'
+test_dataset = [os.path.join(config.pet_image_dir, pet_path) for (mri_path, pet_path) in test_dataset]
+test_act = get_inception_features(model, test_dataset)
+
+model_keys = [
+    'baseDiffusion',
+    'baseGAN',
+    'noisyPretrainedDiffusion',
+    'noisyPretrainedGAN',
+    'selfPretrainedDiffusion',
+    'selfPretrainedGAN',
+    'stylePretrainedDiffusion',
+    'stylePretrainedGAN',
+    'mri2pet',
+]
+
+for k in tqdm(model_keys):
+    model_path = f'./src/results/generated_datasets/{k}/'
+    model_dataset = [os.path.join(model_path, file) for file in os.listdir(model_path)]
+    model_act = get_inception_features(model, model_dataset)
+    fid_value = calculate_fid(test_act, model_act)
+    print('{k} FID:', fid_value)
+    pickle.dump(fid_value, open(f'./src/results/quantitative_evaluations/{k}_fid.pkl', 'wb'))

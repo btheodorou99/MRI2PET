@@ -1,0 +1,78 @@
+import os
+import torch
+import random
+import pickle
+import numpy as np
+from tqdm import tqdm
+from ..config import MRI2PETConfig
+from ..models.diffusionModel import DiffusionModel
+from ..models.ganModel import Generator
+
+SEED = 4
+cudaNum = 0
+NUM_SAMPLES = 25
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+config = MRI2PETConfig()
+device = torch.device(f"cuda:{cudaNum}" if torch.cuda.is_available() else "cpu")
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(SEED)
+
+test_dataset = pickle.load(open('./src/data/testDataset.pkl', 'rb'))
+test_dataset = [os.path.join(config.mri_image_dir, mri_path) for (mri_path, pet_path) in test_dataset]
+
+def load_image(image_path):
+    img = np.load(image_path)
+    img = img.transpose((2,0,1))
+    img = torch.from_numpy(img)
+    return img
+
+def get_batch(dataset, loc, batch_size):
+    image_paths = dataset[loc:loc+batch_size]
+    bs = len(image_paths)
+    batch_context = torch.zeros(bs, config.n_mri_channels, config.mri_image_dim, config.mri_image_dim, device=device)
+    for i, p in enumerate(image_paths):
+        batch_context[i] = load_image(p)
+        
+    return batch_context
+  
+def save_image(tensor, path):
+    """Save a torch tensor as an image."""
+    # Convert the tensor to a PIL image and save
+    image = tensor.cpu().clone()
+    image = (image + 1) / 2.0
+    image = image.numpy()
+    image = image.transpose((1, 2, 0))
+    np.save(path, image)
+        
+model_keys = [
+    'baseDiffusion',
+    'baseGAN',
+    'noisyPretrainedDiffusion',
+    'noisyPretrainedGAN',
+    'selfPretrainedDiffusion',
+    'selfPretrainedGAN',
+    'stylePretrainedDiffusion',
+    'stylePretrainedGAN',
+    'mri2pet',
+]
+
+for k in tqdm(model_keys):
+    print(k)
+    os.makedirs(f'./src/results/generated_datasets/{k}', exist_ok=True)
+    if 'GAN' in k:
+        model = Generator(config).to(device)
+        model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location=torch.device(device))['generator'])
+        model.eval()
+    else:
+        model = DiffusionModel(config).to(device)
+        model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location=torch.device(device))['model'])
+        model.eval()
+
+    with torch.no_grad():
+        for i in tqdm(range(0, len(test_dataset), config.batch_size), leave=False):
+            sample_contexts = get_batch(test_dataset, i, config.batch_size)
+            sample_images = model.generate(sample_contexts)
+            for j in range(sample_images.size(0)):
+                save_image(sample_images[j], f'./src/results/generated_datasets/{k}/sampleImage_{i+j}.npy')
