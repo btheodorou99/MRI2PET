@@ -40,6 +40,10 @@ for niix_file in tqdm(os.listdir(pet_dir)):
 
         img = ants.from_numpy(np.mean(np.array(final_registered_frames), axis=0))
 
+    # Disregard images that are just a single slice
+    if img.shape[2] == 1:
+        continue
+
     img = ants.resample_image(img, (config.pet_image_dim, config.pet_image_dim, config.n_pet_channels), use_voxels=True, interp_type=3)
     # img = ants.registration(fixed=template, moving=img, type_of_transform='SyN')['warpedmovout']
     img = ants.utils.convert_nibabel.to_nibabel(img)
