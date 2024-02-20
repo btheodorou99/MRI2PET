@@ -12,6 +12,7 @@
 #           dicomFiles
 
 import os
+import shutil
 import pickle
 import subprocess
 from tqdm import tqdm
@@ -74,8 +75,9 @@ for subject_id in tqdm(os.listdir(pet_dir)):
                     nifti_files = [f for f in os.listdir(tempdir) if f.endswith(('.nii', '.nii.gz'))]
                     if nifti_files:
                         niix_file = os.path.join(tempdir, nifti_files[0])
-                        os.rename(niix_file, output_filename)
-                except:
+                        shutil.move(niix_file, output_filename)
+                except Exception as e:
+                    print(e)
                     missing.append(nii_filename)
 
                 for f in os.listdir(tempdir):
