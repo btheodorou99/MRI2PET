@@ -6,4 +6,4 @@
 #SBATCH --job-name=buildDataset
 
 module load python
-python -m ../src/utils/buildDataset.py
+python -m src.utils.buildDataset

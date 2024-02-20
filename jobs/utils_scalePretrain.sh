@@ -6,4 +6,4 @@
 #SBATCH --job-name=scalePretrain
 
 module load python
-python -m ../src/utils/scalePretrain.py
+python -m src.utils.scalePretrain

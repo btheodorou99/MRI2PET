@@ -6,4 +6,4 @@
 #SBATCH --job-name=petPreprocess
 
 module load python
-python -m ../src/utils/PET_PreProcessing.py
+python -m src.utils.PET_PreProcessing

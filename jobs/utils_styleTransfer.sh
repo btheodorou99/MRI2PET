@@ -6,4 +6,4 @@
 #SBATCH --job-name=styleTransfer
 
 module load python
-python -m ../src/utils/styleTransfer.py
+python -m src.utils.styleTransfer

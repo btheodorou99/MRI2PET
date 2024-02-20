@@ -6,4 +6,4 @@
 #SBATCH --job-name=convertPetToNifti
 
 module load python
-python -m ../src/utils/PET_ConvertToNifti.py
+python -m src.utils.PET_ConvertToNifti.py

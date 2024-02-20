@@ -6,4 +6,4 @@
 #SBATCH --job-name=petPostprocess
 
 module load python
-python -m ../src/utils/PET_PostProcessing.py
+python -m src.utils.PET_PostProcessing
