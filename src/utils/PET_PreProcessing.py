@@ -24,7 +24,7 @@ for niix_file in tqdm(os.listdir(pet_dir)):
         
         # Register to First on Initial Pass
         reference_frame = ants.from_numpy(img[:, :, :, 0])
-        initial_registered_frames = [reference_frame]
+        initial_registered_frames = [reference_frame.numpy()]
         for i in range(1, num_time_points):
             moving_frame = img[:, :, :, i]
             registration = ants.registration(fixed=reference_frame, moving=ants.from_numpy(moving_frame), type_of_transform='Rigid')
@@ -34,7 +34,7 @@ for niix_file in tqdm(os.listdir(pet_dir)):
         reference_frame = ants.from_numpy(np.mean(np.array(initial_registered_frames), axis=0))
         final_registered_frames = []
         for i in range(0, num_time_points):
-            moving_frame = final_registered_frames[i]
+            moving_frame = initial_registered_frames[i]
             registration = ants.registration(fixed=reference_frame, moving=ants.from_numpy(moving_frame), type_of_transform='Rigid')
             final_registered_frames.append(registration['warpedmovout'].numpy())
 
