@@ -7,7 +7,7 @@ import nibabel as nib
 from src.config import MRI2PETConfig
 
 config = MRI2PETConfig()
-pet_dir = "/data/CARD_AA/data/ADNI/PET_Nifti/"
+pet_dir = "/data/CARD_AA/data/ADNI/PET_Nifti_PreProcessed/"
 output_dir = "/data/CARD_AA/data/ADNI/PET/"
 pairs = pickle.load(open('./src/data/pet_mri_pairs.pkl', 'rb'))
 pairs = [(mri_path, pet_path.split('/')[-1]) for mri_path, pet_path in pairs]
