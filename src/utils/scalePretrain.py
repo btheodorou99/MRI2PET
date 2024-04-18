@@ -5,9 +5,8 @@ from tqdm import tqdm
 from scipy.ndimage import zoom
 from ..config import MRI2PETConfig
 
-input_mri_dir = "./src/data/MRI_Processed/"
-output_mri_dir = "./src/data/MRI_Pretrain/"
-pet_dir = "./src/data/PET_Processed/"
+output_mri_dir = "/data/CARD_AA/data/ADNI/MRI_Pretrain/"
+pet_dir = "/data/CARD_AA/data/ADNI/PET/"
 
 os.makedirs(output_mri_dir, exist_ok=True)
 
@@ -33,6 +32,6 @@ def scale_image(mri_image):
 
 mri_paths = pickle.load(open('./src/data/mriDataset.pkl', 'rb'))
 for mri_path in tqdm(mri_paths):
-    mri = np.load(f'{input_mri_dir}{mri_path}')
+    mri = np.load(mri_path)
     standardized_mri = scale_image(mri)
-    np.save(f'{output_mri_dir}{mri_path}', standardized_mri)
+    np.save(f'{output_mri_dir}{mri_path.split('/')[-1]}', standardized_mri)

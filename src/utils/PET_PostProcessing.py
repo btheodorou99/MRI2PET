@@ -6,11 +6,11 @@ from tqdm import tqdm
 import nibabel as nib
 from src.config import MRI2PETConfig
 
-data_dict = {}
 config = MRI2PETConfig()
 pet_dir = "/data/CARD_AA/data/ADNI/PET_Nifti/"
-mri_dir = "/data/CARD_AA/data/ADNI/MRI_Nifti/"
 output_dir = "/data/CARD_AA/data/ADNI/PET/"
+pairs = pickle.load(open('./src/data/pet_mri_pairs.pkl', 'rb'))
+pairs = [(mri_path, pet_path.split('/')[-1]) for mri_path, pet_path in pairs]
 pet_template_path = "./src/data/petTemplate.nii"
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
@@ -33,22 +33,15 @@ else:
     nib.save(pet_nii, pet_template_path)
 
 # Perform Registrations to PET Mean and Subject MRI
-petToMri = pickle.load(open('./src/data/petToMri.pkl', 'rb'))
-for niix_file in tqdm(os.listdir(pet_dir)):
-    if not niix_file.endswith('.nii'):
-        continue
-
-    subject_id, date, some_ids = niix_file[:-4].split('--')  
-    npy_filename = f"{subject_id}--{date}--{some_ids}.npy"
+for mri_niix, pet_file in tqdm(pairs):
+    pet_niix = os.path.join(pet_dir, pet_niix)
+    npy_filename = pet_file.replace('.nii', '.npy')
     output_filename = os.path.join(output_dir, npy_filename)
     if os.path.exists(output_filename):
-        if subject_id not in data_dict:
-            data_dict[subject_id] = {}
-        data_dict[subject_id][date] = {'shape': np.load(output_filename).shape, 'filename': npy_filename}
         continue
 
-    img = ants.image_read(os.path.join(pet_dir, niix_file))
-    mri_img = ants.image_read(os.path.join(mri_dir, petToMri[subject_id][date]))
+    img = ants.image_read(pet_niix)
+    mri_img = ants.image_read(mri_niix)
     img = ants.registration(fixed=pet_template, moving=img, type_of_transform='Rigid')['warpedmovout']        
     img = ants.registration(fixed=mri_img, moving=img, type_of_transform='Rigid')['warpedmovout']        
     data = img.numpy()
@@ -56,10 +49,3 @@ for niix_file in tqdm(os.listdir(pet_dir)):
 
     # Save processed data
     np.save(output_filename, data)
-
-    # Update dictionary
-    if subject_id not in data_dict:
-        data_dict[subject_id] = {}
-    data_dict[subject_id][date] = {'shape': data.shape, 'filename': npy_filename}
-
-pickle.dump(data_dict, open('./src/data/pet_dict.pkl', 'wb'))

@@ -28,12 +28,10 @@ def get_patient_labels(path):
     return labels
 
 pretrain_dataset = pickle.load(open('./src/data/mriDataset.pkl', 'rb'))
-pretrain_dataset = [(os.path.join(config.mri_image_dir, mri_path), os.path.join(config.mri_style_dir, mri_path)) for mri_path in pretrain_dataset]
+pretrain_dataset = [(mri_path, os.path.join(config.mri_style_dir, mri_path.split('/')[-1])) for mri_path in pretrain_dataset]
 train_dataset = pickle.load(open('./src/data/trainDataset.pkl', 'rb'))
-train_dataset = [(os.path.join(config.mri_image_dir, mri_path), os.path.join(config.pet_image_dir, pet_path)) for (mri_path, pet_path) in train_dataset]
 train_cls_dataset = [(mri_path, get_patient_labels(mri_path)) for (mri_path, _) in train_dataset] + [(pet_path, get_patient_labels(pet_path)) for (_, pet_path) in train_dataset]
 val_dataset = pickle.load(open('./src/data/valDataset.pkl', 'rb'))
-val_dataset = [(os.path.join(config.mri_image_dir, mri_path), os.path.join(config.pet_image_dir, pet_path)) for (mri_path, pet_path) in val_dataset]
 val_cls_dataset = [(mri_path, get_patient_labels(mri_path)) for (mri_path, _) in val_dataset] + [(pet_path, get_patient_labels(pet_path)) for (_, pet_path) in val_dataset]
 
 NUM_LABELS = len(train_cls_dataset[0][1])

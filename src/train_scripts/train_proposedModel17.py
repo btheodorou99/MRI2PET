@@ -20,13 +20,11 @@ if torch.cuda.is_available():
     torch.cuda.manual_seed_all(SEED)
 
 pretrain_dataset = pickle.load(open('./src/data/mriDataset.pkl', 'rb'))
-pretrain_dataset = [(os.path.join(config.mri_image_dir, mri_path), os.path.join(config.mri_style_dir, mri_path)) for mri_path in pretrain_dataset]
+pretrain_dataset = [(mri_path, os.path.join(config.mri_style_dir, mri_path.split('/')[-1])) for mri_path in pretrain_dataset]
 train_dataset = pickle.load(open('./src/data/trainDataset.pkl', 'rb'))
-train_dataset = [(os.path.join(config.mri_image_dir, mri_path), os.path.join(config.pet_image_dir, pet_path)) for (mri_path, pet_path) in train_dataset]
 mri_paths = [mri_path for (mri_path, _) in train_dataset]
 train_pair_dataset = [(mri_path, pet_path, 1) for (mri_path, pet_path) in train_dataset] + [(random.choice([p for p in mri_paths if p != mri_path]), pet_path, 0) for mri_path, pet_path in train_dataset for _ in range(NUM_NEG_PAIRS)]
 val_dataset = pickle.load(open('./src/data/valDataset.pkl', 'rb'))
-val_dataset = [(os.path.join(config.mri_image_dir, mri_path), os.path.join(config.pet_image_dir, pet_path)) for (mri_path, pet_path) in val_dataset]
 mri_paths = [mri_path for (mri_path, _) in val_dataset]
 val_pair_dataset = [(mri_path, pet_path, 1) for (mri_path, pet_path) in val_dataset] + [(random.choice([p for p in mri_paths if p != mri_path]), pet_path, 0) for mri_path, pet_path in val_dataset for _ in range(NUM_NEG_PAIRS)]
 

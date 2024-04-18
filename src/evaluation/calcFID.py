@@ -60,7 +60,7 @@ def calculate_fid(act1, act2):
 
 
 test_dataset = './src/data/testDataset.pkl'
-test_dataset = [os.path.join(config.pet_image_dir, pet_path) for (mri_path, pet_path) in test_dataset]
+test_dataset = [pet_path for (mri_path, pet_path) in test_dataset]
 test_act = get_inception_features(model, test_dataset)
 
 model_keys = [

@@ -176,17 +176,15 @@ def save_image(tensor, path):
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Load all style images and compute the collective style
-style_dir = "./src/data/PET_Processed/"
-style_imgs = [load_image(os.path.join(style_dir, file)) for file in os.listdir(style_dir)]
+# Load all PET images as style images
+style_imgs = [load_image(f) for _, f in pickle.load(open('./src/data/trainDataset.pkl', 'rb'))]
 
 # Apply style transfer for each content image
-content_dir = "./src/data/MRI_Pretrain/"
-output_dir = "./src/data/MRI_Style/"
+content_dir = "/data/CARD_AA/data/ADNI/MRI_Pretrain/"
+output_dir = "/data/CARD_AA/data/ADNI/MRI_StyleTransfer/"
 os.makedirs(output_dir, exist_ok=True)
 
-content_imgs = pickle.load(open('./src/data/mriDataset.pkl', 'rb'))
-for content_file in tqdm(content_imgs, desc='MRI Images'):
+for content_file in tqdm(os.listdir(content_dir, desc='MRI Images')):
     content_img = load_image(os.path.join(content_dir, content_file)).to(device)
     style_img = random.choice(style_imgs).to(device)
     output = run_style_transfer_on_slices(content_img, style_img)

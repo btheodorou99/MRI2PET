@@ -24,9 +24,7 @@ if torch.cuda.is_available():
     torch.cuda.manual_seed_all(SEED)
 
 train_dataset = pickle.load(open('./src/data/trainDataset.pkl', 'rb'))
-train_dataset = [(os.path.join(config.mri_image_dir, mri_path), os.path.join(config.pet_image_dir, pet_path)) for (mri_path, pet_path) in train_dataset]
 val_dataset = pickle.load(open('./src/data/valDataset.pkl', 'rb'))
-val_dataset = [(os.path.join(config.mri_image_dir, mri_path), os.path.join(config.pet_image_dir, pet_path)) for (mri_path, pet_path) in val_dataset]
 
 def load_image(image_path, is_mri=True):
     img = np.load(image_path)
