@@ -1,6 +1,7 @@
 import os
 import ants
 import pickle
+import random
 import numpy as np
 from tqdm import tqdm
 import nibabel as nib
@@ -15,7 +16,9 @@ if not os.path.exists(output_dir):
 # {subject_id}--{date}--{some_ids}.nii
 single_files = []
 problem_files = []
-for niix_file in tqdm(os.listdir(pet_dir)):
+allFiles = os.listdir(pet_dir)
+random.shuffle(allFiles)
+for niix_file in tqdm(allFiles):
     if not niix_file.endswith('.nii') or os.path.exists(os.path.join(output_dir, niix_file)):
         continue
 
