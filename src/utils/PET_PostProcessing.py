@@ -42,8 +42,9 @@ for mri_niix, pet_file in tqdm(pairs):
 
     img = ants.image_read(pet_niix)
     mri_img = ants.image_read(mri_niix)
+    mri_img = ants.resample_image(img, (config.pet_image_dim, config.pet_image_dim, config.n_pet_channels), use_voxels=True, interp_type=3)
     img = ants.registration(fixed=pet_template, moving=img, type_of_transform='Rigid')['warpedmovout']        
-    img = ants.registration(fixed=mri_img, moving=img, type_of_transform='Rigid')['warpedmovout']        
+    img = ants.registration(fixed=mri_img, moving=img, type_of_transform='Affine')['warpedmovout']        
     data = img.numpy()
     data = (data - data.min()) / (data.max() - data.min())
 
