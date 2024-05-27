@@ -17,11 +17,10 @@ if not os.path.exists(output_dir):
 single_files = []
 problem_files = []
 allFiles = os.listdir(pet_dir)
+allFiles = [f for f in allFiles if f.endswith('.nii') and not os.path.exists(os.path.join(output_dir, f))]
 random.shuffle(allFiles)
 for niix_file in tqdm(allFiles):
-    if not niix_file.endswith('.nii') or os.path.exists(os.path.join(output_dir, niix_file)):
-        continue
-
+    print(niix_file)
     try:
         subject_id, date, some_ids = niix_file[:-4].split('--')
         img = ants.image_read(os.path.join(pet_dir, niix_file))
