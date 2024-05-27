@@ -12,9 +12,10 @@
 #           dicomFiles
 
 import os
-import shutil
+import ants
 import pickle
 import subprocess
+import nibabel as nib
 from tqdm import tqdm
 from pypet2bids.ecat import Ecat
 
@@ -76,8 +77,10 @@ for subject_id in tqdm(os.listdir(pet_dir)):
                     # Process the NIfTI file
                     nifti_files = [f for f in os.listdir(tempdir) if f.endswith(('.nii', '.nii.gz'))]
                     if nifti_files:
-                        niix_file = os.path.join(tempdir, nifti_files[0])
-                        shutil.move(niix_file, output_filename)
+                        img = ants.image_read(os.path.join(tempdir, nifti_files[0]))
+                        img = ants.utils.convert_nibabel.to_nibabel(img)
+                        nib.save(img, output_filename)
+                        os.remove(os.path.join(tempdir, nifti_files[0]))
                 except Exception as e:
                     print(e)
                     missing.append(nii_filename)
