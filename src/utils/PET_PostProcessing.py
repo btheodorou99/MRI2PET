@@ -11,7 +11,7 @@ config = MRI2PETConfig()
 pet_dir = "/data/CARD_AA/data/ADNI/PET_Nifti_PreProcessed/"
 output_dir = "/data/CARD_AA/data/ADNI/PET/"
 pairs = pickle.load(open('./src/data/pet_mri_pairs.pkl', 'rb'))
-pairs = [(mri_path, pet_path.split('/')[-1]) for mri_path, pet_path in pairs]
+pairs = [(mri_path.replace('.npy', '.nii.gz'), pet_path.split('/')[-1]) for mri_path, pet_path in pairs]
 random.shuffle(pairs)
 pet_template_path = "./src/data/petTemplate.nii"
 if not os.path.exists(output_dir):
@@ -36,7 +36,7 @@ else:
 
 # Perform Registrations to PET Mean and Subject MRI
 for mri_niix, pet_file in tqdm(pairs):
-    pet_niix = os.path.join(pet_dir, pet_niix)
+    pet_niix = os.path.join(pet_dir, pet_file).replace('.npy', '.nii')
     npy_filename = pet_file.replace('.nii', '.npy')
     output_filename = os.path.join(output_dir, npy_filename)
     if os.path.exists(output_filename):

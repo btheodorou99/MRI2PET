@@ -11,11 +11,11 @@ mri_list = pickle.load(open('./src/data/mriDataset.pkl', 'rb'))
 random.shuffle(mri_list)
 
 for mri_fpath in tqdm(mri_list):
-    fpath = mri_fpath.replace('.nii.gz', '.npy')
-    if os.path.exists(fpath):
+    orig_fpath = mri_fpath.replace('.npy', '.nii.gz')
+    if os.path.exists(mri_fpath):
         continue
 
-    img = ants.image_read(mri_fpath)
+    img = ants.image_read(orig_fpath)
     data = img.numpy()
     data = (data - data.min()) / (data.max() - data.min())
-    np.save(fpath, data)
+    np.save(mri_fpath, data)
