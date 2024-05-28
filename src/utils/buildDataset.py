@@ -1,6 +1,7 @@
 import os
 import ants
 import pickle
+from tqdm import tqdm
 from datetime import datetime
 from collections import Counter
 from sklearn.model_selection import train_test_split
@@ -16,7 +17,7 @@ def save_data(file_path, data):
 
 def find_pet(pet_dir):
     data_dict = {}
-    for niix_file in os.listdir(pet_dir):
+    for niix_file in tqdm(os.listdir(pet_dir)):
         subject_id, date, _ = niix_file[:-4].split('--')  
         fpath = os.path.join(pet_dir, niix_file)
         date = datetime.strptime(date, "%Y-%m-%d")
@@ -27,7 +28,7 @@ def find_pet(pet_dir):
 
 def find_mri(mri_dir, prefix, parseDate=False):
     data_dict = {}
-    for subject_id in os.listdir(mri_dir):
+    for subject_id in tqdm(os.listdir(mri_dir)):
         for date in os.listdir(os.path.join(mri_dir, subject_id)):
             for imaging_id in os.listdir(os.path.join(mri_dir, subject_id, date, 'T1wHierarchical')):
                 fname = f'{prefix}-{subject_id}-{date}-T1wHierarchical-{imaging_id}-brain_n4_dnz.nii.gz'
@@ -42,6 +43,7 @@ def find_mri(mri_dir, prefix, parseDate=False):
                 if subject_id not in data_dict:
                     data_dict[subject_id] = {}
                 data_dict[subject_id][saveDate] = {'shape': ants.image_read(fpath).numpy().shape, 'filename': fpath}
+    return data_dict
 
 def convert_mri_path(fpath):
     fpath = fpath.replace('CARDPB', 'CARD_AA').replace('nii.gz', 'npy')
