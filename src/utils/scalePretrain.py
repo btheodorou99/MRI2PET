@@ -1,15 +1,13 @@
 import os
 import pickle
+import random
 import numpy as np
 from tqdm import tqdm
 from scipy.ndimage import zoom
 from ..config import MRI2PETConfig
 
 output_mri_dir = "/data/CARD_AA/data/ADNI/MRI_Pretrain/"
-pet_dir = "/data/CARD_AA/data/ADNI/PET/"
-
 os.makedirs(output_mri_dir, exist_ok=True)
-
 config = MRI2PETConfig()
 
 MRI_HEIGHT = config.mri_image_dim
@@ -31,7 +29,13 @@ def scale_image(mri_image):
     return resized_mri
 
 mri_paths = pickle.load(open('./src/data/mriDataset.pkl', 'rb'))
+random.shuffle(mri_paths)
+
 for mri_path in tqdm(mri_paths):
+    output_path = f'{output_mri_dir}{mri_path.split("/")[-1]}'
+    if os.path.exists(output_path):
+        continue
+
     mri = np.load(mri_path)
     standardized_mri = scale_image(mri)
-    np.save(f'{output_mri_dir}{mri_path.split('/')[-1]}', standardized_mri)
+    np.save(output_path, standardized_mri)
