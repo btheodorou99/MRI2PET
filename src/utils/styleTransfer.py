@@ -179,6 +179,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 style_img = ants.image_read("./src/data/petTemplate.nii")
 style_img = style_img.numpy()
 style_img = (style_img - style_img.min()) / (style_img.max() - style_img.min())
+style_img = style_img.transpose((2, 0, 1))
+style_img = torch.from_numpy(style_img).float().to(device)
 
 # Apply style transfer for each content image
 content_dir = "/data/CARD_AA/data/ADNI/MRI_Pretrain/"
