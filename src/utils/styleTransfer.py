@@ -103,8 +103,7 @@ def get_style_model_and_losses(style_img, content_img):
 
     return model, style_losses, content_losses
 
-def run_style_transfer(content_img, style_img, input_img, num_steps=250, 
-                       style_weight=1000, content_weight=1):
+def run_style_transfer(content_img, style_img, input_img, num_steps=100, style_weight=1000, content_weight=1):
     """Run the style transfer."""
     # print('Building the style transfer model..')
     model, style_losses, content_losses = get_style_model_and_losses(style_img, content_img)
@@ -134,12 +133,6 @@ def run_style_transfer(content_img, style_img, input_img, num_steps=250,
             loss = style_score + content_score
             loss.backward()
 
-            # if step % 50 == 0:
-                # print("step {}:".format(step))
-                # print('Style Loss : {:4f} Content Loss: {:4f}'.format(
-                #     style_score.item(), content_score.item()))
-                # print()
-
             return style_score + content_score
 
         optimizer.step(closure)
@@ -168,7 +161,7 @@ def load_image(path):
 
 def save_image(tensor, path):
     """Save a torch tensor as an image."""
-    image = tensor.cpu().clone()       # Clone the tensor to not do changes on it
+    image = tensor.detach().cpu().clone()       # Clone the tensor to not do changes on it
     image = image.numpy()              # Convert to numpy array
     image = image.transpose((1, 2, 0)) # Convert back to HxWxC
     np.save(path, image)
