@@ -189,6 +189,7 @@ output_dir = "/data/CARD_AA/data/ADNI/MRI_StyleTransfer/"
 os.makedirs(output_dir, exist_ok=True)
 
 content_imgs = os.listdir(content_dir)
+content_imgs = [f for f in content_imgs if not os.path.exists(os.path.join(output_dir, f))]
 random.shuffle(content_imgs)
 
 for content_file in tqdm(content_imgs, desc='MRI Images'):
