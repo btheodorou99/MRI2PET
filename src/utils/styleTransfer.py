@@ -176,7 +176,7 @@ def save_image(tensor, path):
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load all PET images as style images
-style_img = ants.load_image("./src/data/petTemplate.nii")
+style_img = ants.image_read("./src/data/petTemplate.nii")
 style_img = style_img.numpy()
 style_img = (style_img - style_img.min()) / (style_img.max() - style_img.min())
 
