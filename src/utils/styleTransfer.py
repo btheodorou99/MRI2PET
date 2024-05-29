@@ -78,6 +78,7 @@ def get_style_model_and_losses(style_img, content_img):
             continue
 
         model.add_module(name, layer)
+        model = model.to(device)
 
         if name in content_layers:
             # add content loss
