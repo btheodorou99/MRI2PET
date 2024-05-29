@@ -1,7 +1,7 @@
 import os
+import ants
 import torch
 import random
-import pickle
 import numpy as np
 import torch.nn as nn
 from tqdm import tqdm
@@ -133,7 +133,6 @@ def run_style_transfer(content_img, style_img, input_img, num_steps=250,
             loss = style_score + content_score
             loss.backward()
 
-
             # if step % 50 == 0:
                 # print("step {}:".format(step))
                 # print('Style Loss : {:4f} Content Loss: {:4f}'.format(
@@ -156,6 +155,7 @@ def run_style_transfer_on_slices(content_slices, style_slices, num_steps=250, st
     input_img = content_img.clone()
     styled_img = run_style_transfer(content_img, style_img, input_img, num_steps, style_weight, content_weight)
     styled_img = styled_img.mean(dim=1)
+    # styled_img = (styled_img - styled_img.min()) / (styled_img.max() - styled_img.min())
     return styled_img
 
 def load_image(path):
@@ -167,7 +167,6 @@ def load_image(path):
 
 def save_image(tensor, path):
     """Save a torch tensor as an image."""
-    # Convert the tensor to a PIL image and save
     image = tensor.cpu().clone()       # Clone the tensor to not do changes on it
     image = image.numpy()              # Convert to numpy array
     image = image.transpose((1, 2, 0)) # Convert back to HxWxC
@@ -177,15 +176,22 @@ def save_image(tensor, path):
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load all PET images as style images
-style_imgs = [load_image(f) for _, f in pickle.load(open('./src/data/trainDataset.pkl', 'rb'))]
+style_img = ants.load_image("./src/data/petTemplate.nii")
+style_img = style_img.numpy()
+style_img = (style_img - style_img.min()) / (style_img.max() - style_img.min())
 
 # Apply style transfer for each content image
 content_dir = "/data/CARD_AA/data/ADNI/MRI_Pretrain/"
 output_dir = "/data/CARD_AA/data/ADNI/MRI_StyleTransfer/"
 os.makedirs(output_dir, exist_ok=True)
 
-for content_file in tqdm(os.listdir(content_dir, desc='MRI Images')):
+content_imgs = os.listdir(content_dir)
+random.shuffle(content_imgs)
+
+for content_file in tqdm(content_imgs, desc='MRI Images'):
+    if os.path.exists(os.path.join(output_dir, content_file)):
+        continue
+    
     content_img = load_image(os.path.join(content_dir, content_file)).to(device)
-    style_img = random.choice(style_imgs).to(device)
     output = run_style_transfer_on_slices(content_img, style_img)
     save_image(output, os.path.join(output_dir, content_file))
