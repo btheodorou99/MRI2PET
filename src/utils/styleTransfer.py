@@ -142,7 +142,7 @@ def run_style_transfer(content_img, style_img, input_img, num_steps=100, style_w
 
     return input_img
 
-def run_style_transfer_on_slices(content_slices, style_slices, num_steps=250, style_weight=1000, content_weight=1):
+def run_style_transfer_on_slices(content_slices, style_slices, num_steps=100, style_weight=1000, content_weight=1):
     """Run style transfer on each slice."""
     content_img = content_slices.unsqueeze(1).repeat(1, 3, 1, 1)
     style_img = style_slices.unsqueeze(1).repeat(1, 3, 1, 1)
