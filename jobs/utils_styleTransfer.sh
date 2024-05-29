@@ -4,8 +4,9 @@
 #SBATCH --mem=64g
 #SBATCH --cpus-per-task=16
 #SBATCH --job-name=styleTransfer
-#SBATCH --gres=gpu
 #SBATCH --array=0-25
+#SBATCH --partition=gpu
+#SBATCH --gres=gpu
 
 module load python
 python -m src.utils.styleTransfer
