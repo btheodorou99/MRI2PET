@@ -70,7 +70,7 @@ class Generator(nn.Module):
         context = self.context_emb(context_images)
         gen_input = torch.cat((context, noise), -1)
         gen_input = self.init_map(gen_input)
-        gen_input = gen_input.view(gen_input.size(0), 16, self.init_size, self.init_size)
+        gen_input = gen_input.view(gen_input.size(0), 16, self.init_dim, self.init_dim)
         img = self.gen(gen_input)
         return img
     
