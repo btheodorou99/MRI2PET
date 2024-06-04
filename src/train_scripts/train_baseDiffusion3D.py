@@ -51,17 +51,24 @@ if os.path.exists(f"./src/save/baseDiffusion3D.pt"):
     model.load_state_dict(checkpoint['model'])
     optimizer.load_state_dict(checkpoint['optimizer'])
 
+steps_per_batch = 8
+config.batch_size = config.batch_size // steps_per_batch
 for e in tqdm(range(config.epoch)):
     shuffle_training_data(train_dataset)
     train_losses = []
     model.train()
+    curr_step = 0
     for i in range(0, len(train_dataset), config.batch_size):
         batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
-        optimizer.zero_grad()
         loss, _ = model(batch_context, batch_images, gen_loss=True)
-        loss.backward()
-        optimizer.step()
         train_losses.append(loss.cpu().detach().item())
+        loss = loss / steps_per_batch
+        loss.backward()
+        curr_step += 1
+        if curr_step % steps_per_batch == 0:
+            optimizer.step()
+            optimizer.zero_grad()
+            curr_step = 0
     
     model.eval()
     with torch.no_grad():
