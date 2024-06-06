@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from ..config import MRI2PETConfig
 from ..models.ganModel import Generator
 from ..models.diffusionModel import DiffusionModel
+from ..models.diffusionModel3D import DiffusionModel as DiffusionModel3D
 
 SEED = 4
 cudaNum = 0
@@ -58,17 +59,20 @@ def save_slice_plots(array, path_prefix):
     # Transversal
     for i in range(array.shape[2]):
         slice = array[:, :, i]
-        plt.imsave(f'{path_prefix}_Transversal{i}.png', slice, cmap='gray')
+        if i % 5 == 0 and slice.max() > 0:
+            plt.imsave(f'{path_prefix}_Transversal{i}.png', slice, cmap='gray')
         
     # Sagittal
     for i in range(array.shape[1]):
         slice = array[:, i, :]
-        plt.imsave(f'{path_prefix}_Sagittal{i}.png', slice, cmap='gray')
+        if i % 5 == 0 and slice.max() > 0: 
+            plt.imsave(f'{path_prefix}_Sagittal{i}.png', slice, cmap='gray')
         
     # Coronal
     for i in range(array.shape[0]):
         slice = array[i, :, :]
-        plt.imsave(f'{path_prefix}_Coronal{i}.png', slice, cmap='gray')
+        if i % 5 == 0 and slice.max() > 0:
+            plt.imsave(f'{path_prefix}_Coronal{i}.png', slice, cmap='gray')
         
 
 # Generate Samples
@@ -82,26 +86,34 @@ for i in range(NUM_SAMPLES):
     save_slice_plots(real_image, f'./src/results/image_samples/realImage_{i}')
 
 model_keys = [
-    'baseDiffusion',
     'baseGAN',
-    'noisyPretrainedDiffusion',
-    'noisyPretrainedGAN',
-    'selfPretrainedDiffusion',
-    'selfPretrainedGAN',
+    'baseDiffusion',
+    'baseDiffusion3D',
+    # 'noisyPretrainedDiffusion',
+    # 'noisyPretrainedGAN',
+    # 'selfPretrainedDiffusion',
+    # 'selfPretrainedGAN',
     'stylePretrainedDiffusion',
-    'stylePretrainedGAN',
-    'mri2pet',
+    # 'stylePretrainedGAN',
+    # 'mri2pet',
 ]
 
 for k in tqdm(model_keys):
     print(k)
     if 'GAN' in k:
-        model = Generator(config).to(device)
-        model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location=torch.device(device))['generator'])
+        model = Generator(config)
+        model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location='cpu')['generator'])
+        model = model.to(device)
+        model.eval()
+    elif '3D' in k:
+        model = DiffusionModel3D(config)
+        model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location='cpu')['model'])
+        model = model.to(device)
         model.eval()
     else:
-        model = DiffusionModel(config).to(device)
-        model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location=torch.device(device))['model'])
+        model = DiffusionModel(config)
+        model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location='cpu')['model'])
+        model = model.to(device)
         model.eval()
 
     with torch.no_grad():

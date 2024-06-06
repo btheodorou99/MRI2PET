@@ -65,7 +65,7 @@ model_keys = [
 ]
 
 for k in tqdm(model_keys):
-    model_path = f'./src/results/generated_datasets/{k}/'
+    model_path = f'/data/theodoroubp/MRI2PET/results/generated_datasets/{k}/'
     model_dataset = [os.path.join(model_path, file) for file in os.listdir(model_path)]
     is_score = get_inception_score(model, model_dataset)
     print('{k} Inception Score:', is_score)

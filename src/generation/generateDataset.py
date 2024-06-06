@@ -5,8 +5,9 @@ import pickle
 import numpy as np
 from tqdm import tqdm
 from ..config import MRI2PETConfig
-from ..models.diffusionModel import DiffusionModel
 from ..models.ganModel import Generator
+from ..models.diffusionModel import DiffusionModel
+from ..models.diffusionModel3D import DiffusionModel as DiffusionModel3D
 
 SEED = 4
 cudaNum = 0
@@ -47,27 +48,35 @@ def save_image(tensor, path):
     np.save(path, image)
         
 model_keys = [
-    'baseDiffusion',
     'baseGAN',
-    'noisyPretrainedDiffusion',
-    'noisyPretrainedGAN',
-    'selfPretrainedDiffusion',
-    'selfPretrainedGAN',
+    'baseDiffusion',
+    'baseDiffusion3D',
+    # 'noisyPretrainedDiffusion',
+    # 'noisyPretrainedGAN',
+    # 'selfPretrainedDiffusion',
+    # 'selfPretrainedGAN',
     'stylePretrainedDiffusion',
-    'stylePretrainedGAN',
-    'mri2pet',
+    # 'stylePretrainedGAN',
+    # 'mri2pet',
 ]
 
 for k in tqdm(model_keys):
     print(k)
-    os.makedirs(f'./src/results/generated_datasets/{k}', exist_ok=True)
+    os.makedirs(f'/data/theodoroubp/MRI2PET/results/generated_datasets/{k}', exist_ok=True)
     if 'GAN' in k:
-        model = Generator(config).to(device)
-        model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location=torch.device(device))['generator'])
+        model = Generator(config)
+        model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location='cpu')['generator'])
+        model = model.to(device)
+        model.eval()
+    elif '3D' in k:
+        model = DiffusionModel3D(config)
+        model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location='cpu')['model'])
+        model = model.to(device)
         model.eval()
     else:
-        model = DiffusionModel(config).to(device)
-        model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location=torch.device(device))['model'])
+        model = DiffusionModel(config)
+        model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location='cpu')['model'])
+        model = model.to(device)
         model.eval()
 
     with torch.no_grad():
@@ -75,4 +84,4 @@ for k in tqdm(model_keys):
             sample_contexts = get_batch(test_dataset, i, config.batch_size)
             sample_images = model.generate(sample_contexts)
             for j in range(sample_images.size(0)):
-                save_image(sample_images[j], f'./src/results/generated_datasets/{k}/sampleImage_{i+j}.npy')
+                save_image(sample_images[j], f'/data/theodoroubp/MRI2PET/results/generated_datasets/{k}/sampleImage_{i+j}.npy')
