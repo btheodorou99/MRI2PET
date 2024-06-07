@@ -22,7 +22,6 @@ if torch.cuda.is_available():
     torch.cuda.manual_seed_all(SEED)
 
 test_dataset = pickle.load(open('./src/data/testDataset.pkl', 'rb'))
-test_dataset = [mri_path for (mri_path, pet_path) in test_dataset]
 
 def load_image(image_path, is_mri=True):
     img = np.load(image_path)
