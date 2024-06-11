@@ -16,6 +16,8 @@ class DiffusionModel(nn.Module):
         self.noise = noise
         self.timestep = timestep
         self.input_dim = config.n_pet_channels if self.timestep == 0 else config.n_pet_channels + self.embed_dim
+        if self.timestep == 3:
+            self.time_emb = nn.Sequential((nn.Linear(self.embed_dim, 64), nn.ReLU(), nn.Linear(64, 64), nn.ReLU(), nn.Linear(64, self.embed_dim)))
 
         self.encoder = nn.Sequential(
             nn.Conv2d(self.input_dim, 64, kernel_size=3, padding=1),
@@ -59,6 +61,8 @@ class DiffusionModel(nn.Module):
             x_noisy = torch.cat((x_noisy, self.timestep_embedding1(t)), dim=1)
         elif self.timestep == 2:
             x_noisy = torch.cat((x_noisy, self.timestep_embedding2(t)), dim=1)
+        elif self.timestep == 3:
+            x_noisy = torch.cat((x_noisy, self.time_emb(self.timestep_embedding1(t))), dim=1)
         x_pred = self.encoder(x_noisy)
         if self.final:
             x_pred = 2 * torch.tanh(x_pred)
