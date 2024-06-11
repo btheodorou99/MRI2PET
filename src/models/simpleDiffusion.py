@@ -35,6 +35,7 @@ class DiffusionModel(nn.Module):
         emb = torch.exp(torch.arange(half_dim, device=t.device) * -emb)
         emb = t[:, None] * emb[None, :]
         emb = torch.cat((emb.sin(), emb.cos()), dim=-1)
+        emb = self.time_emb(emb)
         emb = emb[:, :, None, None].expand(-1, -1, self.image_dim, self.image_dim)
         return emb
     
@@ -62,7 +63,7 @@ class DiffusionModel(nn.Module):
         elif self.timestep == 2:
             x_noisy = torch.cat((x_noisy, self.timestep_embedding2(t)), dim=1)
         elif self.timestep == 3:
-            x_noisy = torch.cat((x_noisy, self.time_emb(self.timestep_embedding1(t))), dim=1)
+            x_noisy = torch.cat((x_noisy, self.timestep_embedding1(t)), dim=1)
         x_pred = self.encoder(x_noisy)
         if self.final:
             x_pred = 2 * torch.tanh(x_pred)

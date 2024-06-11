@@ -11,7 +11,7 @@ from ..models.simpleDiffusion import DiffusionModel
 
 SEED = 4
 cudaNum = 0
-exploration = 10
+exploration = 11
 random.seed(SEED)
 np.random.seed(SEED)
 torch.manual_seed(SEED)
