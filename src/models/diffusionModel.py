@@ -51,48 +51,21 @@ class RMSNorm(nn.Module):
         return F.normalize(x, dim = 1) * self.g * (x.shape[1] ** 0.5)
     
 class LinearAttention(nn.Module):
-    def __init__(
-        self,
-        dim,
-        heads = 4,
-        dim_head = 32,
-        num_mem_kv = 4
-    ):
+    def __init__(self, dim, heads=4, dim_head=32):
         super().__init__()
-        self.scale = dim_head ** -0.5
         self.heads = heads
         hidden_dim = dim_head * heads
-
-        self.norm = RMSNorm(dim)
-
-        self.mem_kv = nn.Parameter(torch.randn(2, heads, dim_head, num_mem_kv))
         self.to_qkv = nn.Conv2d(dim, hidden_dim * 3, 1, bias = False)
-
-        self.to_out = nn.Sequential(
-            nn.Conv2d(hidden_dim, dim, 1),
-            RMSNorm(dim)
-        )
+        self.to_out = nn.Conv2d(hidden_dim, dim, 1)
 
     def forward(self, x):
-        b, _, h, w = x.shape
-
-        x = self.norm(x)
-
-        qkv = self.to_qkv(x).chunk(3, dim = 1)
-        q, k, v = map(lambda t: rearrange(t, 'b (h c) x y -> b h c (x y)', h = self.heads), qkv)
-
-        mk, mv = map(lambda t: repeat(t, 'h c n -> b h c n', b = b), self.mem_kv)
-        k, v = map(partial(torch.cat, dim = -1), ((mk, k), (mv, v)))
-
-        q = q.softmax(dim = -2)
-        k = k.softmax(dim = -1)
-
-        q = q * self.scale
-
-        context = torch.einsum('b h d n, b h e n -> b h d e', k, v)
-
-        out = torch.einsum('b h d e, b h d n -> b h e n', context, q)
-        out = rearrange(out, 'b h c (x y) -> b (h c) x y', h = self.heads, x = h, y = w)
+        b, c, h, w = x.shape
+        qkv = self.to_qkv(x)
+        q, k, v = rearrange(qkv, 'b (qkv heads c) h w -> qkv b heads c (h w)', heads = self.heads, qkv=3)
+        k = k.softmax(dim=-1)  
+        context = torch.einsum('bhdn,bhen->bhde', k, v)
+        out = torch.einsum('bhde,bhdn->bhen', context, q)
+        out = rearrange(out, 'b heads c (h w) -> b (heads c) h w', heads=self.heads, h=h, w=w)
         return self.to_out(out)
 
 class DoubleConv(nn.Module):
@@ -163,7 +136,7 @@ class UpBlock(nn.Module):
         return x + emb
 
 class DiffusionModel(nn.Module):
-    def __init__(self, config):
+    def __init__(self, config, noise=False):
         super(DiffusionModel, self).__init__()
         self.num_timesteps = config.num_timesteps
         self.beta_start = config.beta_start
@@ -174,6 +147,7 @@ class DiffusionModel(nn.Module):
         self.image_dim = config.pet_image_dim
         self.n_channels = config.n_pet_channels
         self.embed_dim = config.embed_dim
+        self.noise = noise
         
         self.contextEmbedding = ImageEncoder(config)
         self.inc = DoubleConv(config.n_pet_channels, 16)
@@ -214,6 +188,8 @@ class DiffusionModel(nn.Module):
         sqrt_alpha_hat = torch.sqrt(self.alpha_hat[t])[:, None, None, None].to(x.device)
         sqrt_one_minus_alpha_hat = torch.sqrt(1 - self.alpha_hat[t])[:, None, None, None].to(x.device)
         Ɛ = torch.randn_like(x)
+        if self.noise:
+            Ɛ.clamp_(-1, 1)
         return sqrt_alpha_hat * x + sqrt_one_minus_alpha_hat * Ɛ, Ɛ
 
     def _forward(self, noised_images, t, condImage):

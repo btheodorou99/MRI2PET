@@ -17,7 +17,6 @@ random.seed(SEED)
 np.random.seed(SEED)
 torch.manual_seed(SEED)
 config = MRI2PETConfig()
-config.n_pet_channels = 1
 device = torch.device(f"cuda:{cudaNum}" if torch.cuda.is_available() else "cpu")
 if torch.cuda.is_available():
     torch.cuda.manual_seed_all(SEED)
@@ -39,7 +38,7 @@ def get_batch(dataset, loc, batch_size):
     batch_image = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
     for i, (m, p) in enumerate(image_paths):
         batch_context[i] = load_image(m, is_mri=True)
-        batch_image[i] = load_image(p, is_mri=False)[30,:,:]
+        batch_image[i] = load_image(p, is_mri=False)
         
     return batch_context, batch_image
 
@@ -86,15 +85,16 @@ for i in range(NUM_SAMPLES):
     save_slice_plots(real_image, f'./src/results/image_samples/realImage_{i}')
 
 model_keys = [
+    'baseGAN',
     'baseDiffusion',
-    # 'baseGAN',
-    # 'baseDiffusion',
-    # 'baseDiffusion3D',
+    'baseDiffusion3D',
+    'baseDiffusionGradientClip',
+    'baseDiffusionNoiseClip',
     # 'noisyPretrainedDiffusion',
     # 'noisyPretrainedGAN',
     # 'selfPretrainedDiffusion',
     # 'selfPretrainedGAN',
-    # 'stylePretrainedDiffusion',
+    'stylePretrainedDiffusion',
     # 'stylePretrainedGAN',
     # 'mri2pet',
 ]

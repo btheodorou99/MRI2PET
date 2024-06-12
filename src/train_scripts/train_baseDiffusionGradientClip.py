@@ -5,7 +5,7 @@ import pickle
 import numpy as np
 from tqdm import tqdm
 from ..config import MRI2PETConfig
-from ..models.diffusionModelFixed import DiffusionModel
+from ..models.diffusionModel import DiffusionModel
 
 SEED = 4
 cudaNum = 0
@@ -17,10 +17,8 @@ device = torch.device(f"cuda:{cudaNum}" if torch.cuda.is_available() else "cpu")
 if torch.cuda.is_available():
     torch.cuda.manual_seed_all(SEED)
 
-train_dataset = pickle.load(open('./src/data/trainDataset.pkl', 'rb'))[:5]
-val_dataset = pickle.load(open('./src/data/valDataset.pkl', 'rb'))[:5]
-config.n_pet_channels = 1
-config.lr = 1e-4
+train_dataset = pickle.load(open('./src/data/trainDataset.pkl', 'rb'))
+val_dataset = pickle.load(open('./src/data/valDataset.pkl', 'rb'))
 
 def load_image(image_path, is_mri=True):
     img = np.load(image_path)
@@ -37,7 +35,7 @@ def get_batch(dataset, loc, batch_size):
     batch_image = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
     for i, (m, p) in enumerate(image_paths):
         batch_context[i] = load_image(m, is_mri=True)
-        batch_image[i] = load_image(p, is_mri=False)[30,:,:]
+        batch_image[i] = load_image(p, is_mri=False)
         
     return batch_context, batch_image
 
@@ -46,9 +44,9 @@ def shuffle_training_data(train_ehr_dataset):
 
 model = DiffusionModel(config).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
-if os.path.exists(f"./src/save/baseDiffusionFixed.pt"):
+if os.path.exists(f"./src/save/baseDiffusionGradientClip.pt"):
     print("Loading previous model")
-    checkpoint = torch.load(f'./src/save/baseDiffusionFixed.pt', map_location=torch.device(device))
+    checkpoint = torch.load(f'./src/save/baseDiffusionGradientClip.pt', map_location=torch.device(device))
     model.load_state_dict(checkpoint['model'])
     optimizer.load_state_dict(checkpoint['optimizer'])
 
@@ -61,6 +59,7 @@ for e in tqdm(range(config.epoch)):
         optimizer.zero_grad()
         loss, _ = model(batch_context, batch_images, gen_loss=True)
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         optimizer.step()
         train_losses.append(loss.cpu().detach().item())
     
@@ -79,4 +78,4 @@ for e in tqdm(range(config.epoch)):
             'model': model.state_dict(),
             'optimizer': optimizer.state_dict()
         }
-        torch.save(state, f'./src/save/baseDiffusionFixed.pt')
+        torch.save(state, f'./src/save/baseDiffusionGradientClip.pt')

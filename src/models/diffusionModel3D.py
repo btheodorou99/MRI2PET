@@ -49,50 +49,23 @@ class RMSNorm(nn.Module):
 
     def forward(self, x):
         return F.normalize(x, dim = 1) * self.g * (x.shape[1] ** 0.5)
-    
+
 class LinearAttention(nn.Module):
-    def __init__(
-        self,
-        dim,
-        heads = 4,
-        dim_head = 32,
-        num_mem_kv = 4
-    ):
+    def __init__(self, dim, heads=4, dim_head=32):
         super().__init__()
-        self.scale = dim_head ** -0.5
         self.heads = heads
         hidden_dim = dim_head * heads
-
-        self.norm = RMSNorm(dim)
-
-        self.mem_kv = nn.Parameter(torch.randn(2, heads, dim_head, num_mem_kv))
-        self.to_qkv = nn.Conv3d(dim, hidden_dim * 3, 1, bias = False)
-
-        self.to_out = nn.Sequential(
-            nn.Conv3d(hidden_dim, dim, 1),
-            RMSNorm(dim)
-        )
+        self.to_qkv = nn.Conv2d(dim, hidden_dim * 3, 1, bias = False)
+        self.to_out = nn.Conv2d(hidden_dim, dim, 1)
 
     def forward(self, x):
-        b, _, d, h, w = x.shape
-
-        x = self.norm(x)
-
-        qkv = self.to_qkv(x).chunk(3, dim = 1)
-        q, k, v = map(lambda t: rearrange(t, 'b (h c) x y z -> b h c (x y z)', h = self.heads), qkv)
-
-        mk, mv = map(lambda t: repeat(t, 'h c n -> b h c n', b = b), self.mem_kv)
-        k, v = map(partial(torch.cat, dim = -1), ((mk, k), (mv, v)))
-
-        q = q.softmax(dim = -2)
-        k = k.softmax(dim = -1)
-
-        q = q * self.scale
-
-        context = torch.einsum('b h d n, b h e n -> b h d e', k, v)
-
-        out = torch.einsum('b h d e, b h d n -> b h e n', context, q)
-        out = rearrange(out, 'b h c (x y z) -> b (h c) x y z', h = self.heads, x = d, y = h, z = w)
+        b, c, d, h, w = x.shape
+        qkv = self.to_qkv(x)
+        q, k, v = rearrange(qkv, 'b (qkv heads c) d h w -> qkv b heads c (d h w)', heads = self.heads, qkv=3)
+        k = k.softmax(dim=-1)  
+        context = torch.einsum('bhdn,bhen->bhde', k, v)
+        out = torch.einsum('bhde,bhdn->bhen', context, q)
+        out = rearrange(out, 'b heads c (d h w) -> b (heads c) d h w', heads=self.heads, d=d, h=h, w=w)
         return self.to_out(out)
 
 class DoubleConv(nn.Module):
