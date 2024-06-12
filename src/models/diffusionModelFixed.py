@@ -78,22 +78,22 @@ class LinearAttention(nn.Module):
 
         x = self.norm(x)
 
-        qkv = self.to_qkv(x).chunk(3, dim = 1)
-        q, k, v = map(lambda t: rearrange(t, 'b (h c) x y -> b h c (x y)', h = self.heads), qkv)
+        # qkv = self.to_qkv(x).chunk(3, dim = 1)
+        # q, k, v = map(lambda t: rearrange(t, 'b (h c) x y -> b h c (x y)', h = self.heads), qkv)
 
-        mk, mv = map(lambda t: repeat(t, 'h c n -> b h c n', b = b), self.mem_kv)
-        k, v = map(partial(torch.cat, dim = -1), ((mk, k), (mv, v)))
+        # mk, mv = map(lambda t: repeat(t, 'h c n -> b h c n', b = b), self.mem_kv)
+        # k, v = map(partial(torch.cat, dim = -1), ((mk, k), (mv, v)))
 
-        q = q.softmax(dim = -2)
-        k = k.softmax(dim = -1)
+        # q = q.softmax(dim = -2)
+        # k = k.softmax(dim = -1)
 
-        q = q * self.scale
+        # q = q * self.scale
 
-        context = torch.einsum('b h d n, b h e n -> b h d e', k, v)
+        # context = torch.einsum('b h d n, b h e n -> b h d e', k, v)
 
-        out = torch.einsum('b h d e, b h d n -> b h e n', context, q)
-        out = rearrange(out, 'b h c (x y) -> b (h c) x y', h = self.heads, x = h, y = w)
-        return self.to_out(out)
+        # out = torch.einsum('b h d e, b h d n -> b h e n', context, q)
+        # out = rearrange(out, 'b h c (x y) -> b (h c) x y', h = self.heads, x = h, y = w)
+        return self.to_out(x)
 
 class DoubleConv(nn.Module):
     def __init__(self, in_channels, out_channels, mid_channels=None, residual=False):
