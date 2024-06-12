@@ -111,7 +111,7 @@ class DiffusionModel(nn.Module):
             elif self.timestep == 3:
                 emb = self.timestep_embedding1(t)
             if self.mri:
-                emb += self.mri_emb(context)
+                emb = emb + self.mri_emb(context)
             x_noisy = torch.cat((x_noisy, emb), dim=1)
         elif self.mri:
             emb = self.mri_emb(context)
