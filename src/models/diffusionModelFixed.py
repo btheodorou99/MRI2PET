@@ -185,8 +185,8 @@ class DiffusionModel(nn.Module):
         self.down3 = DownBlock(64, 128, self.embed_dim)
         # self.sa3 = LinearAttention(128)
         
-        # self.bot1 = DoubleConv(128, 128)
-        # self.bot2 = DoubleConv(128, 128)
+        self.bot1 = DoubleConv(128, 128)
+        self.bot2 = DoubleConv(128, 128)
         
         self.up1 = UpBlock(192, 64, self.embed_dim)
         # self.sa4 = LinearAttention(64)
@@ -229,8 +229,8 @@ class DiffusionModel(nn.Module):
         x4 = self.down3(x3, emb)
         # x4 = self.sa3(x4)
         
-        # x4 = self.bot1(x4)
-        # x4 = self.bot2(x4)
+        x4 = self.bot1(x4)
+        x4 = self.bot2(x4)
         
         x = self.up1(x4, x3, emb)
         # x = self.sa4(x)
