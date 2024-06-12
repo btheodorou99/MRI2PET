@@ -197,21 +197,21 @@ class DiffusionModel(nn.Module):
         self.inc = DoubleConv(config.n_pet_channels, 16)
         
         self.down1 = DownBlock(16, 32, self.embed_dim)
-        # self.sa1 = LinearAttention(32)
+        self.sa1 = LinearAttention(32)
         self.down2 = DownBlock(32, 64, self.embed_dim)
-        # self.sa2 = LinearAttention(64)
+        self.sa2 = LinearAttention(64)
         self.down3 = DownBlock(64, 128, self.embed_dim)
-        # self.sa3 = LinearAttention(128)
+        self.sa3 = LinearAttention(128)
         
         self.bot1 = DoubleConv(128, 128)
         self.bot2 = DoubleConv(128, 128)
         
         self.up1 = UpBlock(192, 64, self.embed_dim)
-        # self.sa4 = LinearAttention(64)
+        self.sa4 = LinearAttention(64)
         self.up2 = UpBlock(96, 32, self.embed_dim)
-        # self.sa5 = LinearAttention(32)
+        self.sa5 = LinearAttention(32)
         self.up3 = UpBlock(48, 16, self.embed_dim)
-        # self.sa6 = LinearAttention(16)
+        self.sa6 = LinearAttention(16)
         self.outc = nn.Conv2d(16, config.n_pet_channels, kernel_size=1)
 
     def timestep_embedding(self, t, channels, max_period=100):
