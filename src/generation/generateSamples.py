@@ -17,6 +17,7 @@ random.seed(SEED)
 np.random.seed(SEED)
 torch.manual_seed(SEED)
 config = MRI2PETConfig()
+config.n_pet_channels = 1
 device = torch.device(f"cuda:{cudaNum}" if torch.cuda.is_available() else "cpu")
 if torch.cuda.is_available():
     torch.cuda.manual_seed_all(SEED)
@@ -85,14 +86,15 @@ for i in range(NUM_SAMPLES):
     save_slice_plots(real_image, f'./src/results/image_samples/realImage_{i}')
 
 model_keys = [
-    'baseGAN',
     'baseDiffusion',
-    'baseDiffusion3D',
+    # 'baseGAN',
+    # 'baseDiffusion',
+    # 'baseDiffusion3D',
     # 'noisyPretrainedDiffusion',
     # 'noisyPretrainedGAN',
     # 'selfPretrainedDiffusion',
     # 'selfPretrainedGAN',
-    'stylePretrainedDiffusion',
+    # 'stylePretrainedDiffusion',
     # 'stylePretrainedGAN',
     # 'mri2pet',
 ]
