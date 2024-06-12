@@ -20,7 +20,7 @@ if torch.cuda.is_available():
 train_dataset = pickle.load(open('./src/data/trainDataset.pkl', 'rb'))[:5]
 val_dataset = pickle.load(open('./src/data/valDataset.pkl', 'rb'))[:5]
 config.n_pet_channels = 1
-config.lr = 1e-5
+config.lr = 1e-4
 
 def load_image(image_path, is_mri=True):
     img = np.load(image_path)

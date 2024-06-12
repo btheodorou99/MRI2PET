@@ -134,8 +134,8 @@ class DownBlock(nn.Module):
 
     def forward(self, x, t):
         x = self.maxpool_conv(x)
-        # emb = self.emb_layer(t)[:, :, None, None].repeat(1, 1, x.shape[-2], x.shape[-1])
-        return x# + emb
+        emb = self.emb_layer(t)[:, :, None, None].repeat(1, 1, x.shape[-2], x.shape[-1])
+        return x + emb
 
 class UpBlock(nn.Module):
     def __init__(self, in_channels, out_channels, emb_dim=128):
@@ -159,8 +159,8 @@ class UpBlock(nn.Module):
         x = self.up(x)
         x = torch.cat([skip_x, x], dim=1)
         x = self.conv(x)
-        # emb = self.emb_layer(t)[:, :, None, None].repeat(1, 1, x.shape[-2], x.shape[-1])
-        return x# + emb
+        emb = self.emb_layer(t)[:, :, None, None].repeat(1, 1, x.shape[-2], x.shape[-1])
+        return x + emb
 
 class DiffusionModel(nn.Module):
     def __init__(self, config):
