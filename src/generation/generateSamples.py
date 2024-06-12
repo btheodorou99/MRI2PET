@@ -39,7 +39,7 @@ def get_batch(dataset, loc, batch_size):
     batch_image = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
     for i, (m, p) in enumerate(image_paths):
         batch_context[i] = load_image(m, is_mri=True)
-        batch_image[i] = load_image(p, is_mri=False)
+        batch_image[i] = load_image(p, is_mri=False)[30,:,:]
         
     return batch_context, batch_image
 
