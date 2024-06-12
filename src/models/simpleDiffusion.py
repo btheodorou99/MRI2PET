@@ -15,8 +15,8 @@ class ImageEncoder(nn.Module):
         self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
         self.conv4 = nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1)
         self.flat_dim = 256 * (self.image_dim // 16) * (self.image_dim // 16)
-        self.fc1 = nn.Linear(self.flat_dim, config.embed_dim)
-        self.fc2 = nn.Linear(config.embed_dim, config.embed_dim)
+        self.fc1 = nn.Linear(self.flat_dim, 32)
+        self.fc2 = nn.Linear(32, 32)
         
     def forward(self, x):        
         # Convolution + ReLU + MaxPooling
