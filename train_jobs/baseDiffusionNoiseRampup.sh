@@ -6,6 +6,8 @@
 #SBATCH --job-name=baseDiffusionNoiseRampup
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:a100:1
+#SBATCH --error=baseDiffusionNoiseRampup.err
+#SBATCH --output=baseDiffusionNoiseRampup.out
 
 module load python
 python -m src.train_scripts.train_baseDiffusionNoiseRampup

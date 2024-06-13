@@ -79,7 +79,7 @@ for e in tqdm(range(config.epoch)):
         
         cur_train_loss = np.mean(train_losses)
         cur_val_loss = np.mean(val_losses)
-        tqdm.write("Epoch %d Training Loss: %.7f, Validation Loss:%.7f"%(e, cur_train_loss, cur_val_loss))
+        print("Epoch %d Training Loss: %.7f, Validation Loss:%.7f"%(e, cur_train_loss, cur_val_loss), flush=True)
         state = {
             'model': model.state_dict(),
             'optimizer': optimizer.state_dict()

@@ -6,6 +6,8 @@
 #SBATCH --job-name=stylePretrainedDiffusion
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:a100:1
+#SBATCH --error=stylePretrainedDiffusion.err
+#SBATCH --output=basstylePretrainedDiffusion.out
 
 module load python
 python -m src.train_scripts.train_stylePretrainedDiffusion

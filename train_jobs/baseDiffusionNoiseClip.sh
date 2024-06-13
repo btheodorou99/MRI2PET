@@ -6,6 +6,8 @@
 #SBATCH --job-name=baseDiffusionNoiseClip
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:a100:1
+#SBATCH --error=baseDiffusionNoiseClip.err
+#SBATCH --output=baseDiffusionNoiseClip.out
 
 module load python
 python -m src.train_scripts.train_baseDiffusionNoiseClip
