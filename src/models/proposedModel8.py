@@ -231,16 +231,21 @@ class DiffusionModel(nn.Module):
         x3 = self.sa2(x3)
         x4 = self.down3(x3, emb)
         x4 = self.sa3(x4)
+        x5 = self.down4(x4, emb)
+        x5 = self.sa4(x5)
         
-        x4 = self.bot1(x4)
-        x4 = self.bot2(x4)
+        x5 = self.bot1(x5)
+        x5 = self.bot2(x5)
+        x5 = self.bot3(x5)
         
-        x = self.up1(x4, x3, emb)
-        x = self.sa4(x)
-        x = self.up2(x, x2, emb)
+        x = self.up1(x5, x4, emb)
         x = self.sa5(x)
-        x = self.up3(x, x1, emb)
+        x = self.up2(x, x3, emb)
         x = self.sa6(x)
+        x = self.up3(x, x2, emb)
+        x = self.sa7(x)
+        x = self.up4(x, x1, emb)
+        x = self.sa8(x)
         x = self.outc(x)
         return x
     
