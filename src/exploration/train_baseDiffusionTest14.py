@@ -61,13 +61,14 @@ if os.path.exists(f"./src/save/baseDiffusionTest{exploration}.pt"):
     optimizer.load_state_dict(checkpoint['optimizer'])
 
 for e in range(config.epoch):
+    noiseLevel = getNoise(e)
     shuffle_training_data(train_dataset)
     train_losses = []
     model.train()
     for i in range(0, len(train_dataset), config.batch_size):
         batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
         optimizer.zero_grad()
-        loss, _ = model(batch_context, batch_images, gen_loss=True)
+        loss, _ = model(batch_context, batch_images, gen_loss=True, noiseLevel=noiseLevel)
         loss.backward()
         optimizer.step()
         train_losses.append(loss.cpu().detach().item())
@@ -77,7 +78,7 @@ for e in range(config.epoch):
         val_losses = []
         for v_i in range(0, len(val_dataset), config.batch_size):
             batch_context, batch_images = get_batch(val_dataset, v_i, config.batch_size)                 
-            val_loss, _ = model(batch_context, batch_images, gen_loss=True)
+            val_loss, _ = model(batch_context, batch_images, gen_loss=True, noiseLevel=noiseLevel)
             val_losses.append((val_loss).cpu().detach().item())
         
         cur_train_loss = np.mean(train_losses)
