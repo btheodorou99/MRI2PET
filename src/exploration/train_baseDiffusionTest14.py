@@ -20,6 +20,7 @@ if torch.cuda.is_available():
 
 config.batch_size = 100
 config.lr = 1e-4
+config.epoch = 1000
 train_dataset = pickle.load(open('./src/data/trainDataset.pkl', 'rb'))
 val_dataset = pickle.load(open('./src/data/valDataset.pkl', 'rb'))
 
