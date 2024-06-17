@@ -87,14 +87,14 @@ for i in range(NUM_SAMPLES):
 model_keys = [
     'baseGAN',
     'baseDiffusion',
-    'baseDiffusion3D',
+    # 'baseDiffusion3D',
     'baseDiffusionGradientClip',
     'baseDiffusionNoiseClip',
     # 'noisyPretrainedDiffusion',
     # 'noisyPretrainedGAN',
     # 'selfPretrainedDiffusion',
     # 'selfPretrainedGAN',
-    'stylePretrainedDiffusion',
+    # 'stylePretrainedDiffusion',
     # 'stylePretrainedGAN',
     # 'mri2pet',
 ]
