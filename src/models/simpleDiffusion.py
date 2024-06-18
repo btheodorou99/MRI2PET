@@ -72,6 +72,7 @@ class DiffusionModel(nn.Module):
             nn.ReLU(),
             nn.Conv2d(64, config.n_pet_channels, kernel_size=3, padding=1)
         )
+        self.final_layer = nn.Linear(self.image_dim*self.image_dim, self.image_dim*self.image_dim)
 
     def timestep_embedding1(self, t):
         half_dim = self.embed_dim // 2
@@ -120,6 +121,7 @@ class DiffusionModel(nn.Module):
             x_noisy = torch.cat((x_noisy, emb), dim=1)
 
         x_pred = self.encoder(x_noisy)
+        x_pred = self.final_layer(x_pred.view(-1, self.image_dim * self.image_dim)).view(x.size(0), self.n_channels, self.image_dim, self.image_dim)
         if self.final:
             x_pred = 2 * torch.tanh(x_pred)
         if gen_loss:
