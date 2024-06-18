@@ -134,7 +134,7 @@ class DownBlockTrip(nn.Module):
     
 class DownBlockSingle(nn.Module):
     def __init__(self, in_channels, out_channels, emb_dim=128):
-        super(DownBlockTrip, self).__init__()
+        super(DownBlockSingle, self).__init__()
         self.maxpool_conv = nn.Sequential(
             nn.MaxPool3d((1,2,2)),
             DoubleConv(in_channels, in_channels, residual=True),
@@ -204,7 +204,7 @@ class UpBlockTrip(nn.Module):
     
 class UpBlockSingle(nn.Module):
     def __init__(self, in_channels, out_channels, emb_dim=128):
-        super(UpBlockTrip, self).__init__()
+        super(UpBlockSingle, self).__init__()
         self.up = nn.Upsample(scale_factor=(1,2,2), mode="trilinear", align_corners=True)
         self.conv = nn.Sequential(
             DoubleConv(in_channels, in_channels, residual=True),
