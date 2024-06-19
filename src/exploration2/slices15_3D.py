@@ -5,7 +5,7 @@ import pickle
 import numpy as np
 from tqdm import tqdm
 from ..config import MRI2PETConfig
-from ..models.diffusionModel3D import DiffusionModel
+from ..models.diffusionModel3DLess import DiffusionModel
 
 SEED = 4
 cudaNum = 0
