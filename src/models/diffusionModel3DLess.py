@@ -255,13 +255,13 @@ class DiffusionModel(nn.Module):
         self.bot2 = DoubleConv(128, 128)
         self.bot3 = DoubleConv(128, 128)
         
-        self.up1 = UpBlockTrip(192, 64, self.embed_dim)
+        self.up1 = UpBlockSingle(192, 64, self.embed_dim)
         self.sa5 = LinearAttention(64)
         self.up2 = UpBlockSingle(96, 32, self.embed_dim)
         self.sa6 = LinearAttention(32)
         self.up3 = UpBlockSingle(48, 16, self.embed_dim)
         self.sa7 = LinearAttention(16)
-        self.up4 = UpBlockSingle(24, 8, self.embed_dim)
+        self.up4 = UpBlockTrip(24, 8, self.embed_dim)
         self.sa8 = LinearAttention(8)
         self.outc = nn.Conv3d(8, 1, kernel_size=1)
 

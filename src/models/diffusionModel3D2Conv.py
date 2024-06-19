@@ -264,7 +264,7 @@ class DiffusionModel(nn.Module):
         self.up4 = UpBlock(24, 8, self.embed_dim)
         self.sa8 = LinearAttention(8)
 
-        self.outc_initial = nn.Conv3d(16, 8, kernel_size=1)
+        self.outc_initial = nn.Conv3d(8, 8, kernel_size=1)
 
         # Refinement block (optional, can be a series of convolutional layers)
         self.refinement = nn.Sequential(
