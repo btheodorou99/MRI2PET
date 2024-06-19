@@ -8,7 +8,7 @@ from ..config import MRI2PETConfig
 
 SEED = 4
 cudaNum = 0
-NUM_SAMPLES = 10
+NUM_SAMPLES = 100
 random.seed(SEED)
 np.random.seed(SEED)
 torch.manual_seed(SEED)
@@ -17,7 +17,7 @@ device = torch.device(f"cuda:{cudaNum}" if torch.cuda.is_available() else "cpu")
 if torch.cuda.is_available():
     torch.cuda.manual_seed_all(SEED)
 
-output_dir = "/data/CARD_AA/data/ADNI/PET_Nifti_PreProcessed/"
+output_dir = "/data/CARD_AA/data/ADNI/PET/"
 sample_paths = random.choices(os.listdir(output_dir), k=NUM_SAMPLES)
 
 def tensor_to_numpy(tensor):
@@ -29,27 +29,27 @@ def tensor_to_numpy(tensor):
     image = image.transpose((1, 2, 0))
     return image
 
-def save_slice_plots(array, path_prefix):
+def save_slice_plots(array, dir, path_suffix):
     # Array: (Height, Width, Slices)
-    # Directions: Transversal, Sagittal, Coronal
+    # Directions: Axial, Sagittal, Coronal
     
-    # Transversal
+    # Axial
     for i in range(array.shape[2]):
         slice = array[:, :, i]
-        if i % 20 == 0 and slice.max() > 0.05:
-            plt.imsave(f'{path_prefix}_Transversal{i}.png', slice, cmap='gray')
+        if i % 10 == 0 and slice.max():
+            plt.imsave(f'{dir}/Axial{i}_{path_suffix}.png', slice, cmap='gray')
         
     # Sagittal
     for i in range(array.shape[1]):
         slice = array[:, i, :]
-        if i % 20 == 0 and slice.max() > 0.05: 
-            plt.imsave(f'{path_prefix}_Sagittal{i}.png', slice, cmap='gray')
+        if i % 10 == 0 and slice.max():
+            plt.imsave(f'{dir}/Sagittal{i}_{path_suffix}.png', slice, cmap='gray')
         
     # Coronal
     for i in range(array.shape[0]):
         slice = array[i, :, :]
-        if i % 20 == 0 and slice.max() > 0.05:
-            plt.imsave(f'{path_prefix}_Coronal{i}.png', slice, cmap='gray')
+        if i % 10 == 0 and slice.max():
+            plt.imsave(f'{dir}/Coronal{i}_{path_suffix}.png', slice, cmap='gray')
         
 for i in range(NUM_SAMPLES):
     real_image = ants.image_read(f'{output_dir}{sample_paths[i]}').numpy()
@@ -57,4 +57,4 @@ for i in range(NUM_SAMPLES):
         real_image = real_image[:, :, :, 0]
     real_image = (real_image - real_image.min()) / (real_image.max() - real_image.min())
     print(real_image.shape)
-    save_slice_plots(real_image, f'./src/results/pet_samples/realImage_{i}')
+    save_slice_plots(real_image, f'./src/results/pet_samples', i)

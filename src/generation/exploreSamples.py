@@ -53,13 +53,13 @@ def tensor_to_numpy(tensor):
 
 def save_slice_plots(array, path_prefix):
     # Array: (Height, Width, Slices)
-    # Directions: Transversal, Sagittal, Coronal
+    # Directions: Axial, Sagittal, Coronal
     
-    # Transversal
+    # Axial
     for i in range(array.shape[2]):
         slice = array[:, :, i]
         if i % 20 == 0 and slice.max() > 0.05:
-            plt.imsave(f'{path_prefix}_Transversal{i}.png', slice, cmap='gray')
+            plt.imsave(f'{path_prefix}_Axial{i}.png', slice, cmap='gray')
         
     # Sagittal
     for i in range(array.shape[1]):
