@@ -3,3 +3,4 @@ src/utils/deleteProcessed.py
 src/utils/archive/
 *.pyc
 archive/
+data/
