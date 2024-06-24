@@ -11,30 +11,30 @@ from einops import rearrange, repeat
 class ImageEncoder(nn.Module):
     def __init__(self, config):
         super(ImageEncoder, self).__init__()
-        self.n_channels = config.n_mri_channels
+        self.depth = config.n_mri_channels
         self.image_dim = config.mri_image_dim
 
-        self.conv1 = nn.Conv2d(self.n_channels, 32, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
-        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
-        self.conv4 = nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1)
-        self.flat_dim = 256 * (self.image_dim // 16) * (self.image_dim // 16)
+        self.conv1 = nn.Conv3d(1, 8, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv3d(8, 16, kernel_size=3, stride=1, padding=1)
+        self.conv3 = nn.Conv3d(16, 32, kernel_size=3, stride=1, padding=1)
+        self.conv4 = nn.Conv3d(32, 64, kernel_size=3, stride=1, padding=1)
+        self.flat_dim = 64 * (self.depth // 16) * (self.image_dim // 16) * (self.image_dim // 16)
         self.fc1 = nn.Linear(self.flat_dim, config.embed_dim)
         self.fc2 = nn.Linear(config.embed_dim, config.embed_dim)
         
     def forward(self, x):        
         # Convolution + ReLU + MaxPooling
         x = F.relu(self.conv1(x))
-        x = F.max_pool2d(x, 2)
+        x = F.max_pool3d(x, 2)
         
         x = F.relu(self.conv2(x))
-        x = F.max_pool2d(x, 2)
+        x = F.max_pool3d(x, 2)
         
         x = F.relu(self.conv3(x))
-        x = F.max_pool2d(x, 2)
+        x = F.max_pool3d(x, 2)
         
         x = F.relu(self.conv4(x))
-        x = F.max_pool2d(x, 2)
+        x = F.max_pool3d(x, 2)
 
         # Flattening the output
         x = x.view(-1, self.flat_dim)
@@ -53,48 +53,21 @@ class RMSNorm(nn.Module):
         return F.normalize(x, dim = 1) * self.g * (x.shape[1] ** 0.5)
     
 class LinearAttention(nn.Module):
-    def __init__(
-        self,
-        dim,
-        heads = 4,
-        dim_head = 32,
-        num_mem_kv = 4
-    ):
+    def __init__(self, dim, heads=4, dim_head=32):
         super().__init__()
-        self.scale = dim_head ** -0.5
         self.heads = heads
         hidden_dim = dim_head * heads
-
-        self.norm = RMSNorm(dim)
-
-        self.mem_kv = nn.Parameter(torch.randn(2, heads, dim_head, num_mem_kv))
-        self.to_qkv = nn.Conv2d(dim, hidden_dim * 3, 1, bias = False)
-
-        self.to_out = nn.Sequential(
-            nn.Conv2d(hidden_dim, dim, 1),
-            RMSNorm(dim)
-        )
+        self.to_qkv = nn.Conv3d(dim, hidden_dim * 3, 1, bias = False)
+        self.to_out = nn.Conv3d(hidden_dim, dim, 1)
 
     def forward(self, x):
-        b, _, h, w = x.shape
-
-        x = self.norm(x)
-
-        qkv = self.to_qkv(x).chunk(3, dim = 1)
-        q, k, v = map(lambda t: rearrange(t, 'b (h c) x y -> b h c (x y)', h = self.heads), qkv)
-
-        mk, mv = map(lambda t: repeat(t, 'h c n -> b h c n', b = b), self.mem_kv)
-        k, v = map(partial(torch.cat, dim = -1), ((mk, k), (mv, v)))
-
-        q = q.softmax(dim = -2)
-        k = k.softmax(dim = -1)
-
-        q = q * self.scale
-
-        context = torch.einsum('b h d n, b h e n -> b h d e', k, v)
-
-        out = torch.einsum('b h d e, b h d n -> b h e n', context, q)
-        out = rearrange(out, 'b h c (x y) -> b (h c) x y', h = self.heads, x = h, y = w)
+        b, c, d, h, w = x.shape
+        qkv = self.to_qkv(x)
+        q, k, v = rearrange(qkv, 'b (qkv heads c) d h w -> qkv b heads c (d h w)', heads = self.heads, qkv=3)
+        k = k.softmax(dim=-1)  
+        context = torch.einsum('bhdn,bhen->bhde', k, v)
+        out = torch.einsum('bhde,bhdn->bhen', context, q)
+        out = rearrange(out, 'b heads c (d h w) -> b (heads c) d h w', heads=self.heads, d=d, h=h, w=w)
         return self.to_out(out)
 
 class DoubleConv(nn.Module):
@@ -104,10 +77,10 @@ class DoubleConv(nn.Module):
         if not mid_channels:
             mid_channels = out_channels
         self.double_conv = nn.Sequential(
-            nn.Conv2d(in_channels, mid_channels, kernel_size=3, padding=1, bias=False),
+            nn.Conv3d(in_channels, mid_channels, kernel_size=3, padding=1, bias=False),
             nn.GroupNorm(1, mid_channels),
             nn.GELU(),
-            nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1, bias=False),
+            nn.Conv3d(mid_channels, out_channels, kernel_size=3, padding=1, bias=False),
             nn.GroupNorm(1, out_channels),
         )
 
@@ -121,7 +94,7 @@ class DownBlock(nn.Module):
     def __init__(self, in_channels, out_channels, emb_dim=128):
         super(DownBlock, self).__init__()
         self.maxpool_conv = nn.Sequential(
-            nn.MaxPool2d(2),
+            nn.MaxPool3d(2),
             DoubleConv(in_channels, in_channels, residual=True),
             DoubleConv(in_channels, out_channels),
         )
@@ -136,14 +109,57 @@ class DownBlock(nn.Module):
 
     def forward(self, x, t):
         x = self.maxpool_conv(x)
-        emb = self.emb_layer(t)[:, :, None, None].repeat(1, 1, x.shape[-2], x.shape[-1])
+        emb = self.emb_layer(t)[:, :, None, None, None].repeat(1, 1, x.shape[-3], x.shape[-2], x.shape[-1])
+        return x + emb
+    
+class DownBlockTrip(nn.Module):
+    def __init__(self, in_channels, out_channels, emb_dim=128):
+        super(DownBlockTrip, self).__init__()
+        self.maxpool_conv = nn.Sequential(
+            nn.MaxPool3d((3,2,2)),
+            DoubleConv(in_channels, in_channels, residual=True),
+            DoubleConv(in_channels, out_channels),
+        )
+
+        self.emb_layer = nn.Sequential(
+            nn.SiLU(),
+            nn.Linear(
+                emb_dim,
+                out_channels
+            ),
+        )
+
+    def forward(self, x, t):
+        x = self.maxpool_conv(x)
+        emb = self.emb_layer(t)[:, :, None, None, None].repeat(1, 1, x.shape[-3], x.shape[-2], x.shape[-1])
+        return x + emb
+    
+class DownBlockSingle(nn.Module):
+    def __init__(self, in_channels, out_channels, emb_dim=128):
+        super(DownBlockSingle, self).__init__()
+        self.maxpool_conv = nn.Sequential(
+            nn.MaxPool3d((1,2,2)),
+            DoubleConv(in_channels, in_channels, residual=True),
+            DoubleConv(in_channels, out_channels),
+        )
+
+        self.emb_layer = nn.Sequential(
+            nn.SiLU(),
+            nn.Linear(
+                emb_dim,
+                out_channels
+            ),
+        )
+
+    def forward(self, x, t):
+        x = self.maxpool_conv(x)
+        emb = self.emb_layer(t)[:, :, None, None, None].repeat(1, 1, x.shape[-3], x.shape[-2], x.shape[-1])
         return x + emb
 
 class UpBlock(nn.Module):
     def __init__(self, in_channels, out_channels, emb_dim=128):
         super(UpBlock, self).__init__()
-
-        self.up = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=True)
+        self.up = nn.Upsample(scale_factor=2, mode="trilinear", align_corners=True)
         self.conv = nn.Sequential(
             DoubleConv(in_channels, in_channels, residual=True),
             DoubleConv(in_channels, out_channels, in_channels // 2),
@@ -161,7 +177,55 @@ class UpBlock(nn.Module):
         x = self.up(x)
         x = torch.cat([skip_x, x], dim=1)
         x = self.conv(x)
-        emb = self.emb_layer(t)[:, :, None, None].repeat(1, 1, x.shape[-2], x.shape[-1])
+        emb = self.emb_layer(t)[:, :, None, None, None].repeat(1, 1, x.shape[-3], x.shape[-2], x.shape[-1])
+        return x + emb
+    
+class UpBlockTrip(nn.Module):
+    def __init__(self, in_channels, out_channels, emb_dim=128):
+        super(UpBlockTrip, self).__init__()
+        self.up = nn.Upsample(scale_factor=(3,2,2), mode="trilinear", align_corners=True)
+        self.conv = nn.Sequential(
+            DoubleConv(in_channels, in_channels, residual=True),
+            DoubleConv(in_channels, out_channels, in_channels // 2),
+        )
+
+        self.emb_layer = nn.Sequential(
+            nn.SiLU(),
+            nn.Linear(
+                emb_dim,
+                out_channels
+            ),
+        )
+
+    def forward(self, x, skip_x, t):
+        x = self.up(x)
+        x = torch.cat([skip_x, x], dim=1)
+        x = self.conv(x)
+        emb = self.emb_layer(t)[:, :, None, None, None].repeat(1, 1, x.shape[-3], x.shape[-2], x.shape[-1])
+        return x + emb
+    
+class UpBlockSingle(nn.Module):
+    def __init__(self, in_channels, out_channels, emb_dim=128):
+        super(UpBlockSingle, self).__init__()
+        self.up = nn.Upsample(scale_factor=(1,2,2), mode="trilinear", align_corners=True)
+        self.conv = nn.Sequential(
+            DoubleConv(in_channels, in_channels, residual=True),
+            DoubleConv(in_channels, out_channels, in_channels // 2),
+        )
+
+        self.emb_layer = nn.Sequential(
+            nn.SiLU(),
+            nn.Linear(
+                emb_dim,
+                out_channels
+            ),
+        )
+
+    def forward(self, x, skip_x, t):
+        x = self.up(x)
+        x = torch.cat([skip_x, x], dim=1)
+        x = self.conv(x)
+        emb = self.emb_layer(t)[:, :, None, None, None].repeat(1, 1, x.shape[-3], x.shape[-2], x.shape[-1])
         return x + emb
 
 class DiffusionModel(nn.Module):
@@ -179,30 +243,30 @@ class DiffusionModel(nn.Module):
         self.lambda1 = 0.5
         
         self.contextEmbedding = ImageEncoder(config)
-        self.inc = DoubleConv(config.n_pet_channels, 16)
+        self.inc = DoubleConv(1, 8)
         
-        self.down1 = DownBlock(16, 32, self.embed_dim)
-        self.sa1 = LinearAttention(32)
-        self.down2 = DownBlock(32, 64, self.embed_dim)
-        self.sa2 = LinearAttention(64)
-        self.down3 = DownBlock(64, 128, self.embed_dim)
-        self.sa3 = LinearAttention(128)
-        self.down4 = DownBlock(128, 256, self.embed_dim)
-        self.sa4 = LinearAttention(256)
+        self.down1 = DownBlock(8, 16, self.embed_dim)
+        self.sa1 = LinearAttention(16)
+        self.down2 = DownBlock(16, 32, self.embed_dim)
+        self.sa2 = LinearAttention(32)
+        self.down3 = DownBlockTrip(32, 64, self.embed_dim)
+        self.sa3 = LinearAttention(64)
+        self.down4 = DownBlockSingle(64, 128, self.embed_dim)
+        self.sa4 = LinearAttention(128)
         
-        self.bot1 = DoubleConv(256, 256)
-        self.bot2 = DoubleConv(256, 256)
-        self.bot3 = DoubleConv(256, 256)
+        self.bot1 = DoubleConv(128, 128)
+        self.bot2 = DoubleConv(128, 128)
+        self.bot3 = DoubleConv(128, 128)
         
-        self.up1 = UpBlock(384, 128, self.embed_dim)
-        self.sa5 = LinearAttention(128)
-        self.up2 = UpBlock(192, 64, self.embed_dim)
-        self.sa6 = LinearAttention(64)
-        self.up3 = UpBlock(96, 32, self.embed_dim)
-        self.sa7 = LinearAttention(32)
-        self.up4 = UpBlock(48, 16, self.embed_dim)
-        self.sa8 = LinearAttention(16)
-        self.outc = nn.Conv2d(16, config.n_pet_channels, kernel_size=1)
+        self.up1 = UpBlockSingle(192, 64, self.embed_dim)
+        self.sa5 = LinearAttention(64)
+        self.up2 = UpBlockTrip(96, 32, self.embed_dim)
+        self.sa6 = LinearAttention(32)
+        self.up3 = UpBlock(48, 16, self.embed_dim)
+        self.sa7 = LinearAttention(16)
+        self.up4 = UpBlock(24, 8, self.embed_dim)
+        self.sa8 = LinearAttention(8)
+        self.outc = nn.Conv3d(8, 1, kernel_size=1)
 
     def timestep_embedding(self, t, channels, max_period=100):
         inv_freq = 1.0 / (
@@ -219,13 +283,16 @@ class DiffusionModel(nn.Module):
 
     def noise_images(self, x, t):
         "Add noise to images at instant t"
-        sqrt_alpha_hat = torch.sqrt(self.alpha_hat[t])[:, None, None, None].to(x.device)
+        self.alpha_hat = self.alpha_hat.to(x.device)
+        sqrt_alpha_hat = torch.sqrt(self.alpha_hat.to(t.device)[t])[:, None, None, None].to(x.device)
         sqrt_one_minus_alpha_hat = torch.sqrt(1 - self.alpha_hat[t])[:, None, None, None].to(x.device)
         Ɛ = torch.randn_like(x)
         return sqrt_alpha_hat * x + sqrt_one_minus_alpha_hat * Ɛ, Ɛ
 
     def _forward(self, noised_images, t, condImage):
         "Forward pass through the model"
+        noised_images = noised_images.unsqueeze(1)        
+        condImage = condImage.unsqueeze(1)
         emb = self.timestep_embedding(t, self.embed_dim, max_period=self.num_timesteps)
         emb += self.contextEmbedding(condImage)
         
@@ -252,6 +319,8 @@ class DiffusionModel(nn.Module):
         x = self.up4(x, x1, emb)
         x = self.sa8(x)
         x = self.outc(x)
+        
+        x = x.squeeze(1)
         return x
     
     def construct_image(self, noised_x, t, pred_noise):
@@ -290,19 +359,19 @@ class DiffusionModel(nn.Module):
     
     def calculate_nll(self, context, input_images):
         nll = 0.0
-        for timestep in range(1, self.num_timesteps):
-            t = torch.ones(input_images.size(0), device=context.device) * timestep
+        for timestep in tqdm(range(1, self.num_timesteps), leave=False):
+            t = torch.ones(input_images.size(0), device=context.device, dtype=torch.long) * timestep
             noised_images, actual_noise = self.noise_images(input_images, t)
             predicted_noise = self._forward(noised_images, t, context)
             
             # Calculate the mean squared error between predicted and actual noise
-            mse = torch.mean((predicted_noise - actual_noise) ** 2)
+            mse = torch.mean((predicted_noise - actual_noise) ** 2).cpu().numpy()
 
             # Convert MSE to log-likelihood assuming Gaussian noise
-            sigma_t = torch.sqrt(1 - self.alpha_hat[t])
+            sigma_t = torch.sqrt(1 - self.alpha_hat[t]).cpu().numpy()
             log_likelihood = -mse / (2 * sigma_t**2) - 0.5 * np.log(2 * np.pi * sigma_t**2)
 
             # Accumulate NLL
             nll += log_likelihood
         
-        return nll.item() * input_images.numel()
+        return - nll.mean().item() * input_images.numel()

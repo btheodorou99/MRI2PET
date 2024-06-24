@@ -2,9 +2,8 @@ import torch
 import numpy as np
 from tqdm import tqdm
 import torch.nn as nn
-from functools import partial
 import torch.nn.functional as F
-from einops import rearrange, repeat
+from einops import rearrange
 
 class ImageEncoder(nn.Module):
     def __init__(self, config):
