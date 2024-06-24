@@ -3,32 +3,33 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class ImageEncoder(nn.Module):
-    def __init__(self, config, is_mri=True):
+    def __init__(self, config, is_mri):
         super(ImageEncoder, self).__init__()
-        self.n_channels = config.n_mri_channels if is_mri else config.n_pet_channels
-        self.image_dim = config.mri_image_dim if is_mri else config.pet_image_dim
+        self.is_mri = is_mri
+        self.depth = config.n_mri_channels if self.is_mri else config.n_pet_channels
+        self.image_dim = config.mri_image_dim if self.is_mri else config.pet_image_dim
 
-        self.conv1 = nn.Conv2d(self.n_channels, 32, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
-        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
-        self.conv4 = nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1)
-        self.flat_dim = 256 * (self.image_dim // 16) * (self.image_dim // 16)
+        self.conv1 = nn.Conv3d(1, 8, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv3d(8, 16, kernel_size=3, stride=1, padding=1)
+        self.conv3 = nn.Conv3d(16, 32, kernel_size=3, stride=1, padding=1)
+        self.conv4 = nn.Conv3d(32, 64, kernel_size=3, stride=1, padding=1)
+        self.flat_dim = 64 * (self.depth // (16 if self.is_mri else 15)) * (self.image_dim // 16) * (self.image_dim // 16)
         self.fc1 = nn.Linear(self.flat_dim, config.embed_dim)
         self.fc2 = nn.Linear(config.embed_dim, config.embed_dim)
         
     def forward(self, x):        
         # Convolution + ReLU + MaxPooling
         x = F.relu(self.conv1(x))
-        x = F.max_pool2d(x, 2)
+        x = F.max_pool3d(x, 2)
         
         x = F.relu(self.conv2(x))
-        x = F.max_pool2d(x, 2)
+        x = F.max_pool3d(x, 2)
         
         x = F.relu(self.conv3(x))
-        x = F.max_pool2d(x, 2)
+        x = F.max_pool3d(x, 2) if self.is_mri else F.max_pool3d(x, (3, 2, 2))
         
         x = F.relu(self.conv4(x))
-        x = F.max_pool2d(x, 2)
+        x = F.max_pool3d(x, 2) if self.is_mri else F.max_pool3d(x, (1, 2, 2))
 
         # Flattening the output
         x = x.view(-1, self.flat_dim)
@@ -42,39 +43,57 @@ class Generator(nn.Module):
     def __init__(self, config):
         super(Generator, self).__init__()
         self.init_dim = config.pet_image_dim // 32
+        self.init_depth = config.n_pet_channels // (2 * 2 * 3 * 1 * 1)
         self.z_dim = config.z_dim
 
         self.context_emb = ImageEncoder(config, is_mri=True)
-        self.init_map = nn.Linear(config.z_dim + config.embed_dim, 32 * (self.init_dim ** 2))
+        self.init_map = nn.Linear(config.z_dim + config.embed_dim, 8 * self.init_depth * (self.init_dim ** 2))
 
         self.gen = nn.Sequential(
-            self._gen_block(32, 64),
-            self._gen_block(64, 128),
-            self._gen_block(128, 128),
-            self._gen_block(128, 64),
-            self._gen_block(64, 32),
-            nn.Conv2d(32, 16, kernel_size=3, stride=1, padding=1),
+            self._gen_block(8, 16),
+            self._gen_block(16, 32),
+            self._gen_block_triple(32, 32),
+            self._gen_block_single(32, 16),
+            self._gen_block_single(16, 8),
+            nn.Conv3d(8, 4, kernel_size=3, stride=1, padding=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(16, config.n_pet_channels, kernel_size=3, stride=1, padding=1),
+            nn.Conv3d(4, 1, kernel_size=3, stride=1, padding=1),
             nn.Tanh()
         )
 
     def _gen_block(self, in_channels, out_channels):
         return nn.Sequential(
-            nn.BatchNorm2d(in_channels),
-            nn.ConvTranspose2d(in_channels, out_channels, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.BatchNorm3d(in_channels),
+            nn.ConvTranspose3d(in_channels, out_channels, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.LeakyReLU(0.2, inplace=True),
+        )
+
+    def _gen_block_triple(self, in_channels, out_channels):
+        return nn.Sequential(
+            nn.BatchNorm3d(in_channels),
+            nn.ConvTranspose3d(in_channels, out_channels, kernel_size=(3, 4, 4), stride=(3, 2, 2), padding=(0, 1, 1), bias=False),
+            nn.LeakyReLU(0.2, inplace=True),
+        )
+
+    def _gen_block_single(self, in_channels, out_channels):
+        return nn.Sequential(
+            nn.BatchNorm3d(in_channels),
+            nn.ConvTranspose3d(in_channels, out_channels, kernel_size=(3, 4, 4), stride=(1, 2, 2), padding=(1, 1, 1), bias=False),
             nn.LeakyReLU(0.2, inplace=True),
         )
 
     def forward(self, noise, context_images):
+        context_images = context_images.unsqueeze(1)
         context = self.context_emb(context_images)
         gen_input = torch.cat((context, noise), -1)
         gen_input = self.init_map(gen_input)
-        gen_input = gen_input.view(gen_input.size(0), 32, self.init_dim, self.init_dim)
+        gen_input = gen_input.view(gen_input.size(0), 8, self.init_depth, self.init_dim, self.init_dim)
         img = self.gen(gen_input)
+        img = img.squeeze(1)
         return img
     
     def generate(self, context_images):
+        context_images = context_images.unsqueeze(1)
         z = torch.randn(context_images.size(0), self.z_dim, device=context_images.device)
         images = self.forward(z, context_images)
         return images
@@ -105,6 +124,8 @@ class Discriminator(nn.Module):
         )
 
     def forward(self, img, context_images):
+        img = img.unsqueeze(1)
+        context_images = context_images.unsqueeze(1)
         context = self.context_emb(context_images)
         image = self.image_emb(img)
         disc_input = torch.cat((context, image), -1)

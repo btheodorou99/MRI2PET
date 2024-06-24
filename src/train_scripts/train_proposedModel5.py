@@ -73,7 +73,7 @@ for e in tqdm(range(config.pretrain_epoch)):
         pretrain_losses.append(loss.cpu().detach().item())
     
     cur_pretrain_loss = np.mean(pretrain_losses)
-    print("Epoch %d Training Loss:%.7f"%(e, cur_pretrain_loss))
+    print("Epoch %d Training Loss:%.7f"%(e, cur_pretrain_loss), flush=True)
     state = {
         'model': model.state_dict(),
         'optimizer': optimizer.state_dict(),

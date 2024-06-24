@@ -21,10 +21,10 @@ train_dataset = pickle.load(open('./src/data/trainDataset.pkl', 'rb'))
 val_dataset = pickle.load(open('./src/data/valDataset.pkl', 'rb'))
 
 def getNoise(epoch):
-    if epoch >= 100:
+    if epoch >= 250:
         return 1
     else:
-        return (1 - 0.01) * (epoch / 100) + 0.01
+        return (1 - 0.01) * (epoch / 250) + 0.01
 
 def load_image(image_path, is_mri=True):
     img = np.load(image_path)
@@ -56,18 +56,27 @@ if os.path.exists(f"./src/save/baseDiffusionNoiseRampup.pt"):
     model.load_state_dict(checkpoint['model'])
     optimizer.load_state_dict(checkpoint['optimizer'])
 
+steps_per_batch = 5
+config.batch_size = config.batch_size // steps_per_batch
 for e in tqdm(range(config.epoch)):
     noiseLevel = getNoise(e)
     shuffle_training_data(train_dataset)
     train_losses = []
     model.train()
+    curr_step = 0
+    optimizer.zero_grad()
     for i in range(0, len(train_dataset), config.batch_size):
         batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
         optimizer.zero_grad()
         loss, _ = model(batch_context, batch_images, gen_loss=True, noiseLevel=noiseLevel)
-        loss.backward()
-        optimizer.step()
         train_losses.append(loss.cpu().detach().item())
+        loss = loss / steps_per_batch
+        loss.backward()
+        curr_step += 1
+        if curr_step % steps_per_batch == 0:
+            optimizer.step()
+            optimizer.zero_grad()
+            curr_step = 0
     
     model.eval()
     with torch.no_grad():

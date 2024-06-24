@@ -4,9 +4,7 @@ import pickle
 import numpy as np
 from tqdm import tqdm
 from ..config import MRI2PETConfig
-from torch.utils.data import DataLoader
 from torchvision.models import inception_v3
-from torchvision.datasets import ImageFolder
 from torchvision.transforms import Compose, Resize, CenterCrop, ToTensor, Normalize
 
 config = MRI2PETConfig()

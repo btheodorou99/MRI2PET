@@ -6,7 +6,6 @@ import numpy as np
 from tqdm import tqdm
 from ..config import MRI2PETConfig
 from ..models.diffusionModel import DiffusionModel
-from ..models.ganModel import Generator
 
 SEED = 4
 cudaNum = 0
@@ -41,11 +40,11 @@ def get_batch(dataset, loc, batch_size):
     return batch_context, batch_image
 
 model_keys = [
-    'baseDiffusion',
-    'noisyPretrainedDiffusion',
-    'selfPretrainedDiffusion',
-    'stylePretrainedDiffusion',
-    'mri2pet',
+    'baseDiffusion3D',
+    # 'noisyPretrainedDiffusion',
+    # 'selfPretrainedDiffusion',
+    # 'stylePretrainedDiffusion',
+    # 'mri2pet',
 ]
 
 for k in tqdm(model_keys):
@@ -63,6 +62,7 @@ for k in tqdm(model_keys):
             total_nll += nll
             total_pixels += batch_images.numel()
 
+    
     nll = total_nll / total_pixels
     bits_per_dim = total_nll / (np.log(2))
     print('{k} NLL:', nll, 'BPD:', bits_per_dim)

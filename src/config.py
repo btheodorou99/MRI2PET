@@ -1,7 +1,7 @@
 class MRI2PETConfig(object):
     def __init__(
             self,            
-            batch_size=48,
+            batch_size=50,
             epoch=2500,
             pretrain_epoch=500,
             patience=5,

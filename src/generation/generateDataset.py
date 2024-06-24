@@ -7,7 +7,6 @@ from tqdm import tqdm
 from ..config import MRI2PETConfig
 from ..models.ganModel import Generator
 from ..models.diffusionModel import DiffusionModel
-from ..models.diffusionModel3D import DiffusionModel as DiffusionModel3D
 
 SEED = 4
 cudaNum = 0
@@ -50,12 +49,15 @@ def save_image(tensor, path):
 model_keys = [
     'baseGAN',
     'baseDiffusion',
-    'baseDiffusion3D',
-    # 'noisyPretrainedDiffusion',
-    # 'noisyPretrainedGAN',
-    # 'selfPretrainedDiffusion',
-    # 'selfPretrainedGAN',
+    'baseDiffusionGradientClip',
+    'baseDiffusionNoiseClip',
+    'noisyPretrainedDiffusion',
+    'selfPretrainedDiffusion',
     'stylePretrainedDiffusion',
+    'baseDiffusion_noiseRampup',
+    'baseDiffusion_gradientClipping',
+    # 'noisyPretrainedGAN',
+    # 'selfPretrainedGAN',
     # 'stylePretrainedGAN',
     # 'mri2pet',
 ]
@@ -66,11 +68,6 @@ for k in tqdm(model_keys):
     if 'GAN' in k:
         model = Generator(config)
         model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location='cpu')['generator'])
-        model = model.to(device)
-        model.eval()
-    elif '3D' in k:
-        model = DiffusionModel3D(config)
-        model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location='cpu')['model'])
         model = model.to(device)
         model.eval()
     else:
