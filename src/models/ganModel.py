@@ -13,7 +13,7 @@ class ImageEncoder(nn.Module):
         self.conv2 = nn.Conv3d(8, 16, kernel_size=3, stride=1, padding=1)
         self.conv3 = nn.Conv3d(16, 32, kernel_size=3, stride=1, padding=1)
         self.conv4 = nn.Conv3d(32, 64, kernel_size=3, stride=1, padding=1)
-        self.flat_dim = 64 * (self.depth // (16 if self.is_mri else 15)) * (self.image_dim // 16) * (self.image_dim // 16)
+        self.flat_dim = 64 * (self.depth // (16 if self.is_mri else 12)) * (self.image_dim // 16) * (self.image_dim // 16)
         self.fc1 = nn.Linear(self.flat_dim, config.embed_dim)
         self.fc2 = nn.Linear(config.embed_dim, config.embed_dim)
         

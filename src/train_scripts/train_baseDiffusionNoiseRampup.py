@@ -48,7 +48,7 @@ def get_batch(dataset, loc, batch_size):
 def shuffle_training_data(train_ehr_dataset):
     random.shuffle(train_ehr_dataset)
 
-model = DiffusionModel(config, noise=True).to(device)
+model = DiffusionModel(config).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
 if os.path.exists(f"./src/save/baseDiffusionNoiseRampup.pt"):
     print("Loading previous model")
