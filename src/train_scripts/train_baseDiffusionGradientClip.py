@@ -49,6 +49,7 @@ if os.path.exists(f"./src/save/baseDiffusionGradientClip.pt"):
     checkpoint = torch.load(f'./src/save/baseDiffusionGradientClip.pt', map_location=torch.device(device))
     model.load_state_dict(checkpoint['model'])
     optimizer.load_state_dict(checkpoint['optimizer'])
+    config.epoch = config.epoch - 858
 
 steps_per_batch = 5
 config.batch_size = config.batch_size // steps_per_batch
