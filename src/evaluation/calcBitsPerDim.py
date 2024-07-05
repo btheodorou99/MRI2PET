@@ -49,6 +49,7 @@ model_keys = [
     # 'mri2pet',
 ]
 
+config.batch_size = config.batch_size // 5
 for k in tqdm(model_keys):
     print(k)
     model = DiffusionModel(config).to(device)

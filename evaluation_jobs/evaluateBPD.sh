@@ -6,6 +6,8 @@
 #SBATCH --job-name=bitsPerDimension
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:a100:1
+#SBATCH --error=evaluateBPD.err
+#SBATCH --output=evaluateBPD.out
 
 module load python
 python -m src.evaluation.calcBitsPerDim

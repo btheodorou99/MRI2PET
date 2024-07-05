@@ -6,6 +6,8 @@
 #SBATCH --job-name=inceptionScore
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:a100:1
+#SBATCH --error=evaluateIS.err
+#SBATCH --output=evaluateIS.out
 
 module load python
 python -m src.evaluation.calcIS

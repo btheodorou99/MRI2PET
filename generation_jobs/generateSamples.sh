@@ -6,6 +6,8 @@
 #SBATCH --job-name=generateSamples
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:a100:1
+#SBATCH --error=generateSamples.err
+#SBATCH --output=generateSamples.out
 
 module load python
 python -m src.generation.generateSamples

@@ -6,6 +6,8 @@
 #SBATCH --job-name=frechetInceptionDistance
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:a100:1
+#SBATCH --error=evaluateFID.err
+#SBATCH --output=evaluateFID.out
 
 module load python
 python -m src.evaluation.calcFID

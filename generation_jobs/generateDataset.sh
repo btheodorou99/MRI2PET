@@ -6,6 +6,8 @@
 #SBATCH --job-name=generateDataset
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:a100:1
+#SBATCH --error=generateDataset.err
+#SBATCH --output=generateDataset.out
 
 module load python
 python -m src.generation.generateDataset
