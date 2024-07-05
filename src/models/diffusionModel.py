@@ -318,6 +318,7 @@ class DiffusionModel(nn.Module):
         x = self.outc(x)
         
         x = x.squeeze(1)
+        condImage = condImage.squeeze(1)
         return x
     
     def forward(self, context, input_images, gen_loss=True):
