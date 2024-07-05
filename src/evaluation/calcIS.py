@@ -51,15 +51,17 @@ def get_inception_score(model, dataset):
     return is_score
 
 model_keys = [
-    'baseDiffusion',
     'baseGAN',
-    'noisyPretrainedDiffusion',
-    'noisyPretrainedGAN',
-    'selfPretrainedDiffusion',
-    'selfPretrainedGAN',
-    'stylePretrainedDiffusion',
-    'stylePretrainedGAN',
-    'mri2pet',
+    'baseDiffusion',
+    'baseDiffusionGradientClip',
+    'baseDiffusionNoiseRampup',
+    # 'noisyPretrainedDiffusion',
+    # 'selfPretrainedDiffusion',
+    # 'stylePretrainedDiffusion',
+    # 'noisyPretrainedGAN',
+    # 'selfPretrainedGAN',
+    # 'stylePretrainedGAN',
+    # 'mri2pet',
 ]
 
 for k in tqdm(model_keys):
