@@ -93,7 +93,6 @@ class Generator(nn.Module):
         return img
     
     def generate(self, context_images):
-        context_images = context_images.unsqueeze(1)
         z = torch.randn(context_images.size(0), self.z_dim, device=context_images.device)
         images = self.forward(z, context_images)
         return images
