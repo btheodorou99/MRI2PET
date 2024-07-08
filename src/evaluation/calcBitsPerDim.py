@@ -67,7 +67,7 @@ for k in tqdm(model_keys):
 
     
     nll = total_nll / total_pixels
-    bits_per_dim = total_nll / (np.log(2))
+    bits_per_dim = nll / (np.log(2))
     print('{k} NLL:', nll, 'BPD:', bits_per_dim)
     pickle.dump(nll, open(f'./src/results/quantitative_evaluations/{k}_nll.pkl', 'wb'))
     pickle.dump(bits_per_dim, open(f'./src/results/quantitative_evaluations/{k}_bits_per_dim.pkl', 'wb'))

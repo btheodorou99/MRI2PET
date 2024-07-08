@@ -47,7 +47,7 @@ def save_image(tensor, path):
     np.save(path, image)
         
 model_keys = [
-    'baseGAN',
+    # 'baseGAN',
     'baseDiffusion',
     'baseDiffusionGradientClip',
     'baseDiffusionNoiseRampup',
@@ -68,15 +68,17 @@ for k in tqdm(model_keys):
         model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location='cpu')['generator'])
         model = model.to(device)
         model.eval()
+        batch_size = config.batch_size
     else:
         model = DiffusionModel(config)
         model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location='cpu')['model'])
         model = model.to(device)
         model.eval()
+        batch_size = config.batch_size // 5
 
     with torch.no_grad():
-        for i in tqdm(range(0, len(test_dataset), config.batch_size), leave=False):
-            sample_contexts = get_batch(test_dataset, i, config.batch_size)
+        for i in tqdm(range(0, len(test_dataset), batch_size), leave=False):
+            sample_contexts = get_batch(test_dataset, i, batch_size)
             sample_images = model.generate(sample_contexts)
             for j in range(sample_images.size(0)):
                 save_image(sample_images[j], f'/data/theodoroubp/MRI2PET/results/generated_datasets/{k}/sampleImage_{i+j}.npy')
