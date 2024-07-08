@@ -9,7 +9,6 @@ from ..models.proposedModel7 import DiffusionModel
 
 SEED = 4
 cudaNum = 0
-NUM_SAMPLES = 25
 random.seed(SEED)
 np.random.seed(SEED)
 torch.manual_seed(SEED)
@@ -23,7 +22,6 @@ pretrain_dataset = [(mri_path, os.path.join(config.mri_style_dir, mri_path.split
 train_dataset = pickle.load(open('./src/data/trainDataset.pkl', 'rb'))
 val_dataset = pickle.load(open('./src/data/valDataset.pkl', 'rb'))
 MRI_LOSS_SCHEDULE = [max(0.5 - (0.5 * e / (config.epoch // 4)), 0) for e in config.epoch]
-
 def load_image(image_path, is_mri=True):
     img = np.load(image_path)
     img = img.transpose((2,0,1))
@@ -57,8 +55,8 @@ if os.path.exists(f"./src/save/proposedModel7.pt"):
 steps_per_batch = 5
 config.batch_size = config.batch_size // steps_per_batch
 
-for e in tqdm(range(config.epoch)):
-    shuffle_training_data(train_dataset)
+for e in tqdm(range(config.pretrain_epoch)):
+    shuffle_training_data(pretrain_dataset)
     pretrain_losses = []
     model.train()
     curr_step = 0
@@ -91,10 +89,11 @@ for e in tqdm(range(config.epoch)):
     shuffle_training_data(train_dataset)
     train_losses = []
     model.train()
+    curr_step = 0
+    optimizer.zero_grad()
     for i in range(0, len(train_dataset), config.batch_size):
         batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
-        optimizer.zero_grad()
-        loss, _ = model(batch_context, batch_images, gen_loss=True)
+        loss, _ = model(batch_context, batch_images, gen_loss=True, weight=MRI_LOSS_SCHEDULE[e])
         train_losses.append(loss.cpu().detach().item())
         loss = loss / steps_per_batch
         loss.backward()
@@ -109,11 +108,12 @@ for e in tqdm(range(config.epoch)):
         val_losses = []
         for v_i in range(0, len(val_dataset), config.batch_size):
             batch_context, batch_images = get_batch(val_dataset, v_i, config.batch_size)                 
-            val_loss, _ = model(batch_context, batch_images, gen_loss=True, weight=MRI_LOSS_SCHEDULE[e])
+            val_loss, _ = model(batch_context, batch_images, gen_loss=True)
             val_losses.append((val_loss).cpu().detach().item())
         
+        cur_train_loss = np.mean(train_losses)
         cur_val_loss = np.mean(val_losses)
-        print("Epoch %d Validation Loss:%.7f"%(e, cur_val_loss), flush=True)
+        print("Epoch %d Training Loss: %.7f, Validation Loss:%.7f"%(e, cur_train_loss, cur_val_loss), flush=True)
         state = {
             'model': model.state_dict(),
             'optimizer': optimizer.state_dict(),

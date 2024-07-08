@@ -1,3 +1,5 @@
+# DO NOT USE
+
 import os
 import torch
 import random
@@ -5,11 +7,10 @@ import pickle
 import numpy as np
 from tqdm import tqdm
 from ..config import MRI2PETConfig
-from ..models.proposedModel23 import DiffusionModel, ImagePairClassifier
+from ..models.proposedModel22 import DiffusionModel, ImagePairClassifier
 
 SEED = 4
 cudaNum = 0
-NUM_SAMPLES = 25
 LABEL_DIR = './src/data/patient_labels'
 random.seed(SEED)
 np.random.seed(SEED)
@@ -34,7 +35,6 @@ val_dataset = pickle.load(open('./src/data/valDataset.pkl', 'rb'))
 val_cls_dataset = [(mri_path, get_patient_labels(mri_path)) for (mri_path, _) in val_dataset] + [(pet_path, get_patient_labels(pet_path)) for (_, pet_path) in val_dataset]
 
 NUM_LABELS = len(train_cls_dataset[0][1])
-
 def load_image(image_path, is_mri=True):
     img = np.load(image_path)
     img = img.transpose((2,0,1))
@@ -46,7 +46,7 @@ def load_image(image_path, is_mri=True):
 def get_batch(dataset, loc, batch_size):
     image_paths = dataset[loc:loc+batch_size]
     bs = len(image_paths)
-    batch_context = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
+    batch_context = torch.zeros(bs, config.n_mri_channels, config.mri_image_dim, config.mri_image_dim, dtype=torch.float, device=device)
     batch_image = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
     for i, (m, p) in enumerate(image_paths):
         batch_context[i] = load_image(m, is_mri=True)
@@ -70,17 +70,17 @@ def shuffle_training_data(train_ehr_dataset):
 
 model = DiffusionModel(config).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
-if os.path.exists(f"./src/save/proposedModel23.pt"):
+if os.path.exists(f"./src/save/proposedModel22.pt"):
     print("Loading previous model")
-    checkpoint = torch.load(f'./src/save/proposedModel23.pt', map_location=torch.device(device))
+    checkpoint = torch.load(f'./src/save/proposedModel22.pt', map_location=torch.device(device))
     model.load_state_dict(checkpoint['model'])
     optimizer.load_state_dict(checkpoint['optimizer'])
 
 steps_per_batch = 5
 config.batch_size = config.batch_size // steps_per_batch
 
-for e in tqdm(range(config.epoch)):
-    shuffle_training_data(train_dataset)
+for e in tqdm(range(config.pretrain_epoch)):
+    shuffle_training_data(pretrain_dataset)
     pretrain_losses = []
     model.train()
     curr_step = 0
@@ -105,7 +105,7 @@ for e in tqdm(range(config.epoch)):
         'optimizer': optimizer.state_dict(),
         'mode': 'pretrain'
     }
-    torch.save(state, f'./src/save/proposedModel23.pt')
+    torch.save(state, f'./src/save/proposedModel22.pt')
     
 cls_model = ImagePairClassifier(config).to(device)
 optimizer = torch.optim.Adam(cls_model.parameters(), lr=config.lr)
@@ -143,9 +143,9 @@ for e in tqdm(range(config.pretrain_epoch)):
             'model': cls_model.state_dict(),
             'optimizer': optimizer.state_dict(),
         }
-        torch.save(state, f'./src/save/proposedModel23_cls.pt')
+        torch.save(state, f'./src/save/proposedModel22_cls.pt')
         
-cls_model.load_state_dict(torch.load(f'./src/save/proposedModel23_cls.pt')['model'])
+cls_model.load_state_dict(torch.load(f'./src/save/proposedModel22_cls.pt')['model'])
 cls_model.eval()
 cls_model.requires_grad_(False)
 optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
@@ -154,9 +154,10 @@ for e in tqdm(range(config.epoch)):
     shuffle_training_data(train_dataset)
     train_losses = []
     model.train()
+    curr_step = 0
+    optimizer.zero_grad()
     for i in range(0, len(train_dataset), config.batch_size):
         batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
-        optimizer.zero_grad()
         loss, _ = model(batch_context, batch_images, gen_loss=True, pairModel=cls_model)
         train_losses.append(loss.cpu().detach().item())
         loss = loss / steps_per_batch
@@ -175,11 +176,12 @@ for e in tqdm(range(config.epoch)):
             val_loss, _ = model(batch_context, batch_images, gen_loss=True)
             val_losses.append((val_loss).cpu().detach().item())
         
+        cur_train_loss = np.mean(train_losses)
         cur_val_loss = np.mean(val_losses)
-        print("Epoch %d Validation Loss:%.7f"%(e, cur_val_loss), flush=True)
+        print("Epoch %d Training Loss: %.7f, Validation Loss:%.7f"%(e, cur_train_loss, cur_val_loss), flush=True)
         state = {
             'model': model.state_dict(),
             'optimizer': optimizer.state_dict(),
             'mode': 'train'
         }
-        torch.save(state, f'./src/save/proposedModel23.pt')
+        torch.save(state, f'./src/save/proposedModel22.pt')

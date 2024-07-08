@@ -4,9 +4,8 @@ import torch
 import numpy as np
 from tqdm import tqdm
 import torch.nn as nn
-from functools import partial
 import torch.nn.functional as F
-from einops import rearrange, repeat
+from einops import rearrange
 
 class ImageEncoder(nn.Module):
     def __init__(self, config, is_mri):
@@ -49,33 +48,35 @@ class ImageToImage(nn.Module):
     def __init__(self, config):
         self.n_channels = config.n_mri_channels
         self.output_image_dim = config.mri_image_dim
+        self.output_image_channels = config.n_mri_channels
 
         self.image_encoder = ImageEncoder(config, isMri=False)
         self.image_decoder = nn.Sequential(
-            nn.Linear(config.embed_dim, self.output_image_dim // 8 * self.output_image_dim // 8),
+            nn.Linear(config.embed_dim, self.output_image_channels // 8 * self.output_image_dim // 8 * self.output_image_dim // 8),
             nn.ReLU(),
-            nn.Unflatten(1, (1, self.output_image_dim // 8, self.output_image_dim // 8)),
-            nn.ConvTranspose2d(1, 64, kernel_size=4, stride=2, padding=1),
+            nn.Unflatten(1, (1, self.output_image_channels // 8, self.output_image_dim // 8, self.output_image_dim // 8)),
+            nn.ConvTranspose3d(1, 16, kernel_size=4, stride=2, padding=1),
             nn.ReLU(),
-            nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1),
+            nn.ConvTranspose3d(16, 8, kernel_size=4, stride=2, padding=1),
             nn.ReLU(),
-            nn.ConvTranspose2d(32, self.n_mri_channels, kernel_size=4, stride=2, padding=1),
+            nn.ConvTranspose3d(8, 1, kernel_size=4, stride=2, padding=1),
         )
 
     def forward(self, x):
         # Encode the input image
         encoded_image = self.image_encoder(x)
         generated_image = self.image_decoder(encoded_image)
+        generated_image = generated_image.view(-1, self.output_image_channels, self.output_image_dim, self.output_image_dim)
         return generated_image
 
 class RMSNorm(nn.Module):
     def __init__(self, dim):
         super().__init__()
-        self.g = nn.Parameter(torch.ones(1, dim, 1, 1))
+        self.g = nn.Parameter(torch.ones(1, dim, 1, 1, 1))
 
     def forward(self, x):
         return F.normalize(x, dim = 1) * self.g * (x.shape[1] ** 0.5)
-    
+
 class LinearAttention(nn.Module):
     def __init__(self, dim, heads=4, dim_head=32):
         super().__init__()
@@ -291,7 +292,7 @@ class DiffusionModel(nn.Module):
         self.up4 = UpBlock(24, 8, self.embed_dim)
         self.sa8 = LinearAttention(8)
         self.outc = nn.Conv3d(8, 1, kernel_size=1)
-        
+    
         self.backNet = ImageToImage(config)
 
     def timestep_embedding(self, t, channels, max_period=100):
@@ -319,6 +320,7 @@ class DiffusionModel(nn.Module):
         "Forward pass through the model"
         noised_images = noised_images.unsqueeze(1)        
         condImage = condImage.unsqueeze(1)
+        
         emb = self.timestep_embedding(t, self.embed_dim, max_period=self.num_timesteps)
         emb += self.contextEmbedding(condImage)
         
@@ -347,6 +349,7 @@ class DiffusionModel(nn.Module):
         x = self.outc(x)
         
         x = x.squeeze(1)
+        condImage = condImage.squeeze(1)
         return x
     
     def _backward(self, images):

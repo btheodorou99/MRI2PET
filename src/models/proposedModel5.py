@@ -4,9 +4,8 @@ import torch
 import numpy as np
 from tqdm import tqdm
 import torch.nn as nn
-from functools import partial
 import torch.nn.functional as F
-from einops import rearrange, repeat
+from einops import rearrange
 
 LAMBDA1 = 0.5
 LAMBDA2 = 0.05
@@ -50,11 +49,11 @@ class ImageEncoder(nn.Module):
 class RMSNorm(nn.Module):
     def __init__(self, dim):
         super().__init__()
-        self.g = nn.Parameter(torch.ones(1, dim, 1, 1))
+        self.g = nn.Parameter(torch.ones(1, dim, 1, 1, 1))
 
     def forward(self, x):
         return F.normalize(x, dim = 1) * self.g * (x.shape[1] ** 0.5)
-    
+
 class LinearAttention(nn.Module):
     def __init__(self, dim, heads=4, dim_head=32):
         super().__init__()
@@ -295,6 +294,7 @@ class DiffusionModel(nn.Module):
         "Forward pass through the model"
         noised_images = noised_images.unsqueeze(1)        
         condImage = condImage.unsqueeze(1)
+        
         emb = self.timestep_embedding(t, self.embed_dim, max_period=self.num_timesteps)
         emb += self.contextEmbedding(condImage)
         
@@ -323,6 +323,7 @@ class DiffusionModel(nn.Module):
         x = self.outc(x)
         
         x = x.squeeze(1)
+        condImage = condImage.squeeze(1)
         return x
     
     def compute_high_freq_loss(self, x_T, x_R, x_C, weights):

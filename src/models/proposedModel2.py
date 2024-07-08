@@ -4,15 +4,14 @@ import torch
 import numpy as np
 from tqdm import tqdm
 import torch.nn as nn
-from functools import partial
 import torch.nn.functional as F
-from einops import rearrange, repeat
+from einops import rearrange
 
 class ImageEncoder(nn.Module):
     def __init__(self, config):
         super(ImageEncoder, self).__init__()
-        self.depth = config.n_mri_channels
-        self.image_dim = config.mri_image_dim
+        self.depth = config.n_pet_channels
+        self.image_dim = config.pet_image_dim
 
         self.conv1 = nn.Conv3d(1, 8, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv3d(8, 16, kernel_size=3, stride=1, padding=1)
@@ -47,11 +46,11 @@ class ImageEncoder(nn.Module):
 class RMSNorm(nn.Module):
     def __init__(self, dim):
         super().__init__()
-        self.g = nn.Parameter(torch.ones(1, dim, 1, 1))
+        self.g = nn.Parameter(torch.ones(1, dim, 1, 1, 1))
 
     def forward(self, x):
         return F.normalize(x, dim = 1) * self.g * (x.shape[1] ** 0.5)
-    
+
 class LinearAttention(nn.Module):
     def __init__(self, dim, heads=4, dim_head=32):
         super().__init__()
@@ -292,6 +291,7 @@ class DiffusionModel(nn.Module):
         "Forward pass through the model"
         noised_images = noised_images.unsqueeze(1)        
         condImage = condImage.unsqueeze(1)
+        
         emb = self.timestep_embedding(t, self.embed_dim, max_period=self.num_timesteps)
         emb += self.contextEmbedding(condImage)
         
@@ -320,9 +320,11 @@ class DiffusionModel(nn.Module):
         x = self.outc(x)
         
         x = x.squeeze(1)
+        condImage = condImage.squeeze(1)
         return x
     
     def forward(self, context, input_images, gen_loss=True):
+        context = F.interpolate(context, size=(self.n_channels, self.image_dim, self.image_dim), mode='trilinear', align_corners=True)
         t = self.sample_timesteps(input_images.size(0), context.device)
         noised_images, noise = self.noise_images(input_images, t)
         predictedNoise = self._forward(noised_images, t, context)
@@ -334,6 +336,7 @@ class DiffusionModel(nn.Module):
 
     def generate(self, context):
         n = context.size(0)
+        context = F.interpolate(context, size=(self.n_channels, self.image_dim, self.image_dim), mode='trilinear', align_corners=True)
         x = torch.randn(n, self.n_channels, self.image_dim, self.image_dim, device=context.device)
         for timestep in tqdm(reversed(range(1, self.num_timesteps)), total=self.num_timesteps-1):
             t = (torch.ones(n) * timestep).long().to(context.device)
