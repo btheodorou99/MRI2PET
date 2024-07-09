@@ -277,12 +277,13 @@ class DiffusionModel(nn.Module):
     def sample_timesteps(self, n, device='cpu'):
         return torch.randint(low=1, high=self.num_timesteps, size=(n,), device=device)
 
-    def noise_images(self, x, t):
+    def noise_images(self, x, t, noise_level=1):
         "Add noise to images at instant t"
         self.alpha_hat = self.alpha_hat.to(x.device)
         sqrt_alpha_hat = torch.sqrt(self.alpha_hat.to(t.device)[t])[:, None, None, None].to(x.device)
         sqrt_one_minus_alpha_hat = torch.sqrt(1 - self.alpha_hat[t])[:, None, None, None].to(x.device)
         Ɛ = torch.randn_like(x)
+        Ɛ = noise_level * Ɛ
         return sqrt_alpha_hat * x + sqrt_one_minus_alpha_hat * Ɛ, Ɛ
 
     def _forward(self, noised_images, t, condImage):
@@ -321,9 +322,10 @@ class DiffusionModel(nn.Module):
         condImage = condImage.squeeze(1)
         return x
     
-    def forward(self, context, input_images, gen_loss=True):
+    def forward(self, context, input_images, gen_loss=True, noise_level=1):
+        noise_level = torch.sqrt(torch.tensor(noise_level))
         t = self.sample_timesteps(input_images.size(0), context.device)
-        noised_images, noise = self.noise_images(input_images, t)
+        noised_images, noise = self.noise_images(input_images, t, noise_level)
         predictedNoise = self._forward(noised_images, t, context)
         if gen_loss:
             loss = F.mse_loss(noise, predictedNoise)

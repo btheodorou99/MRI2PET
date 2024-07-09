@@ -63,8 +63,6 @@ test_act = get_inception_features(model, test_dataset)
 model_keys = [
     'baseGAN',
     'baseDiffusion',
-    'baseDiffusionGradientClip',
-    'baseDiffusionNoiseRampup',
     # 'noisyPretrainedDiffusion',
     # 'selfPretrainedDiffusion',
     # 'stylePretrainedDiffusion',

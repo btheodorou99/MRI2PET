@@ -23,6 +23,12 @@ pretrain_dataset = [(mri_path, os.path.join(config.mri_pretrain_dir, mri_path.sp
 train_dataset = pickle.load(open('./src/data/trainDataset.pkl', 'rb'))
 val_dataset = pickle.load(open('./src/data/valDataset.pkl', 'rb'))
 
+def getNoise(epoch):
+    if epoch >= 500:
+        return 1
+    else:
+        return (1 - 0.01) * (epoch / 500) + 0.01
+
 def load_image(image_path, is_mri=True):
     img = np.load(image_path)
     img = img.transpose((2,0,1))
@@ -73,6 +79,7 @@ for e in tqdm(range(config.pretrain_epoch)):
         loss.backward()
         curr_step += 1
         if curr_step % steps_per_batch == 0:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
             optimizer.zero_grad()
             curr_step = 0
@@ -102,6 +109,7 @@ for e in tqdm(range(config.epoch)):
         loss.backward()
         curr_step += 1
         if curr_step % steps_per_batch == 0:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
             optimizer.zero_grad()
             curr_step = 0

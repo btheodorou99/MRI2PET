@@ -72,6 +72,7 @@ for e in tqdm(range(config.epoch)):
         loss.backward()
         curr_step += 1
         if curr_step % steps_per_batch == 0:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
             optimizer.zero_grad()
             curr_step = 0
