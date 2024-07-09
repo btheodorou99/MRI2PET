@@ -79,5 +79,5 @@ for k in tqdm(model_keys):
     model_dataset = [os.path.join(model_path, file) for file in os.listdir(model_path)]
     model_act = get_inception_features(model, model_dataset)
     fid_value = calculate_fid(test_act, model_act)
-    print('{k} FID:', fid_value)
+    print(f'{k} FID:', fid_value)
     pickle.dump(fid_value, open(f'./src/results/quantitative_evaluations/{k}_fid.pkl', 'wb'))

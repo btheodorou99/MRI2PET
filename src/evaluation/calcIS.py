@@ -3,6 +3,7 @@ import torch
 import pickle
 import numpy as np
 from tqdm import tqdm
+from scipy.stats import entropy
 from ..config import MRI2PETConfig
 from torchvision.models import inception_v3
 from torchvision.transforms import Compose, Resize, CenterCrop, Normalize
@@ -10,7 +11,6 @@ from torchvision.transforms import Compose, Resize, CenterCrop, Normalize
 config = MRI2PETConfig()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = inception_v3(pretrained=True, transform_input=False).to(device)
-model.fc = torch.nn.Identity()
 transform = Compose([Resize(299), CenterCrop(299), Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
 
 BATCH_SIZE = 64 // config.n_pet_channels
@@ -44,9 +44,13 @@ def get_inception_score(model, dataset):
             preds.append(torch.nn.functional.softmax(output, dim=1).cpu().numpy())
 
     preds = np.concatenate(preds, axis=0)
-    kl_div = preds * (np.log(preds) - np.log(np.expand_dims(np.mean(preds, 0), 0)))
-    is_score = np.exp(np.mean(np.sum(kl_div, 1)))
-    return is_score
+    py = np.mean(preds, axis=0)
+    scores = []    
+    for i in range(preds.shape[0]):
+        pyx = preds[i, :]
+        scores.append(entropy(pyx, py))
+    
+    return np.exp(np.mean(scores))
 
 model_keys = [
     'baseGAN',
@@ -66,5 +70,5 @@ for k in tqdm(model_keys):
     model_path = f'/data/theodoroubp/MRI2PET/results/generated_datasets/{k}/'
     model_dataset = [os.path.join(model_path, file) for file in os.listdir(model_path)]
     is_score = get_inception_score(model, model_dataset)
-    print('{k} Inception Score:', is_score)
+    print(f'{k} Inception Score:', is_score)
     pickle.dump(is_score, open(f'./src/results/quantitative_evaluations/{k}_is.pkl', 'wb'))
