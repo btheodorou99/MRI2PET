@@ -11,27 +11,25 @@ config = MRI2PETConfig()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = inception_v3(pretrained=True, transform_input=False).to(device)
 model.fc = torch.nn.Identity()
-transform = Compose([Resize(299), CenterCrop(299), ToTensor(), Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
+transform = Compose([Resize(299), CenterCrop(299), Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
 
 BATCH_SIZE = 64 // config.n_pet_channels
 
 def load_image(image_path):
     img = np.load(image_path)
     img = img.transpose((2,0,1))
-    img = torch.from_numpy(img)
     return img
 
 def get_batch(dataset, loc, batch_size):
     image_paths = dataset[loc:loc+batch_size]
     bs = len(image_paths)
-    batch_image = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
+    batch_image = np.zeros((bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim))
     for i, p in enumerate(image_paths):
         batch_image[i] = load_image(p)
         
-    batch_image = batch_image.reshape(bs * config.n_pet_channels, config.pet_image_dim, config.pet_image_dim)
-    batch_image = batch_image.unsqueeze(1)
-    batch_image = batch_image.repeat(1, 3, 1, 1)
-    batch_image = transform(batch_image)
+    batch_image = batch_image.reshape(bs * config.n_pet_channels, 1, config.pet_image_dim, config.pet_image_dim)
+    batch_image = batch_image.repeat(3, axis=1)
+    batch_image = transform(batch_image).to(device)
     return batch_image
 
 def get_inception_score(model, dataset):
