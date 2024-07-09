@@ -27,7 +27,7 @@ def get_batch(dataset, loc, batch_size):
     bs = len(image_paths)
     batch_image = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
     for i, p in enumerate(image_paths):
-        batch_image[i] = load_image(p, is_mri=False)
+        batch_image[i] = load_image(p)
         
     batch_image = batch_image.reshape(bs * config.n_pet_channels, config.pet_image_dim, config.pet_image_dim)
     batch_image = batch_image.unsqueeze(1)
@@ -57,7 +57,7 @@ def calculate_fid(act1, act2):
     return np.real(fid)
 
 
-test_dataset = './src/data/testDataset.pkl'
+test_dataset = pickle.load(open('./src/data/testDataset.pkl', 'rb'))
 test_dataset = [pet_path for (mri_path, pet_path) in test_dataset]
 test_act = get_inception_features(model, test_dataset)
 

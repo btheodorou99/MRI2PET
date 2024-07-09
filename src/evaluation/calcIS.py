@@ -26,7 +26,7 @@ def get_batch(dataset, loc, batch_size):
     bs = len(image_paths)
     batch_image = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float, device=device)
     for i, p in enumerate(image_paths):
-        batch_image[i] = load_image(p, is_mri=False)
+        batch_image[i] = load_image(p)
         
     batch_image = batch_image.reshape(bs * config.n_pet_channels, config.pet_image_dim, config.pet_image_dim)
     batch_image = batch_image.unsqueeze(1)
