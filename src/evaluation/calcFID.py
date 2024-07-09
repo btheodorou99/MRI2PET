@@ -31,7 +31,7 @@ def get_batch(dataset, loc, batch_size):
         
     batch_image = batch_image.reshape(bs * config.n_pet_channels, 1, config.pet_image_dim, config.pet_image_dim)
     batch_image = batch_image.repeat(3, axis=1)
-    batch_image = transform(batch_image).to(device)
+    batch_image = transform(torch.from_numpy(batch_image)).to(device)
     return batch_image
 
 def get_inception_features(model, dataset):
