@@ -48,12 +48,10 @@ def save_image(tensor, path):
         
 model_keys = [
     # 'baseGAN',
-    'baseDiffusion',
-    'baseDiffusionGradientClip',
-    'baseDiffusionNoiseRampup',
-    # 'noisyPretrainedDiffusion',
-    # 'selfPretrainedDiffusion',
-    # 'stylePretrainedDiffusion',
+    # 'baseDiffusion',
+    'noisyPretrainedDiffusion',
+    'selfPretrainedDiffusion',
+    'stylePretrainedDiffusion',
     # 'noisyPretrainedGAN',
     # 'selfPretrainedGAN',
     # 'stylePretrainedGAN',

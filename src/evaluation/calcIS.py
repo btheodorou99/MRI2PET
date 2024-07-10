@@ -53,13 +53,11 @@ def get_inception_score(model, dataset):
     return np.exp(np.mean(scores))
 
 model_keys = [
-    'baseGAN',
-    'baseDiffusion',
-    'baseDiffusionGradientClip',
-    'baseDiffusionNoiseRampup',
-    # 'noisyPretrainedDiffusion',
-    # 'selfPretrainedDiffusion',
-    # 'stylePretrainedDiffusion',
+    # 'baseGAN',
+    # 'baseDiffusion',
+    'noisyPretrainedDiffusion',
+    'selfPretrainedDiffusion',
+    'stylePretrainedDiffusion',
     # 'noisyPretrainedGAN',
     # 'selfPretrainedGAN',
     # 'stylePretrainedGAN',
