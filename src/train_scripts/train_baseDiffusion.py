@@ -56,10 +56,10 @@ if os.path.exists(f"./src/save/baseDiffusion.pt"):
     model.load_state_dict(checkpoint['model'])
     optimizer.load_state_dict(checkpoint['optimizer'])
 
-steps_per_batch = 5
+steps_per_batch = 3
 config.batch_size = config.batch_size // steps_per_batch
 for e in tqdm(range(config.epoch)):
-    curr_noise = getNoise(e)
+    curr_noise = 1 #getNoise(e)
     shuffle_training_data(train_dataset)
     train_losses = []
     model.train()

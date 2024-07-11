@@ -53,7 +53,7 @@ if os.path.exists(f"./src/save/stylePretrainedDiffusion3D.pt"):
     model.load_state_dict(checkpoint['model'])
     optimizer.load_state_dict(checkpoint['optimizer'])
 
-steps_per_batch = 5
+steps_per_batch = 3
 config.batch_size = config.batch_size // steps_per_batch
 
 optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)

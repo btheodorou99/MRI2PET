@@ -14,7 +14,7 @@ class MRI2PETConfig(object):
             beta_start = 0.0015,
             beta_end = 0.02,
             num_timesteps = 1000,
-            z_dim = 128,
+            z_dim = 256,
             lambda_gp = 10,
             generator_interval = 2,
             mri_pretrain_dir = "/data/CARD_AA/data/ADNI/MRI_Pretrain/",
