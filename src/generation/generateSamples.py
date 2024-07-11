@@ -57,7 +57,7 @@ def save_slice_plots(array, path_prefix):
     # Axial
     for i in range(array.shape[2]):
         slice = array[:, :, i]
-        if i % 20 == 0 and slice.max() > 0.05:
+        if i % 5 == 0 and slice.max() > 0.05:
             plt.imsave(f'{path_prefix}_Axial{i}.png', slice, cmap='gray')
         
     # Sagittal
