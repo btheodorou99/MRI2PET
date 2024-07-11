@@ -13,7 +13,7 @@ class ImageEncoder(nn.Module):
         self.conv2 = nn.Conv3d(8, 16, kernel_size=3, stride=1, padding=1)
         self.conv3 = nn.Conv3d(16, 32, kernel_size=3, stride=1, padding=1)
         self.conv4 = nn.Conv3d(32, 64, kernel_size=3, stride=1, padding=1)
-        self.flat_dim = 64 * (self.depth // (16 if self.is_mri else 12)) * (self.image_dim // 16) * (self.image_dim // 16)
+        self.flat_dim = 64 * (self.depth // 16) * (self.image_dim // 16) * (self.image_dim // 16)
         self.fc1 = nn.Linear(self.flat_dim, config.embed_dim)
         self.fc2 = nn.Linear(config.embed_dim, config.embed_dim)
         
@@ -26,10 +26,10 @@ class ImageEncoder(nn.Module):
         x = F.max_pool3d(x, 2)
         
         x = F.relu(self.conv3(x))
-        x = F.max_pool3d(x, 2) if self.is_mri else F.max_pool3d(x, (3, 2, 2))
+        x = F.max_pool3d(x, 2)
         
         x = F.relu(self.conv4(x))
-        x = F.max_pool3d(x, 2) if self.is_mri else F.max_pool3d(x, (1, 2, 2))
+        x = F.max_pool3d(x, 2)
 
         # Flattening the output
         x = x.view(-1, self.flat_dim)
@@ -52,8 +52,8 @@ class Generator(nn.Module):
         self.gen = nn.Sequential(
             self._gen_block(8, 16),
             self._gen_block(16, 32),
-            self._gen_block_triple(32, 32),
-            self._gen_block_single(32, 16),
+            self._gen_block(32, 32),
+            self._gen_block(32, 16),
             self._gen_block_single(16, 8),
             nn.Conv3d(8, 4, kernel_size=3, stride=1, padding=1),
             nn.ReLU(inplace=True),
@@ -65,13 +65,6 @@ class Generator(nn.Module):
         return nn.Sequential(
             nn.BatchNorm3d(in_channels),
             nn.ConvTranspose3d(in_channels, out_channels, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.LeakyReLU(0.2, inplace=True),
-        )
-
-    def _gen_block_triple(self, in_channels, out_channels):
-        return nn.Sequential(
-            nn.BatchNorm3d(in_channels),
-            nn.ConvTranspose3d(in_channels, out_channels, kernel_size=(3, 4, 4), stride=(3, 2, 2), padding=(0, 1, 1), bias=False),
             nn.LeakyReLU(0.2, inplace=True),
         )
 

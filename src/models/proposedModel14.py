@@ -112,50 +112,6 @@ class DownBlock(nn.Module):
         emb = self.emb_layer(t)[:, :, None, None, None].repeat(1, 1, x.shape[-3], x.shape[-2], x.shape[-1])
         return x + emb
     
-class DownBlockTrip(nn.Module):
-    def __init__(self, in_channels, out_channels, emb_dim=128):
-        super(DownBlockTrip, self).__init__()
-        self.maxpool_conv = nn.Sequential(
-            nn.MaxPool3d((3,2,2)),
-            DoubleConv(in_channels, in_channels, residual=True),
-            DoubleConv(in_channels, out_channels),
-        )
-
-        self.emb_layer = nn.Sequential(
-            nn.SiLU(),
-            nn.Linear(
-                emb_dim,
-                out_channels
-            ),
-        )
-
-    def forward(self, x, t):
-        x = self.maxpool_conv(x)
-        emb = self.emb_layer(t)[:, :, None, None, None].repeat(1, 1, x.shape[-3], x.shape[-2], x.shape[-1])
-        return x + emb
-    
-class DownBlockSingle(nn.Module):
-    def __init__(self, in_channels, out_channels, emb_dim=128):
-        super(DownBlockSingle, self).__init__()
-        self.maxpool_conv = nn.Sequential(
-            nn.MaxPool3d((1,2,2)),
-            DoubleConv(in_channels, in_channels, residual=True),
-            DoubleConv(in_channels, out_channels),
-        )
-
-        self.emb_layer = nn.Sequential(
-            nn.SiLU(),
-            nn.Linear(
-                emb_dim,
-                out_channels
-            ),
-        )
-
-    def forward(self, x, t):
-        x = self.maxpool_conv(x)
-        emb = self.emb_layer(t)[:, :, None, None, None].repeat(1, 1, x.shape[-3], x.shape[-2], x.shape[-1])
-        return x + emb
-
 class UpBlock(nn.Module):
     def __init__(self, in_channels, out_channels, emb_dim=128):
         super(UpBlock, self).__init__()
@@ -180,54 +136,6 @@ class UpBlock(nn.Module):
         emb = self.emb_layer(t)[:, :, None, None, None].repeat(1, 1, x.shape[-3], x.shape[-2], x.shape[-1])
         return x + emb
     
-class UpBlockTrip(nn.Module):
-    def __init__(self, in_channels, out_channels, emb_dim=128):
-        super(UpBlockTrip, self).__init__()
-        self.up = nn.Upsample(scale_factor=(3,2,2), mode="trilinear", align_corners=True)
-        self.conv = nn.Sequential(
-            DoubleConv(in_channels, in_channels, residual=True),
-            DoubleConv(in_channels, out_channels, in_channels // 2),
-        )
-
-        self.emb_layer = nn.Sequential(
-            nn.SiLU(),
-            nn.Linear(
-                emb_dim,
-                out_channels
-            ),
-        )
-
-    def forward(self, x, skip_x, t):
-        x = self.up(x)
-        x = torch.cat([skip_x, x], dim=1)
-        x = self.conv(x)
-        emb = self.emb_layer(t)[:, :, None, None, None].repeat(1, 1, x.shape[-3], x.shape[-2], x.shape[-1])
-        return x + emb
-    
-class UpBlockSingle(nn.Module):
-    def __init__(self, in_channels, out_channels, emb_dim=128):
-        super(UpBlockSingle, self).__init__()
-        self.up = nn.Upsample(scale_factor=(1,2,2), mode="trilinear", align_corners=True)
-        self.conv = nn.Sequential(
-            DoubleConv(in_channels, in_channels, residual=True),
-            DoubleConv(in_channels, out_channels, in_channels // 2),
-        )
-
-        self.emb_layer = nn.Sequential(
-            nn.SiLU(),
-            nn.Linear(
-                emb_dim,
-                out_channels
-            ),
-        )
-
-    def forward(self, x, skip_x, t):
-        x = self.up(x)
-        x = torch.cat([skip_x, x], dim=1)
-        x = self.conv(x)
-        emb = self.emb_layer(t)[:, :, None, None, None].repeat(1, 1, x.shape[-3], x.shape[-2], x.shape[-1])
-        return x + emb
-
 class DiffusionModel(nn.Module):
     def __init__(self, config):
         super(DiffusionModel, self).__init__()
@@ -249,18 +157,18 @@ class DiffusionModel(nn.Module):
         self.sa1 = LinearAttention(16)
         self.down2 = DownBlock(16, 32, self.embed_dim)
         self.sa2 = LinearAttention(32)
-        self.down3 = DownBlockTrip(32, 64, self.embed_dim)
+        self.down3 = DownBlock(32, 64, self.embed_dim)
         self.sa3 = LinearAttention(64)
-        self.down4 = DownBlockSingle(64, 128, self.embed_dim)
+        self.down4 = DownBlock(64, 128, self.embed_dim)
         self.sa4 = LinearAttention(128)
         
         self.bot1 = DoubleConv(128, 128)
         self.bot2 = DoubleConv(128, 128)
         self.bot3 = DoubleConv(128, 128)
         
-        self.up1 = UpBlockSingle(192, 64, self.embed_dim)
+        self.up1 = UpBlock(192, 64, self.embed_dim)
         self.sa5 = LinearAttention(64)
-        self.up2 = UpBlockTrip(96, 32, self.embed_dim)
+        self.up2 = UpBlock(96, 32, self.embed_dim)
         self.sa6 = LinearAttention(32)
         self.up3 = UpBlock(48, 16, self.embed_dim)
         self.sa7 = LinearAttention(16)
