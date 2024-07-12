@@ -171,7 +171,7 @@ class DiffusionModel(nn.Module):
         self.embed_dim = config.embed_dim
         self.lambda1 = 0.5
         
-        self.contextEmbedding = ImageEncoder(config)
+        self.contextEmbedding = ImageEncoder(config, is_mri=True)
         self.inc = DoubleConv(1, 8)
         
         self.down1 = DownBlock(8, 16, self.embed_dim)

@@ -238,7 +238,7 @@ class DiffusionModel(nn.Module):
         pred_x = (1 / sqrt_alpha_hat) * noised_x - (sqrt_one_minus_alpha_hat / sqrt_alpha_hat) * pred_noise
         return pred_x
     
-    def laplacian_pyramid_loss(img1, img2, max_levels=5):
+    def laplacian_pyramid_loss(self, img1, img2, max_levels=5):
         def pyr_down(image):
             return F.avg_pool2d(image, kernel_size=2, stride=2, padding=0)
 

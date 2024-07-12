@@ -233,7 +233,7 @@ class DiffusionModel(nn.Module):
     
     def forward(self, context, input_images, gen_loss=True):
         with torch.no_grad():
-            context = F.interpolate(context, size=(self.n_channels, self.image_dim, self.image_dim), mode='trilinear', align_corners=True)
+            context = F.interpolate(context.unsqueeze(1), size=(self.n_channels, self.image_dim, self.image_dim), mode='trilinear', align_corners=True).squeeze(1)
         t = self.sample_timesteps(input_images.size(0), context.device)
         noised_images, noise = self.noise_images(input_images, t)
         predictedNoise = self._forward(noised_images, t, context)
@@ -246,7 +246,7 @@ class DiffusionModel(nn.Module):
     def generate(self, context):
         n = context.size(0)
         with torch.no_grad():
-            context = F.interpolate(context, size=(self.n_channels, self.image_dim, self.image_dim), mode='trilinear', align_corners=True)
+            context = F.interpolate(context.unsqueeze(1), size=(self.n_channels, self.image_dim, self.image_dim), mode='trilinear', align_corners=True).squeeze(1)
         x = torch.randn(n, self.n_channels, self.image_dim, self.image_dim, device=context.device)
         for timestep in tqdm(reversed(range(1, self.num_timesteps)), total=self.num_timesteps-1):
             t = (torch.ones(n) * timestep).long().to(context.device)

@@ -96,7 +96,7 @@ for e in tqdm(range(config.epoch)):
     for i in range(0, len(train_dataset), config.batch_size):
         batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
         loss, x_T = model(batch_context, batch_images, gen_loss=True, output_images=True)
-        freq_loss = model.compute_frequency_loss(x_T, batch_images, FREQ_SCHEDULE[e])
+        freq_loss = model.compute_high_freq_loss(x_T, batch_images, FREQ_SCHEDULE[e])
         loss = loss + freq_loss
         train_losses.append(loss.cpu().detach().item())
         loss = loss / steps_per_batch
