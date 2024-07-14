@@ -48,8 +48,8 @@ class ImagePairClassifier(nn.Module):
     def __init__(self, config):
         super(ImagePairClassifier, self).__init__()
         self.n_channels = config.n_pet_channels
-        self.enc_mri = ImageEncoder(config, isMri=True)
-        self.enc_pet = ImageEncoder(config, isMri=False)
+        self.enc_mri = ImageEncoder(config, is_mri=True)
+        self.enc_pet = ImageEncoder(config, is_mri=False)
         self.fc1 = nn.Linear(config.embed_dim * 2, 512)
         self.fc2 = nn.Linear(512, 256)
         self.fc3 = nn.Linear(256, 1)

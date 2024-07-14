@@ -50,7 +50,7 @@ class ImageToImage(nn.Module):
         self.output_image_dim = config.mri_image_dim
         self.output_image_channels = config.n_mri_channels
 
-        self.image_encoder = ImageEncoder(config, isMri=False)
+        self.image_encoder = ImageEncoder(config, is_mri=False)
         self.image_decoder = nn.Sequential(
             nn.Linear(config.embed_dim, self.output_image_channels // 8 * self.output_image_dim // 8 * self.output_image_dim // 8),
             nn.ReLU(),

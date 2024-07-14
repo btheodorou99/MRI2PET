@@ -238,10 +238,11 @@ class DiffusionModel(nn.Module):
         lf_weight, hf_weight = weights
         L = torch.tensor([1, 1], dtype=torch.float32) / np.sqrt(2)
         H = torch.tensor([1, -1], dtype=torch.float32) / np.sqrt(2)
-        LL = torch.ger(L, L).view(1, 1, 2, 2)
-        LH = torch.ger(L, H).view(1, 1, 2, 2)
-        HL = torch.ger(H, L).view(1, 1, 2, 2)
-        HH = torch.ger(H, H).view(1, 1, 2, 2)
+        # repat for number of channels
+        LL = torch.ger(L, L).view(1, 1, 2, 2).repeat(1, self.n_channels, 1, 1)
+        LH = torch.ger(L, H).view(1, 1, 2, 2).repeat(1, self.n_channels, 1, 1)
+        HL = torch.ger(H, L).view(1, 1, 2, 2).repeat(1, self.n_channels, 1, 1)
+        HH = torch.ger(H, H).view(1, 1, 2, 2).repeat(1, self.n_channels, 1, 1)
         ll_T = F.conv2d(x_T, LL, stride=2)
         lh_T = F.conv2d(x_T, LH, stride=2)
         hl_T = F.conv2d(x_T, HL, stride=2)

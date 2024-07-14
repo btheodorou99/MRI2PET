@@ -240,8 +240,8 @@ class DiffusionModel(nn.Module):
     
     def gradient_magnitude_similarity_loss(self, img1, img2):
         def gradient_magnitude(img):
-            sobel_x = torch.tensor([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], dtype=torch.float32).view(1, 1, 3, 3).to(img.device)
-            sobel_y = torch.tensor([[-1, -2, -1], [0, 0, 0], [1, 2, 1]], dtype=torch.float32).view(1, 1, 3, 3).to(img.device)
+            sobel_x = torch.tensor([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], dtype=torch.float32).view(1, 1, 3, 3).repeat(1, self.n_channels, 1, 1).to(img.device)
+            sobel_y = torch.tensor([[-1, -2, -1], [0, 0, 0], [1, 2, 1]], dtype=torch.float32).view(1, 1, 3, 3).repeat(1, self.n_channels, 1, 1).to(img.device)
 
             grad_x = F.conv2d(img, sobel_x, padding=1)
             grad_y = F.conv2d(img, sobel_y, padding=1)

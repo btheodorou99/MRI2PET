@@ -22,7 +22,7 @@ pretrain_dataset = [(mri_path, os.path.join(config.mri_style_dir, mri_path.split
 train_dataset = pickle.load(open('./src/data/trainDataset.pkl', 'rb'))
 val_dataset = pickle.load(open('./src/data/valDataset.pkl', 'rb'))
 
-MRI_LOSS_SCHEDULE = [max(0.5 - (0.5 * e / (config.epoch // 2)), 0) for e in config.epoch]
+MRI_LOSS_SCHEDULE = [max(0.5 - (0.5 * e / (config.epoch // 2)), 0) for e in range(config.epoch)]
 def load_image(image_path, is_mri=True):
     img = np.load(image_path)
     img = img.transpose((2,0,1))

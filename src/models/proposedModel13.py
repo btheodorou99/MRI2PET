@@ -239,7 +239,7 @@ class DiffusionModel(nn.Module):
         pred_x = (1 / sqrt_alpha_hat) * noised_x - (sqrt_one_minus_alpha_hat / sqrt_alpha_hat) * pred_noise
         return pred_x
 
-    def wavelet_scattering_transform_loss(img1, img2, J=2):
+    def wavelet_scattering_transform_loss(self, img1, img2, J=2):
         # Initialize scattering transform
         scattering = Scattering2D(J=J, shape=img1.shape[-2:])
         scattering = scattering.to(img1.device)
