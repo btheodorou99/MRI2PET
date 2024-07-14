@@ -243,7 +243,7 @@ class DiffusionModel(nn.Module):
         # Create a Gabor filter
         gabor_kernel = cv2.getGaborKernel((kernel_size, kernel_size), sigma, theta, lamda, gamma, 0, ktype=cv2.CV_32F)
         gabor_kernel = torch.tensor(gabor_kernel, dtype=torch.float32).unsqueeze(0).unsqueeze(0) # Add channel and batch dims
-        gabor_kernel = gabor_kernel.to(img1.device)
+        gabor_kernel = gabor_kernel.repeat(1, self.n_channels, 1, 1).to(img1.device)
 
         # Apply Gabor filter
         filtered_img1 = F.conv2d(img1, gabor_kernel, padding=kernel_size//2)

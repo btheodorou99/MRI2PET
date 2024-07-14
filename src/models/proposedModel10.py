@@ -239,7 +239,7 @@ class DiffusionModel(nn.Module):
         pred_x = (1 / sqrt_alpha_hat) * noised_x - (sqrt_one_minus_alpha_hat / sqrt_alpha_hat) * pred_noise
         return pred_x
     
-    def gabor_filter_loss(img1, img2, kernel_size=15, sigma=3.0, theta=1.0, lamda=10.0, gamma=0.5):
+    def gabor_filter_loss(self, img1, img2, kernel_size=15, sigma=3.0, theta=1.0, lamda=10.0, gamma=0.5):
         # Create a Gabor filter
         gabor_kernel = cv2.getGaborKernel((kernel_size, kernel_size), sigma, theta, lamda, gamma, 0, ktype=cv2.CV_32F)
         gabor_kernel = torch.tensor(gabor_kernel, dtype=torch.float32).unsqueeze(0).unsqueeze(0) # Add channel and batch dims

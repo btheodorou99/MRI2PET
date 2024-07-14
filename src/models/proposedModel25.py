@@ -46,6 +46,7 @@ class ImageEncoder(nn.Module):
     
 class ImageToImage(nn.Module):
     def __init__(self, config):
+        super(ImageToImage, self).__init__()
         self.n_channels = config.n_mri_channels
         self.output_image_dim = config.mri_image_dim
         self.output_image_channels = config.n_mri_channels

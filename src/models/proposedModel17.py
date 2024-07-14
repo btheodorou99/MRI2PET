@@ -55,8 +55,8 @@ class ImagePairClassifier(nn.Module):
         self.fc3 = nn.Linear(256, 1)
         
     def forward(self, mri, pet):
-        mri_emb = self.enc_mri(mri)
-        pet_emb = self.enc_pet(pet)
+        mri_emb = self.enc_mri(mri.unsqueeze(1))
+        pet_emb = self.enc_pet(pet.unsqueeze(1))
 
         # Passing through the fully connected layers
         x = torch.cat([mri_emb, pet_emb], dim=1)
