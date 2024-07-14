@@ -62,7 +62,7 @@ class ImagePairClassifier(nn.Module):
         x = torch.cat([mri_emb, pet_emb], dim=1)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
-        x = torch.sigmoid(self.fc3(x))
+        x = torch.sigmoid(self.fc3(x)).squeeze(-1)
         return x
 
 class RMSNorm(nn.Module):

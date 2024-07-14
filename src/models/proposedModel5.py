@@ -235,6 +235,7 @@ class DiffusionModel(nn.Module):
         return x
     
     def compute_high_freq_loss(self, x_T, x_R, x_C, weights):
+        x_C = F.interpolate(x_C.unsqueeze(1), size=(self.n_channels, self.image_dim, self.image_dim), mode='trilinear', align_corners=True).squeeze(1)
         lf_weight_mri, hf_weight_mri, lf_weight_pet, hf_weight_pet = weights
         L = torch.tensor([1, 1], dtype=torch.float32) / np.sqrt(2)
         H = torch.tensor([1, -1], dtype=torch.float32) / np.sqrt(2)
