@@ -118,7 +118,7 @@ for e in tqdm(range(config.pretrain_epoch)):
         optimizer.step()
         cls_losses.append(loss.cpu().detach().item())
     
-    cur_cls_loss = np.mean(pretrain_losses)
+    cur_cls_loss = np.mean(cls_losses)
     cls_val_losses = []
     cls_val_accs = []
     for i in range(0, len(val_pair_dataset), config.batch_size):

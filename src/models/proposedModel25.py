@@ -263,7 +263,7 @@ class DiffusionModel(nn.Module):
     
     def _backward(self, images):
         "Backward pass back from the outputted image to the condImage"
-        self.backNet(images.unsqueeze(1))
+        return self.backNet(images.unsqueeze(1))
         
     def construct_image(self, noised_x, t, pred_noise):
         sqrt_alpha_hat = torch.sqrt(self.alpha_hat[t])[:, None, None, None].to(noised_x.device)
