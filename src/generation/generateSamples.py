@@ -84,10 +84,13 @@ for i in range(NUM_SAMPLES):
     save_slice_plots(real_image, f'./src/results/image_samples/realImage_{i}')
 
 model_keys = [
-    'baseGAN',
+    # 'baseGAN',
     'baseDiffusion',
-    'baseDiffusionGradientClip',
-    'baseDiffusionNoiseRampup',
+    'proposedModel1',
+    'proposedModel2',
+    'proposedModel6',
+    'proposedModel8',
+    'proposedModel11',
     # 'noisyPretrainedDiffusion',
     # 'selfPretrainedDiffusion',
     # 'stylePretrainedDiffusion',
