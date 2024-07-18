@@ -2,6 +2,7 @@ import os
 import torch
 import random
 import pickle
+import importlib
 import numpy as np
 from tqdm import tqdm
 from ..config import MRI2PETConfig
@@ -48,12 +49,23 @@ def save_image(tensor, path):
         
 model_keys = [
     # 'baseGAN',
-    'baseDiffusion',
+    # 'baseDiffusion',
     'proposedModel1',
     'proposedModel2',
     'proposedModel6',
     'proposedModel8',
     'proposedModel11',
+    'proposedModel3',
+    'proposedModel4',
+    'proposedModel5',
+    'proposedModel7',
+    'proposedModel9',
+    'proposedModel10',
+    'proposedModel12',
+    'proposedModel25',
+    'proposedModel17',
+    # 'proposedModel13',
+    # 'proposedModel14',
     # 'noisyPretrainedDiffusion',
     # 'selfPretrainedDiffusion',
     # 'stylePretrainedDiffusion',
@@ -72,6 +84,15 @@ for k in tqdm(model_keys):
         model = model.to(device)
         model.eval()
         batch_size = config.batch_size
+    elif 'proposed' in k:
+        module_path = f"src.models.{k}"
+        module = importlib.import_module(module_path)
+        Model = getattr(module, 'DiffusionModel')
+        model = Model(config)
+        model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location='cpu')['model'])
+        model = model.to(device)
+        model.eval()
+        batch_size = config.batch_size // 5
     else:
         model = DiffusionModel(config)
         model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location='cpu')['model'])
