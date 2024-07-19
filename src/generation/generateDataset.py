@@ -50,12 +50,11 @@ def save_image(tensor, path):
 model_keys = [
     # 'baseGAN',
     # 'baseDiffusion',
-    'proposedModel1',
-    'proposedModel2',
-    'proposedModel6',
-    'proposedModel8',
-    'proposedModel11',
-    'proposedModel3',
+    # 'proposedModel1',
+    # 'proposedModel2',
+    # 'proposedModel6',
+    # 'proposedModel8',
+    # 'proposedModel11',
     'proposedModel4',
     'proposedModel5',
     'proposedModel7',
@@ -64,6 +63,7 @@ model_keys = [
     'proposedModel12',
     'proposedModel25',
     'proposedModel17',
+    'proposedModel3',
     # 'proposedModel13',
     # 'proposedModel14',
     # 'noisyPretrainedDiffusion',
@@ -88,7 +88,17 @@ for k in tqdm(model_keys):
         module_path = f"src.models.{k}"
         module = importlib.import_module(module_path)
         Model = getattr(module, 'DiffusionModel')
-        model = Model(config)
+        if k == 'proposedModel3':
+            pretrain_dataset = pickle.load(open('./src/data/mriDataset.pkl', 'rb'))
+            pretrain_dataset = [(mri_path, os.path.join(config.mri_style_dir, mri_path.split('/')[-1])) for mri_path in pretrain_dataset]
+            mean_mri = torch.zeros(config.n_mri_channels, config.mri_image_dim, config.mri_image_dim, dtype=torch.float, device=device)
+            for i in tqdm(range(0, len(pretrain_dataset), config.batch_size)):
+                batch_context, _ = get_batch(pretrain_dataset, i, config.batch_size)
+                mean_mri += torch.sum(batch_context, dim=0)
+            mean_mri /= len(pretrain_dataset)
+            model = Model(config, mean_mri)
+        else:
+            model = Model(config)
         model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location='cpu')['model'])
         model = model.to(device)
         model.eval()
