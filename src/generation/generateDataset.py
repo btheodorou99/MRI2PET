@@ -92,7 +92,7 @@ for k in tqdm(model_keys):
             pretrain_dataset = pickle.load(open('./src/data/mriDataset.pkl', 'rb'))
             mean_mri = torch.zeros(config.n_mri_channels, config.mri_image_dim, config.mri_image_dim, dtype=torch.float, device=device)
             for i in tqdm(range(0, len(pretrain_dataset), config.batch_size)):
-                batch_context, _ = get_batch(pretrain_dataset, i, config.batch_size)
+                batch_context = get_batch(pretrain_dataset, i, config.batch_size)
                 mean_mri += torch.sum(batch_context, dim=0)
             mean_mri /= len(pretrain_dataset)
             model = Model(config, mean_mri)
