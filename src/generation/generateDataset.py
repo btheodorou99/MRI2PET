@@ -55,16 +55,16 @@ model_keys = [
     # 'proposedModel6',
     # 'proposedModel8',
     # 'proposedModel11',
-    'proposedModel4',
-    'proposedModel5',
-    'proposedModel7',
-    'proposedModel9',
-    'proposedModel10',
-    'proposedModel12',
-    'proposedModel25',
-    'proposedModel17',
+    # 'proposedModel4',
+    # 'proposedModel5',
+    # 'proposedModel7',
+    # 'proposedModel9',
+    # 'proposedModel10',
+    # 'proposedModel12',
+    # 'proposedModel25',
+    # 'proposedModel17',
     'proposedModel3',
-    # 'proposedModel13',
+    'proposedModel13',
     # 'proposedModel14',
     # 'noisyPretrainedDiffusion',
     # 'selfPretrainedDiffusion',
@@ -90,7 +90,6 @@ for k in tqdm(model_keys):
         Model = getattr(module, 'DiffusionModel')
         if k == 'proposedModel3':
             pretrain_dataset = pickle.load(open('./src/data/mriDataset.pkl', 'rb'))
-            pretrain_dataset = [(mri_path, os.path.join(config.mri_style_dir, mri_path.split('/')[-1])) for mri_path in pretrain_dataset]
             mean_mri = torch.zeros(config.n_mri_channels, config.mri_image_dim, config.mri_image_dim, dtype=torch.float, device=device)
             for i in tqdm(range(0, len(pretrain_dataset), config.batch_size)):
                 batch_context, _ = get_batch(pretrain_dataset, i, config.batch_size)

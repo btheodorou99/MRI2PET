@@ -77,7 +77,7 @@ model_keys = [
     'proposedModel25',
     'proposedModel17',
     'proposedModel3',
-    # 'proposedModel13',
+    'proposedModel13',
     # 'proposedModel14',
     # 'noisyPretrainedGAN',
     # 'selfPretrainedGAN',
