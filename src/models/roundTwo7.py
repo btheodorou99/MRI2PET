@@ -8,11 +8,10 @@ import torch.nn.functional as F
 from einops import rearrange
 
 class ImageEncoder(nn.Module):
-    def __init__(self, config, is_mri):
+    def __init__(self, config):
         super(ImageEncoder, self).__init__()
-        self.is_mri = is_mri
-        self.depth = config.n_mri_channels if self.is_mri else config.n_pet_channels
-        self.image_dim = config.mri_image_dim if self.is_mri else config.pet_image_dim
+        self.depth = config.n_pet_channels
+        self.image_dim = config.pet_image_dim
 
         self.conv1 = nn.Conv3d(1, 8, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv3d(8, 16, kernel_size=3, stride=1, padding=1)
@@ -51,7 +50,7 @@ class ImageToImage(nn.Module):
         self.output_image_dim = config.mri_image_dim
         self.output_image_channels = config.n_mri_channels
 
-        self.image_encoder = ImageEncoder(config, is_mri=False)
+        self.image_encoder = ImageEncoder(config)
         self.image_decoder = nn.Sequential(
             nn.Linear(config.embed_dim, self.output_image_channels // 8 * self.output_image_dim // 8 * self.output_image_dim // 8),
             nn.ReLU(),
@@ -177,7 +176,7 @@ class DiffusionModel(nn.Module):
         self.lambda1 = 0.25
         self.lambda2 = 0.25
         
-        self.contextEmbedding = ImageEncoder(config, is_mri=True)
+        self.contextEmbedding = ImageEncoder(config)
         self.inc = DoubleConv(1, 8)
         
         self.down1 = DownBlock(8, 16, self.embed_dim)

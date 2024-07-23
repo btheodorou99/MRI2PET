@@ -8,11 +8,10 @@ import torch.nn.functional as F
 from einops import rearrange
 
 class ImageEncoder(nn.Module):
-    def __init__(self, config, is_mri):
+    def __init__(self, config):
         super(ImageEncoder, self).__init__()
-        self.is_mri = is_mri
-        self.depth = config.n_mri_channels if self.is_mri else config.n_pet_channels
-        self.image_dim = config.mri_image_dim if self.is_mri else config.pet_image_dim
+        self.depth = config.n_pet_channels
+        self.image_dim = config.pet_image_dim
 
         self.conv1 = nn.Conv3d(1, 8, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv3d(8, 16, kernel_size=3, stride=1, padding=1)
@@ -51,7 +50,7 @@ class ImageToImage(nn.Module):
         self.output_image_dim = config.mri_image_dim
         self.output_image_channels = config.n_mri_channels
 
-        self.image_encoder = ImageEncoder(config, is_mri=False)
+        self.image_encoder = ImageEncoder(config)
         self.image_decoder = nn.Sequential(
             nn.Linear(config.embed_dim, self.output_image_channels // 8 * self.output_image_dim // 8 * self.output_image_dim // 8),
             nn.ReLU(),
@@ -176,7 +175,7 @@ class DiffusionModel(nn.Module):
         self.embed_dim = config.embed_dim
         self.lambda1 = 0.25
         
-        self.contextEmbedding = ImageEncoder(config, is_mri=True)
+        self.contextEmbedding = ImageEncoder(config)
         self.inc = DoubleConv(1, 8)
         
         self.down1 = DownBlock(8, 16, self.embed_dim)
@@ -272,6 +271,8 @@ class DiffusionModel(nn.Module):
         return pred_x
     
     def forward(self, context, input_images, gen_loss=True, cycle=0, weight=0.0):
+        with torch.no_grad():
+            context = F.interpolate(context.unsqueeze(1), size=(self.n_channels, self.image_dim, self.image_dim), mode='trilinear', align_corners=True).squeeze(1)
         t = self.sample_timesteps(input_images.size(0), context.device)
         noised_images, noise = self.noise_images(input_images, t)
         predictedNoise = self._forward(noised_images, t, context)
@@ -290,6 +291,8 @@ class DiffusionModel(nn.Module):
 
     def generate(self, context):
         n = context.size(0)
+        with torch.no_grad():
+            context = F.interpolate(context.unsqueeze(1), size=(self.n_channels, self.image_dim, self.image_dim), mode='trilinear', align_corners=True).squeeze(1)
         x = torch.randn(n, self.n_channels, self.image_dim, self.image_dim, device=context.device)
         for timestep in tqdm(reversed(range(1, self.num_timesteps)), total=self.num_timesteps-1):
             t = (torch.ones(n) * timestep).long().to(context.device)
