@@ -82,26 +82,12 @@ sample_contexts, real_images = get_batch(sample_data, 0, NUM_SAMPLES)
 
 for i in range(NUM_SAMPLES):
     real_image = tensor_to_numpy(real_images[i].cpu())
-    save_slice_plots(real_image, f'./src/results/image_samples/realImage_{i}')
+    save_slice_plots(sample_contexts[i].cpu().clone().numpy().transpose((1, 2, 0)), f'./src/results/image_samples/realMRI_{i}')
+    save_slice_plots(real_image, f'./src/results/image_samples/realPET_{i}')
 
 model_keys = [
     # 'baseGAN',
     'baseDiffusion',
-    'proposedModel1',
-    'proposedModel2',
-    'proposedModel6',
-    'proposedModel8',
-    'proposedModel11',
-    'proposedModel4',
-    'proposedModel5',
-    'proposedModel7',
-    'proposedModel9',
-    'proposedModel10',
-    'proposedModel12',
-    'proposedModel25',
-    'proposedModel17',
-    'proposedModel3',
-    'proposedModel13',
     # 'noisyPretrainedDiffusion',
     # 'selfPretrainedDiffusion',
     # 'stylePretrainedDiffusion',
