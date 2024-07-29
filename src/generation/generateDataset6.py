@@ -94,7 +94,7 @@ for k in tqdm(model_keys):
         model = model.to(device)
         model.eval()
         batch_size = config.batch_size // 5
-    elif 'round2' in k:
+    elif 'roundTwo' in k:
         module_path = f"src.models.{k}"
         module = importlib.import_module(module_path)
         Model = getattr(module, 'DiffusionModel')
