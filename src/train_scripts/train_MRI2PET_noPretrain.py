@@ -18,10 +18,14 @@ device = torch.device(f"cuda:{cudaNum}" if torch.cuda.is_available() else "cpu")
 if torch.cuda.is_available():
     torch.cuda.manual_seed_all(SEED)
 
-pretrain_dataset = pickle.load(open('./src/data/mriDataset.pkl', 'rb'))
-pretrain_dataset = [(mri_path, os.path.join(config.mri_style_dir, mri_path.split('/')[-1])) for mri_path in pretrain_dataset]
 train_dataset = pickle.load(open('./src/data/trainDataset.pkl', 'rb'))
 val_dataset = pickle.load(open('./src/data/valDataset.pkl', 'rb'))
+
+def getNoise(epoch):
+    if epoch >= 500:
+        return 1
+    else:
+        return (1 - 0.01) * (epoch / 500) + 0.01
 
 def load_image(image_path, is_mri=True):
     img = np.load(image_path)
@@ -45,20 +49,19 @@ def get_batch(dataset, loc, batch_size):
 def shuffle_training_data(train_ehr_dataset):
     random.shuffle(train_ehr_dataset)
 
-model = DiffusionModel(config).to(device)
+model = DiffusionModel(config, config.laplace_lambda).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
-if os.path.exists(f"./src/save/stylePretrainedDiffusion3D.pt"):
+if os.path.exists(f"./src/save/mri2pet_noPretrain.pt"):
     print("Loading previous model")
-    checkpoint = torch.load(f'./src/save/stylePretrainedDiffusion3D.pt', map_location=torch.device(device))
+    checkpoint = torch.load(f'./src/save/mri2pet_noPretrain.pt', map_location=torch.device(device))
     model.load_state_dict(checkpoint['model'])
     optimizer.load_state_dict(checkpoint['optimizer'])
 
 steps_per_batch = 3
 config.batch_size = config.batch_size // steps_per_batch
 
-optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
-
 for e in tqdm(range(config.epoch)):
+    curr_noise = getNoise(e)
     shuffle_training_data(train_dataset)
     train_losses = []
     model.train()
@@ -66,7 +69,7 @@ for e in tqdm(range(config.epoch)):
     optimizer.zero_grad()
     for i in range(0, len(train_dataset), config.batch_size):
         batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
-        loss, _ = model(batch_context, batch_images, gen_loss=True)
+        loss, _ = model(batch_context, batch_images, gen_loss=True, noise_level=curr_noise, includeLaplace=True)
         train_losses.append(loss.cpu().detach().item())
         loss = loss / steps_per_batch
         loss.backward()
@@ -92,4 +95,4 @@ for e in tqdm(range(config.epoch)):
             'optimizer': optimizer.state_dict(),
             'mode': 'train'
         }
-        torch.save(state, f'./src/save/stylePretrainedDiffusion3D.pt')
+        torch.save(state, f'./src/save/mri2pet_noPretrain.pt')

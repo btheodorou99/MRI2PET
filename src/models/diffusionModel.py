@@ -134,7 +134,7 @@ class UpBlock(nn.Module):
         return x + emb
 
 class DiffusionModel(nn.Module):
-    def __init__(self, config):
+    def __init__(self, config, laplace=0):
         super(DiffusionModel, self).__init__()
         self.num_timesteps = config.num_timesteps
         self.beta_start = config.beta_start
@@ -145,6 +145,7 @@ class DiffusionModel(nn.Module):
         self.image_dim = config.pet_image_dim
         self.n_channels = config.n_pet_channels
         self.embed_dim = config.embed_dim
+        self.llambda = laplace
         
         self.contextEmbedding = ImageEncoder(config)
         self.inc = DoubleConv(1, 8)
@@ -230,13 +231,47 @@ class DiffusionModel(nn.Module):
         condImage = condImage.squeeze(1)
         return x
     
-    def forward(self, context, input_images, gen_loss=True, noise_level=1):
+    def construct_image(self, noised_x, t, pred_noise):
+        sqrt_alpha_hat = torch.sqrt(self.alpha_hat[t])[:, None, None, None].to(noised_x.device)
+        sqrt_one_minus_alpha_hat = torch.sqrt(1 - self.alpha_hat[t])[:, None, None, None].to(noised_x.device)
+        pred_x = (1 / sqrt_alpha_hat) * noised_x - (sqrt_one_minus_alpha_hat / sqrt_alpha_hat) * pred_noise
+        return pred_x
+    
+    def laplacian_pyramid_loss(self, img1, img2, max_levels=5):
+        def pyr_down(image):
+            return F.avg_pool2d(image, kernel_size=2, stride=2, padding=0)
+
+        def laplacian_pyramid(image, max_levels):
+            current = image
+            pyramid = []
+
+            for _ in range(max_levels):
+                down = pyr_down(current)
+                up = F.interpolate(down, size=current.shape[-2:], mode='bilinear', align_corners=False)
+                diff = current - up
+                pyramid.append(diff)
+                current = down
+
+            return pyramid
+
+        pyramid1 = laplacian_pyramid(img1, max_levels)
+        pyramid2 = laplacian_pyramid(img2, max_levels)
+
+        loss = sum(F.mse_loss(a, b) for a, b in zip(pyramid1, pyramid2))
+
+        return loss
+    
+    def forward(self, context, input_images, gen_loss=True, noise_level=1, includeLaplace=False):
         noise_level = torch.sqrt(torch.tensor(noise_level))
         t = self.sample_timesteps(input_images.size(0), context.device)
         noised_images, noise = self.noise_images(input_images, t, noise_level)
         predictedNoise = self._forward(noised_images, t, context)
         if gen_loss:
             loss = F.mse_loss(noise, predictedNoise)
+            if includeLaplace and self.llambda > 0:
+                predictedImage = self.construct_image(noised_images, t, predictedNoise)
+                laplace_loss = self.laplacian_pyramid_loss(input_images, predictedImage)
+                loss += self.llambda * laplace_loss
             return loss, predictedNoise
         return predictedNoise
 

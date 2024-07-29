@@ -55,7 +55,7 @@ if os.path.exists(f"./src/save/baseGAN.pt"):
     optimizer_G.load_state_dict(checkpoint['optimizer_g'])
     optimizer_D.load_state_dict(checkpoint['optimizer_d'])
 
-for e in tqdm(range(config.epoch)):
+for e in tqdm(range(2 * config.epoch)):
     shuffle_training_data(train_dataset)
     generator.train()
     discriminator.train()

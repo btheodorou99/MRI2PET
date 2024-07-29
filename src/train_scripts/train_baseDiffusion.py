@@ -59,7 +59,6 @@ if os.path.exists(f"./src/save/baseDiffusion.pt"):
 steps_per_batch = 3
 config.batch_size = config.batch_size // steps_per_batch
 for e in tqdm(range(config.epoch)):
-    curr_noise = 1 #getNoise(e)
     shuffle_training_data(train_dataset)
     train_losses = []
     model.train()
@@ -67,7 +66,7 @@ for e in tqdm(range(config.epoch)):
     optimizer.zero_grad()
     for i in range(0, len(train_dataset), config.batch_size):
         batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
-        loss, _ = model(batch_context, batch_images, gen_loss=True, noise_level=curr_noise)
+        loss, _ = model(batch_context, batch_images, gen_loss=True)
         train_losses.append(loss.cpu().detach().item())
         loss = loss / steps_per_batch
         loss.backward()

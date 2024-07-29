@@ -5,10 +5,11 @@ import pickle
 import numpy as np
 from tqdm import tqdm
 from ..config import MRI2PETConfig
-from ..models.roundTwo4 import DiffusionModel
+from ..models.diffusionModel import DiffusionModel
 
 SEED = 4
 cudaNum = 0
+NUM_SAMPLES = 25
 random.seed(SEED)
 np.random.seed(SEED)
 torch.manual_seed(SEED)
@@ -21,6 +22,13 @@ pretrain_dataset = pickle.load(open('./src/data/mriDataset.pkl', 'rb'))
 pretrain_dataset = [(mri_path, os.path.join(config.mri_style_dir, mri_path.split('/')[-1])) for mri_path in pretrain_dataset]
 train_dataset = pickle.load(open('./src/data/trainDataset.pkl', 'rb'))
 val_dataset = pickle.load(open('./src/data/valDataset.pkl', 'rb'))
+
+def getNoise(epoch):
+    if epoch >= 500:
+        return 1
+    else:
+        return (1 - 0.01) * (epoch / 500) + 0.01
+
 def load_image(image_path, is_mri=True):
     img = np.load(image_path)
     img = img.transpose((2,0,1))
@@ -43,55 +51,50 @@ def get_batch(dataset, loc, batch_size):
 def shuffle_training_data(train_ehr_dataset):
     random.shuffle(train_ehr_dataset)
 
-mean_mri = torch.zeros(config.n_mri_channels, config.mri_image_dim, config.mri_image_dim, dtype=torch.float, device=device)
-for i in tqdm(range(0, len(pretrain_dataset), config.batch_size)):
-    batch_context, _ = get_batch(pretrain_dataset, i, config.batch_size)
-    mean_mri += torch.sum(batch_context, dim=0)
-mean_mri /= len(pretrain_dataset)
-
-model = DiffusionModel(config, mean_mri).to(device)
+model = DiffusionModel(config, config.laplace_lambda).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
-if os.path.exists(f"./src/save/roundTwo4.pt"):
+if os.path.exists(f"./src/save/mri2pet.pt"):
     print("Loading previous model")
-    checkpoint = torch.load(f'./src/save/roundTwo4.pt', map_location=torch.device(device))
+    checkpoint = torch.load(f'./src/save/mri2pet.pt', map_location=torch.device(device))
     model.load_state_dict(checkpoint['model'])
     optimizer.load_state_dict(checkpoint['optimizer'])
 
 steps_per_batch = 3
 config.batch_size = config.batch_size // steps_per_batch
 
-# for e in tqdm(range(config.pretrain_epoch)):
-#     shuffle_training_data(pretrain_dataset)
-#     pretrain_losses = []
-#     model.train()
-#     curr_step = 0
-#     optimizer.zero_grad()
-#     for i in range(0, len(pretrain_dataset), config.batch_size):
-#         batch_context, batch_images = get_batch(pretrain_dataset, i, config.batch_size)
-#         optimizer.zero_grad()
-#         loss, _ = model(batch_context, batch_images, gen_loss=True)
-#         pretrain_losses.append(loss.cpu().detach().item())
-#         loss = loss / steps_per_batch
-#         loss.backward()
-#         curr_step += 1
-#         if curr_step % steps_per_batch == 0:
-#             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-#             optimizer.step()
-#             optimizer.zero_grad()
-#             curr_step = 0
+for e in tqdm(range(config.pretrain_epoch)):
+    shuffle_training_data(pretrain_dataset)
+    pretrain_losses = []
+    model.train()
+    curr_step = 0
+    optimizer.zero_grad()
+    for i in range(0, len(pretrain_dataset), config.batch_size):
+        batch_context, batch_images = get_batch(pretrain_dataset, i, config.batch_size)
+        optimizer.zero_grad()
+        loss, _ = model(batch_context, batch_images, gen_loss=True)
+        pretrain_losses.append(loss.cpu().detach().item())
+        loss = loss / steps_per_batch
+        loss.backward()
+        curr_step += 1
+        if curr_step % steps_per_batch == 0:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            optimizer.step()
+            optimizer.zero_grad()
+            curr_step = 0
     
-#     cur_pretrain_loss = np.mean(pretrain_losses)
-#     print("Epoch %d Training Loss:%.7f"%(e, cur_pretrain_loss), flush=True)
-#     state = {
-#         'model': model.state_dict(),
-#         'optimizer': optimizer.state_dict(),
-#         'mode': 'pretrain'
-#     }
-#     torch.save(state, f'./src/save/roundTwo4.pt')
+    cur_pretrain_loss = np.mean(pretrain_losses)
+    print("Epoch %d Training Loss:%.7f"%(e, cur_pretrain_loss), flush=True)
+    state = {
+        'model': model.state_dict(),
+        'optimizer': optimizer.state_dict(),
+        'mode': 'pretrain'
+    }
+    torch.save(state, f'./src/save/mri2pet.pt')
 
 optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
 
 for e in tqdm(range(config.epoch)):
+    curr_noise = getNoise(e)
     shuffle_training_data(train_dataset)
     train_losses = []
     model.train()
@@ -99,7 +102,7 @@ for e in tqdm(range(config.epoch)):
     optimizer.zero_grad()
     for i in range(0, len(train_dataset), config.batch_size):
         batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
-        loss, _ = model(batch_context, batch_images, gen_loss=True)
+        loss, _ = model(batch_context, batch_images, gen_loss=True, noise_level=curr_noise, includeLaplace=True)
         train_losses.append(loss.cpu().detach().item())
         loss = loss / steps_per_batch
         loss.backward()
@@ -118,12 +121,11 @@ for e in tqdm(range(config.epoch)):
             val_loss, _ = model(batch_context, batch_images, gen_loss=True)
             val_losses.append((val_loss).cpu().detach().item())
         
-        cur_train_loss = np.mean(train_losses)
         cur_val_loss = np.mean(val_losses)
-        print("Epoch %d Training Loss: %.7f, Validation Loss:%.7f"%(e, cur_train_loss, cur_val_loss), flush=True)
+        print("Epoch %d Validation Loss:%.7f"%(e, cur_val_loss), flush=True)
         state = {
             'model': model.state_dict(),
             'optimizer': optimizer.state_dict(),
             'mode': 'train'
         }
-        torch.save(state, f'./src/save/roundTwo4.pt')
+        torch.save(state, f'./src/save/mri2pet.pt')

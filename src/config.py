@@ -14,6 +14,7 @@ class MRI2PETConfig(object):
             beta_start = 0.0015,
             beta_end = 0.02,
             num_timesteps = 1000,
+            laplace_lambda = 0.25,
             z_dim = 256,
             lambda_gp = 10,
             generator_interval = 2,
@@ -33,6 +34,7 @@ class MRI2PETConfig(object):
         self.beta_start = beta_start
         self.beta_end = beta_end
         self.num_timesteps = num_timesteps
+        self.laplace_lambda = laplace_lambda
         self.z_dim = z_dim
         self.lambda_gp = lambda_gp
         self.generator_interval = generator_interval
