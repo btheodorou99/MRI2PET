@@ -4,7 +4,6 @@ class MRI2PETConfig(object):
             batch_size=50,
             epoch=2500,
             pretrain_epoch=500,
-            patience=5,
             lr=1e-4,
             mri_image_dim=144,
             pet_image_dim=128,
@@ -15,6 +14,11 @@ class MRI2PETConfig(object):
             beta_end = 0.02,
             num_timesteps = 1000,
             laplace_lambda = 0.25,
+            downstream_dim = 1,
+            downstream_batch_size = 128,
+            downstream_epoch = 100,
+            downstream_patience = 5,
+            downstream_lr = 5e-4,
             z_dim = 256,
             lambda_gp = 10,
             generator_interval = 2,
@@ -24,7 +28,6 @@ class MRI2PETConfig(object):
         self.batch_size = batch_size
         self.epoch = epoch
         self.pretrain_epoch = pretrain_epoch
-        self.patience = patience
         self.lr = lr
         self.mri_image_dim = mri_image_dim
         self.pet_image_dim = pet_image_dim
@@ -35,6 +38,11 @@ class MRI2PETConfig(object):
         self.beta_end = beta_end
         self.num_timesteps = num_timesteps
         self.laplace_lambda = laplace_lambda
+        self.downstream_dim = downstream_dim
+        self.downstream_batch_size = downstream_batch_size
+        self.downstream_epoch = downstream_epoch
+        self.downstream_patience = downstream_patience
+        self.downstream_lr = downstream_lr
         self.z_dim = z_dim
         self.lambda_gp = lambda_gp
         self.generator_interval = generator_interval
