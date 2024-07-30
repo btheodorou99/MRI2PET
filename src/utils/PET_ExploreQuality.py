@@ -1,0 +1,23 @@
+import os
+import ants
+from tqdm import tqdm
+
+input_dir = "/data/CARD_AA/data/ADNI/PET_Nifti/"
+output_dir = "/data/theodoroubp/MRI2PET/results/data_exploration/"
+os.makedirs(output_dir, exist_ok=True)
+
+for f in tqdm(os.listdir(input_dir)):
+    if not f.endswith(".nii"):
+        continue
+
+    img = ants.image_read(os.path.join(input_dir, f))
+    if len(img.shape) == 4:
+        img = ants.from_numpy(img[:, :, :, 0])
+
+    img = ants.from_numpy(img.numpy().transpose(2, 0, 1))
+    ants.plot(
+        img,
+        nslices=9,
+        title=str(img.shape[0]),
+        filename=f"{output_dir}{f.replace('.nii', '.png')}",
+    )
