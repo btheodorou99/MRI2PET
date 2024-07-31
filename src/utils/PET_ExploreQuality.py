@@ -3,7 +3,7 @@ import ants
 from tqdm import tqdm
 from collections import Counter
 
-input_dir = "/data/CARD_AA/data/ADNI/PET_Nifti/"
+input_dir = "/data/CARD_AA/data/ADNI/PET_Nifti_PreProcessed/"
 output_dir = "/data/theodoroubp/MRI2PET/results/data_exploration/"
 os.makedirs(output_dir, exist_ok=True)
 
