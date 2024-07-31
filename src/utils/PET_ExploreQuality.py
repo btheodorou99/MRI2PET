@@ -12,10 +12,12 @@ heights = []
 widths = []
 
 for f in tqdm(os.listdir(input_dir)):
-    if not f.endswith(".nii"):
+    if not f.endswith(".nii") or os.path.exists(os.path.join(output_dir, f.replace(".nii", ".png"))):
         continue
 
+    print(f)
     img = ants.image_read(os.path.join(input_dir, f))
+    print(img.shape)
     if len(img.shape) == 4:
         img = ants.from_numpy(img[:, :, :, 0])
 
