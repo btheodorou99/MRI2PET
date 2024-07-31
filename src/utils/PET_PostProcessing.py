@@ -58,7 +58,7 @@ for mri_niix, pet_file in tqdm(pairs):
             ants.from_numpy(img.numpy().transpose(2, 0, 1)),
             nslices=9,
             title=str(img.shape[0]),
-            filename=f"{plotDir1}{pet_file.replace('.npy', '.png')}",
+            filename=f"{plotDir2}{pet_file.replace('.npy', '.png')}",
     )
     data = img.numpy()
     data = (data - data.min()) / (data.max() - data.min())
