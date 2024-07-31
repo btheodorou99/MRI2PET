@@ -23,7 +23,8 @@ def find_pet(pet_dir):
         date = datetime.strptime(date, "%Y-%m-%d")
         if subject_id not in data_dict:
             data_dict[subject_id] = {}
-        data_dict[subject_id][date] = {'shape': ants.image_read(fpath).numpy().shape, 'filename': fpath.replace('PET_Nifti_PreProcessed', 'PET').replace('.nii', '.npy')}
+        data_dict[subject_id][date] = { #'shape': ants.image_read(fpath).numpy().shape, 
+                                       'filename': fpath.replace('PET_Nifti_PreProcessed', 'PET').replace('.nii', '.npy')}
     return data_dict
 
 def find_mri(mri_dir, prefix, parseDate=False):
@@ -42,7 +43,8 @@ def find_mri(mri_dir, prefix, parseDate=False):
                     saveDate = date
                 if subject_id not in data_dict:
                     data_dict[subject_id] = {}
-                data_dict[subject_id][saveDate] = {'shape': ants.image_read(fpath).numpy().shape, 'filename': fpath}
+                data_dict[subject_id][saveDate] = { #'shape': ants.image_read(fpath).numpy().shape,
+                                                    'filename': fpath}
     return data_dict
 
 def convert_mri_path(fpath):
