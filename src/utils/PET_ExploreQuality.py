@@ -15,11 +15,15 @@ for f in tqdm(os.listdir(input_dir)):
     if not f.endswith(".nii") or os.path.exists(os.path.join(output_dir, f.replace(".nii", ".png"))):
         continue
 
-    print(f)
+    # print(f)
     img = ants.image_read(os.path.join(input_dir, f))
-    print(img.shape)
+    # print(img.shape)
     if len(img.shape) == 4:
-        img = ants.from_numpy(img[:, :, :, 0])
+        if f == '037_S_4015--2013-04-19--I368085.nii':
+            print(img[:, :, :, 0].max())
+            img = ants.from_numpy(img[:, :, :, 1])
+        else:
+            img = ants.from_numpy(img[:, :, :, 0])
 
     img = ants.from_numpy(img.numpy().transpose(2, 0, 1))
     depths.append(img.shape[0])
