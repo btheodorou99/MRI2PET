@@ -19,7 +19,7 @@ def convert_mri_path(fpath):
 
 def process_mri(fpath):
     img = ants.image_read(fpath)
-    img = ants.from_numpy(np.flip(img.numpy(), axis=2))
+    img = ants.from_numpy(img[:, 15:210, :])
     img = ants.resample_image(img, (config.mri_image_dim, config.mri_image_dim, config.n_mri_channels), use_voxels=True, interp_type=3)
     return img
 
