@@ -53,20 +53,14 @@ def get_inception_score(model, dataset):
     return np.exp(np.mean(scores))
 
 model_keys = [
-    # 'baseGAN',
+    'baseGAN',
     'baseDiffusion',
-    'proposedModel14',
-    'roundTwo1',
-    'roundTwo2',
-    'roundTwo3',
-    'roundTwo4',
-    'roundTwo5',
-    'roundTwo6',
-    'roundTwo7',
-    # 'noisyPretrainedGAN',
-    # 'selfPretrainedGAN',
-    # 'stylePretrainedGAN',
-    # 'mri2pet',
+    'noisyPretrainedDiffusion',
+    'selfPretrainedDiffusion',
+    'mri2pet',
+    'mri2pet_noLoss',
+    'mri2pet_noNoise',
+    'mri2pet_noPretrain',
 ]
 
 for k in tqdm(model_keys):

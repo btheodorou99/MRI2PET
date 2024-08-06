@@ -86,15 +86,14 @@ for i in range(NUM_SAMPLES):
     save_slice_plots(real_image, f'./src/results/image_samples/realPET_{i}')
 
 model_keys = [
-    # 'baseGAN',
+    'baseGAN',
     'baseDiffusion',
-    # 'noisyPretrainedDiffusion',
-    # 'selfPretrainedDiffusion',
-    # 'stylePretrainedDiffusion',
-    # 'noisyPretrainedGAN',
-    # 'selfPretrainedGAN',
-    # 'stylePretrainedGAN',
-    # 'mri2pet',
+    'noisyPretrainedDiffusion',
+    'selfPretrainedDiffusion',
+    'mri2pet',
+    'mri2pet_noLoss',
+    'mri2pet_noNoise',
+    'mri2pet_noPretrain',
 ]
 
 for k in tqdm(model_keys):
@@ -105,42 +104,6 @@ for k in tqdm(model_keys):
         model = model.to(device)
         model.eval()
         batch_size = config.batch_size
-    elif 'proposed' in k:
-        module_path = f"src.models.{k}"
-        module = importlib.import_module(module_path)
-        Model = getattr(module, 'DiffusionModel')
-        if k == 'proposedModel3':
-            pretrain_dataset = pickle.load(open('./src/data/mriDataset.pkl', 'rb'))
-            mean_mri = torch.zeros(config.n_mri_channels, config.mri_image_dim, config.mri_image_dim, dtype=torch.float, device=device)
-            for i in tqdm(range(0, len(pretrain_dataset), config.batch_size)):
-                batch_context, _ = get_batch(pretrain_dataset, i, config.batch_size)
-                mean_mri += torch.sum(batch_context, dim=0)
-            mean_mri /= len(pretrain_dataset)
-            model = Model(config, mean_mri)
-        else:
-            model = Model(config)
-        model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location='cpu')['model'])
-        model = model.to(device)
-        model.eval()
-        batch_size = config.batch_size // 5
-    elif 'roundTwo' in k:
-        module_path = f"src.models.{k}"
-        module = importlib.import_module(module_path)
-        Model = getattr(module, 'DiffusionModel')
-        if k == 'roundTwo4':
-            pretrain_dataset = pickle.load(open('./src/data/mriDataset.pkl', 'rb'))
-            mean_mri = torch.zeros(config.n_mri_channels, config.mri_image_dim, config.mri_image_dim, dtype=torch.float, device=device)
-            for i in tqdm(range(0, len(pretrain_dataset), config.batch_size)):
-                batch_context = get_batch(pretrain_dataset, i, config.batch_size)
-                mean_mri += torch.sum(batch_context, dim=0)
-            mean_mri /= len(pretrain_dataset)
-            model = Model(config, mean_mri)
-        else:
-            model = Model(config)
-        model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location='cpu')['model'])
-        model = model.to(device)
-        model.eval()
-        batch_size = config.batch_size // 5
     else:
         model = DiffusionModel(config)
         model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location='cpu')['model'])
