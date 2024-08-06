@@ -10,7 +10,6 @@ from src.config import MRI2PETConfig
 config = MRI2PETConfig()
 pet_dir = "/data/CARD_AA/data/ADNI/PET_Nifti_PreProcessed/"
 output_dir = "/data/CARD_AA/data/ADNI/PET/"
-plotDir = "/data/theodoroubp/MRI2PET/results/data_exploration/"
 pairs = pickle.load(open('./src/data/pet_mri_pairs.pkl', 'rb'))
 pairs = [(mri_path.replace('.npy', '.nii.gz'), pet_path.split('/')[-1]) for mri_path, pet_path in pairs]
 random.shuffle(pairs)
@@ -29,12 +28,6 @@ for mri_niix, pet_file in tqdm(pairs):
     mri_img = ants.image_read(mri_niix)
     mri_img = ants.resample_image(img, (config.pet_image_dim, config.pet_image_dim, config.n_pet_channels), use_voxels=True, interp_type=3)
     img = ants.registration(fixed=mri_img, moving=img, type_of_transform='Affine')['warpedmovout']        
-    ants.plot(
-            ants.from_numpy(img.numpy().transpose(2, 0, 1)),
-            nslices=9,
-            title=str(img.shape[0]),
-            filename=f"{plotDir}{pet_file.replace('.npy', '.png')}",
-    )
     data = img.numpy()
     data = (data - data.min()) / (data.max() - data.min())
 
