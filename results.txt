@@ -3,8 +3,8 @@ TO RUN:
     - Self Pretrained
     - Noisy Pretrained
     - No Pretraining
-- No Loss Component
-- No Noise Rampup
+    - No Loss Component
+    - No Noise Rampup
     - Basic Diffusion
     - Basic GAN
     - Baselines
