@@ -64,7 +64,7 @@ if os.path.exists(f"./src/save/noisyPretrainedDiffusion.pt"):
 steps_per_batch = 3
 config.batch_size = config.batch_size // steps_per_batch
 
-for e in tqdm(range(config.pretrain_epoch)):
+for e in tqdm(range(53)):
     shuffle_training_data(pretrain_dataset)
     pretrain_losses = []
     model.train()
@@ -91,7 +91,7 @@ for e in tqdm(range(config.pretrain_epoch)):
         'optimizer': optimizer.state_dict(),
         'mode': 'pretrain'
     }
-    torch.save(state, f'./src/save/noisyPretrainedDiffusion.pt')
+    torch.save(state, f'./src/save/noisyPretrainedDiffusion_final.pt')
 
 optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
 
@@ -130,4 +130,4 @@ for e in tqdm(range(config.epoch)):
             'optimizer': optimizer.state_dict(),
             'mode': 'train'
         }
-        torch.save(state, f'./src/save/noisyPretrainedDiffusion.pt')
+        torch.save(state, f'./src/save/noisyPretrainedDiffusion_final.pt')
