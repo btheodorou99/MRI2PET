@@ -309,4 +309,4 @@ class DiffusionModel(nn.Module):
             # Accumulate NLL
             nll += log_likelihood
         
-        return - nll.mean().item() * input_images.numel()
+        return [- nll[i].mean().item() * input_images[i].numel() for i in range(input_images.size(0))]

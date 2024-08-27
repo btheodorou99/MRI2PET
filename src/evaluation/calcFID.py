@@ -4,9 +4,10 @@ import pickle
 import numpy as np
 from tqdm import tqdm
 from scipy import linalg
+from sklearn.utils import resample
 from ..config import MRI2PETConfig
 from torchvision.models import inception_v3
-from torchvision.transforms import Compose, Resize, CenterCrop, ToTensor, Normalize
+from torchvision.transforms import Compose, Resize, CenterCrop, Normalize
 
 config = MRI2PETConfig()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -75,6 +76,13 @@ for k in tqdm(model_keys):
     model_path = f'/data/theodoroubp/MRI2PET/results/generated_datasets/{k}/'
     model_dataset = [os.path.join(model_path, file) for file in os.listdir(model_path)]
     model_act = get_inception_features(model, model_dataset)
-    fid_value = calculate_fid(test_act, model_act)
-    print(f'{k} FID:', fid_value)
+    fid_values = []
+    for i in range(config.n_bootstrap):
+        bs_indices = resample(np.arange(len(model_act)), replace=True)
+        bs_real = test_act[bs_indices]
+        bs_fake = model_act[bs_indices]
+        fid_value = calculate_fid(bs_real, bs_fake)
+        fid_values.append(fid_value)
+    fid_value = (np.mean(fid_values), np.std(fid_values) / np.sqrt(config.n_bootstrap))
+    print(f'{k} FID: {fid_value[0]:.3f} \\pm {fid_value[1]:.3f}')
     pickle.dump(fid_value, open(f'./src/results/quantitative_evaluations/{k}_fid.pkl', 'wb'))

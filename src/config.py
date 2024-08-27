@@ -22,6 +22,7 @@ class MRI2PETConfig(object):
             z_dim = 256,
             lambda_gp = 10,
             generator_interval = 2,
+            n_bootstrap = 100,
             mri_pretrain_dir = "/data/CARD_AA/data/ADNI/MRI_Pretrain/",
             mri_style_dir = "/data/CARD_AA/data/ADNI/MRI_StyleTransfer/",
     ):
@@ -46,6 +47,7 @@ class MRI2PETConfig(object):
         self.z_dim = z_dim
         self.lambda_gp = lambda_gp
         self.generator_interval = generator_interval
+        self.n_bootstrap = n_bootstrap
         self.mri_pretrain_dir = mri_pretrain_dir
         self.mri_style_dir = mri_style_dir
 

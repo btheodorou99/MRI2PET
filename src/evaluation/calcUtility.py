@@ -9,8 +9,9 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from sklearn import metrics
-from src.config import MRI2PETConfig
-from src.models.downstreamModel import ImageClassifier
+from sklearn.utils import resample
+from ..config import MRI2PETConfig
+from ..models.downstreamModel import ImageClassifier
 
 config = MRI2PETConfig()
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -115,12 +116,30 @@ def evaluate_model(model, data, has_mri, has_pet):
     preds = np.array(pred_list)
     labels = np.array(label_list)
     rounded_preds = np.round(preds)
+    
+    accuracies = []
+    precisions = []
+    recalls = []
+    f1s = []
+    aurocs = []
+    
+    for i in range(config.n_bootstrap):
+        bs_indices = resample(np.arange(labels.shape[0]), replace=True)
+        bs_labels = labels[bs_indices]
+        bs_preds = rounded_preds[bs_indices]
+        bs_probs = preds[bs_indices]
+        accuracies.append(metrics.accuracy_score(bs_labels, bs_preds))
+        precisions.append(metrics.precision_score(bs_labels, bs_preds))
+        recalls.append(metrics.recall_score(bs_labels, bs_preds))
+        f1s.append(metrics.f1_score(bs_labels, bs_preds))
+        aurocs.append(metrics.roc_auc_score(bs_labels, bs_probs))
+    
     metrics = {
-        'Accuracy': metrics.accuracy_score(labels, rounded_preds),
-        'Precision': metrics.precision_score(labels, rounded_preds),
-        'Recall': metrics.recall_score(labels, rounded_preds),
-        'F1': metrics.f1_score(labels, rounded_preds),
-        'AUROC': metrics.roc_auc_score(labels, preds)
+        'Accuracy': (np.mean(accuracies), np.std(accuracies) / np.sqrt(config.n_bootstrap)),
+        'Precision': (np.mean(precisions), np.std(precisions) / np.sqrt(config.n_bootstrap)),
+        'Recall': (np.mean(recalls), np.std(recalls) / np.sqrt(config.n_bootstrap)),
+        'F1': (np.mean(f1s), np.std(f1s) / np.sqrt(config.n_bootstrap)),
+        'AUROC': (np.mean(aurocs), np.std(aurocs) / np.sqrt(config.n_bootstrap))
     }
     return metrics
 
@@ -139,4 +158,4 @@ for key, hasMRI, hasPET, data in tqdm(experiments):
     model = train_model(data, hasMRI, hasPET, key)
     metrics = evaluate_model(model, test_dataset, hasMRI, hasPET)
     for k, v in metrics.items():
-        print(f"\t{k}: {v:.4f}")
+        print(f"\t{k}: {v[0]:.5f} \\pm {v[1]:.5f}")
