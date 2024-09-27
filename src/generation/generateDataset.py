@@ -50,11 +50,11 @@ def save_image(tensor, path):
 model_keys = [
     'baseGAN',
     'baseDiffusion',
-    # 'noisyPretrainedDiffusion',
-    # 'selfPretrainedDiffusion',
-    # 'mri2pet',
-    # 'mri2pet_noLoss',
-    # 'mri2pet_noNoise',
+    'noisyPretrainedDiffusion',
+    'selfPretrainedDiffusion',
+    'mri2pet',
+    'mri2pet_noLoss',
+    'mri2pet_noNoise',
     'mri2pet_noPretrain',
 ]
 

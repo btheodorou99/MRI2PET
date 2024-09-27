@@ -50,7 +50,6 @@ def get_batch(dataset, loc, batch_size):
 
 def shuffle_training_data(train_ehr_dataset):
     random.shuffle(train_ehr_dataset)
-
 model = DiffusionModel(config).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
 if os.path.exists(f"./src/save/mri2pet_noLoss.pt"):
@@ -62,7 +61,7 @@ if os.path.exists(f"./src/save/mri2pet_noLoss.pt"):
 steps_per_batch = 3
 config.batch_size = config.batch_size // steps_per_batch
 
-for e in tqdm(range(23)):
+for e in tqdm(range(config.pretrain_epoch)):
     shuffle_training_data(pretrain_dataset)
     pretrain_losses = []
     model.train()
@@ -89,7 +88,7 @@ for e in tqdm(range(23)):
         'optimizer': optimizer.state_dict(),
         'mode': 'pretrain'
     }
-    torch.save(state, f'./src/save/mri2pet_noLoss_final.pt')
+    torch.save(state, f'./src/save/mri2pet_noLoss.pt')
 
 optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
 
@@ -128,4 +127,4 @@ for e in tqdm(range(config.epoch)):
             'optimizer': optimizer.state_dict(),
             'mode': 'train'
         }
-        torch.save(state, f'./src/save/mri2pet_noLoss_final.pt')
+        torch.save(state, f'./src/save/mri2pet_noLoss.pt')

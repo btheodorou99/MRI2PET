@@ -83,7 +83,7 @@ for e in tqdm(range(43)):
         'optimizer': optimizer.state_dict(),
         'mode': 'pretrain'
     }
-    torch.save(state, f'./src/save/mri2pet_noNoise_final.pt')
+    torch.save(state, f'./src/save/mri2pet_noNoise.pt')
 
 optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
 
@@ -121,4 +121,4 @@ for e in tqdm(range(config.epoch)):
             'optimizer': optimizer.state_dict(),
             'mode': 'train'
         }
-        torch.save(state, f'./src/save/mri2pet_noNoise_final.pt')
+        torch.save(state, f'./src/save/mri2pet_noNoise.pt')
