@@ -3,7 +3,7 @@ class MRI2PETConfig(object):
             self,            
             batch_size=50,
             epoch=2500,
-            pretrain_epoch=500,
+            pretrain_epoch=250,
             lr=1e-4,
             mri_image_dim=144,
             pet_image_dim=128,
