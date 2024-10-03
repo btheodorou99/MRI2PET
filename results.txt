@@ -9,3 +9,24 @@ TO RUN:
     - Basic GAN
     - Baselines
 
+
+MRI2PET_base
+    _loss (no Noise Option)
+    _noise (no Loss Option)
+    _noiseLoss (full Option)
+MRI2PET_noise
+    _base (no Loss Option)
+    _noise (no Loss option)
+    _loss (full Option)
+    _noiseLoss (full Option)
+MRI2PET_loss
+    _loss (no Noise Option)
+    _noiseLoss (full Option)
+MRI2PET_noiseLoss
+    _loss (full Option)
+    _noiseLoss (full Option)
+
+
+baseDiffusion
+MRI2PET_noPretrain
+baseGAN
