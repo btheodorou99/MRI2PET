@@ -62,14 +62,20 @@ test_dataset = [pet_path for (mri_path, pet_path) in test_dataset]
 test_act = get_inception_features(model, test_dataset)
 
 model_keys = [
-    'baseGAN',
     'baseDiffusion',
-    'noisyPretrainedDiffusion',
-    'selfPretrainedDiffusion',
-    'mri2pet',
-    'mri2pet_noLoss',
-    'mri2pet_noNoise',
+    'baseGAN',
     'mri2pet_noPretrain',
+    'mri2pet_base_noise',
+    'mri2pet_base_loss',
+    'mri2pet_base_noiseLoss',
+    'mri2pet_noise_loss',
+    'mri2pet_noise_base',
+    'mri2pet_noise_noise',
+    'mri2pet_noise_noiseLoss',
+    'mri2pet_loss_loss',
+    'mri2pet_loss_noiseLoss',
+    'mri2pet_noiseLoss_loss',
+    'mri2pet_noiseLoss_noiseLoss',
 ]
 
 for k in tqdm(model_keys):
