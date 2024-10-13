@@ -48,20 +48,13 @@ def save_image(tensor, path):
     np.save(path, image)
         
 model_keys = [
-    'baseDiffusion',
-    'baseGAN',
-    'mri2pet_noPretrain',
-    'mri2pet_base_noise',
-    'mri2pet_base_loss',
-    'mri2pet_base_noiseLoss',
-    'mri2pet_noise_loss',
-    'mri2pet_noise_base',
-    'mri2pet_noise_noise',
-    'mri2pet_noise_noiseLoss',
-    'mri2pet_loss_loss',
-    'mri2pet_loss_noiseLoss',
-    'mri2pet_noiseLoss_loss',
-    'mri2pet_noiseLoss_noiseLoss',
+    'mri2pet_noPretrain_noNoise',
+    'mri2pet_base_base',
+    'mri2pet_base_loss2',
+    'selfPretrainedDiffusion_base_base',
+    'selfPretrainedDiffusion_base_loss',
+    'noisyPretrainedDiffusion_base_base',
+    'noisyPretrainedDiffusion_base_loss',
 ]
 
 for k in tqdm(model_keys):

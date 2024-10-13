@@ -30,3 +30,26 @@ MRI2PET_noiseLoss
 baseDiffusion
 MRI2PET_noPretrain
 baseGAN
+
+baseDiffusion FID: 67.682 \pm 0.055
+baseGAN FID: 303.800 \pm 0.034
+mri2pet_noPretrain FID: 99.502 \pm 0.065
+mri2pet_base_noise FID: 65.804 \pm 0.049
+mri2pet_base_loss FID: 51.335 \pm 0.046
+mri2pet_base_noiseLoss FID: 227.759 \pm 0.062
+mri2pet_noise_loss FID: 134.472 \pm 0.077
+mri2pet_noise_base FID: 64.437 \pm 0.045
+mri2pet_noise_noise FID: 79.232 \pm 0.068
+mri2pet_noise_noiseLoss FID: 66.545 \pm 0.044
+mri2pet_loss_loss FID: 65.187 \pm 0.042
+mri2pet_loss_noiseLoss FID: 76.599 \pm 0.048
+mri2pet_noiseLoss_loss FID: 237.841 \pm 0.034
+mri2pet_noiseLoss_noiseLoss FID: 306.390 \pm 0.073
+
+base_base
+base_loss2
+noPretrain_noNoise
+self_base_base
+self_base_loss
+noisy_base_base
+noisy_base_loss
