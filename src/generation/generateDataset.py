@@ -48,8 +48,7 @@ def save_image(tensor, path):
     np.save(path, image)
         
 model_keys = [
-    'mri2pet_noPretrain_noNoise',
-    'mri2pet_base_base',
+    # 'mri2pet_base_base',
     'mri2pet_base_loss2',
     'selfPretrainedDiffusion_base_base',
     'selfPretrainedDiffusion_base_loss',
