@@ -26,11 +26,6 @@ MRI2PET_noiseLoss
     _loss (full Option)
     _noiseLoss (full Option)
 
-
-baseDiffusion
-MRI2PET_noPretrain
-baseGAN
-
 baseDiffusion FID: 67.682 \pm 0.055
 baseGAN FID: 303.800 \pm 0.034
 mri2pet_noPretrain FID: 99.502 \pm 0.065
@@ -45,11 +40,29 @@ mri2pet_loss_loss FID: 65.187 \pm 0.042
 mri2pet_loss_noiseLoss FID: 76.599 \pm 0.048
 mri2pet_noiseLoss_loss FID: 237.841 \pm 0.034
 mri2pet_noiseLoss_noiseLoss FID: 306.390 \pm 0.073
+mri2pet_noPretrain_noNoise FID: 39.729 \pm 0.039
+mri2pet_base_base FID: 95.223 \pm 0.071
+mri2pet_base_loss2 FID: 73.237 \pm 0.034
+selfPretrainedDiffusion_base_base FID: 61.098 \pm 0.045
+selfPretrainedDiffusion_base_loss FID: 66.870 \pm 0.037
+noisyPretrainedDiffusion_base_base FID: 145.215 \pm 0.092
+noisyPretrainedDiffusion_base_loss FID: 63.904 \pm 0.040
 
-base_base
-base_loss2
-noPretrain_noNoise
-self_base_base
-self_base_loss
-noisy_base_base
-noisy_base_loss
+
+baseDiffusion: 67
+mri2pet_noPretrain: TBD
+mri2pet_base_base: 95
+mri2pet_base_loss: 51
+selfPretrainedDiffusion_base_base: 61
+selfPretrainedDiffusion_base_loss: 66
+noisyPretrainedDiffusion_base_base: 145
+noisyPretrainedDiffusion_base_loss: 63
+
+
+mri2pet_noPretrain
+
+
+baseDiffusion2
+mri2pet
+mri2pet_noLoss
+mri2pet_noPretrain2

@@ -21,12 +21,6 @@ if torch.cuda.is_available():
 train_dataset = pickle.load(open('./src/data/trainDataset.pkl', 'rb'))
 val_dataset = pickle.load(open('./src/data/valDataset.pkl', 'rb'))
 
-def getNoise(epoch):
-    if epoch >= 500:
-        return 1
-    else:
-        return (1 - 0.01) * (epoch / 500) + 0.01
-
 def load_image(image_path, is_mri=True):
     img = np.load(image_path)
     img = img.transpose((2,0,1))
@@ -61,7 +55,6 @@ steps_per_batch = 3
 config.batch_size = config.batch_size // steps_per_batch
 
 for e in tqdm(range(config.epoch)):
-    curr_noise = getNoise(e)
     shuffle_training_data(train_dataset)
     train_losses = []
     model.train()
@@ -69,7 +62,7 @@ for e in tqdm(range(config.epoch)):
     optimizer.zero_grad()
     for i in range(0, len(train_dataset), config.batch_size):
         batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
-        loss, _ = model(batch_context, batch_images, gen_loss=True, noise_level=curr_noise, includeLaplace=True)
+        loss, _ = model(batch_context, batch_images, gen_loss=True, includeLaplace=True)
         train_losses.append(loss.cpu().detach().item())
         loss = loss / steps_per_batch
         loss.backward()
@@ -95,4 +88,4 @@ for e in tqdm(range(config.epoch)):
             'optimizer': optimizer.state_dict(),
             'mode': 'train'
         }
-        torch.save(state, f'./src/save/mri2pet_noPretrain.pt')
+        torch.save(state, f'./src/save/mri2pet_noPretrain_noNoise.pt')
