@@ -59,10 +59,13 @@ noisyPretrainedDiffusion_base_base: 145
 noisyPretrainedDiffusion_base_loss: 63
 
 
-mri2pet_noPretrain
-
-
 baseDiffusion2
 mri2pet
 mri2pet_noLoss
 mri2pet_noPretrain2
+selfPretrainedDiffusion_default
+selfPretrainedDiffusion
+noisyPretrainedDiffusion_default
+noisyPretrainedDiffusion
+
+Update paper
