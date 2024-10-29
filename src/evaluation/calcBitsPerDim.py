@@ -8,7 +8,7 @@ from sklearn.utils import resample
 from ..config import MRI2PETConfig
 from ..models.diffusionModel import DiffusionModel
 
-SEED = 4
+SEED = 1234
 cudaNum = 0
 NUM_SAMPLES = 25
 random.seed(SEED)
@@ -42,12 +42,9 @@ def get_batch(dataset, loc, batch_size):
 
 model_keys = [
     'baseDiffusion',
-    'noisyPretrainedDiffusion',
-    'selfPretrainedDiffusion',
-    'mri2pet',
-    'mri2pet_noLoss',
-    'mri2pet_noNoise',
-    'mri2pet_noPretrain',
+    'mri2pet_base_base',
+    'mri2pet_base_loss',
+    'noisyPretrainedDiffusion_base_loss',
 ]
 
 config.batch_size = config.batch_size // 5
