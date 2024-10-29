@@ -88,4 +88,4 @@ for e in tqdm(range(config.epoch)):
             'optimizer': optimizer.state_dict(),
             'mode': 'train'
         }
-        torch.save(state, f'./src/save/mri2pet_noPretrain_noNoise.pt')
+        torch.save(state, f'./src/save/mri2pet_noPretrain.pt')
