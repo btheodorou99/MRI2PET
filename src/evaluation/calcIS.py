@@ -48,7 +48,7 @@ def get_inception_score(model, dataset):
     
     is_scores = []
     for i in range(config.n_bootstrap):
-        bs_indices = np.random.choice(np.arange(len(preds)), replace=True)
+        bs_indices = resample(np.arange(len(preds)), replace=True)
         bs_preds = preds[bs_indices]
         py = np.mean(bs_preds, axis=0)
         scores = []    
