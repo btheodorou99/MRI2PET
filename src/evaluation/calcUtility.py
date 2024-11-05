@@ -88,6 +88,7 @@ def train_model(train_data, has_mri, has_pet, key):
                 loss = criterion(output, labels)
                 running_loss.append(loss.cpu().detach().item())
         val_loss = np.mean(running_loss)
+        tqdm.write(f"{key} Loss (Epoch {e + 1}): {val_loss}")
         if val_loss < best_loss:
             best_loss = val_loss
             curr_patience = 0
@@ -98,8 +99,8 @@ def train_model(train_data, has_mri, has_pet, key):
         if curr_patience >= config.downstream_patience:
             break
 
-        model.load_state_dict(torch.load(f'./src/save/downstream_{key}.pt'))
-        return model
+    model.load_state_dict(torch.load(f'./src/save/downstream_{key}.pt'))
+    return model
     
 def evaluate_model(model, data, has_mri, has_pet):
     model.eval()
@@ -129,10 +130,10 @@ def evaluate_model(model, data, has_mri, has_pet):
         bs_preds = rounded_preds[bs_indices]
         bs_probs = preds[bs_indices]
         accuracies.append(metrics.accuracy_score(bs_labels, bs_preds))
-        precisions.append(metrics.precision_score(bs_labels, bs_preds))
-        recalls.append(metrics.recall_score(bs_labels, bs_preds))
-        f1s.append(metrics.f1_score(bs_labels, bs_preds))
-        aurocs.append(metrics.roc_auc_score(bs_labels, bs_probs))
+        precisions.append(metrics.precision_score(bs_labels, bs_preds, average="macro"))
+        recalls.append(metrics.recall_score(bs_labels, bs_preds, average="macro"))
+        f1s.append(metrics.f1_score(bs_labels, bs_preds, average="macro"))
+        aurocs.append(metrics.roc_auc_score(bs_labels, bs_probs, average="macro"))
     
     metrics_dict = {
         'Accuracy': (np.mean(accuracies), np.std(accuracies) / np.sqrt(config.n_bootstrap)),
