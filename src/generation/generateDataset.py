@@ -9,7 +9,7 @@ from ..config import MRI2PETConfig
 from ..models.ganModel import Generator
 from ..models.diffusionModel import DiffusionModel
 
-SEED = 4
+SEED = 1234
 cudaNum = 0
 NUM_SAMPLES = 25
 random.seed(SEED)
@@ -48,7 +48,13 @@ def save_image(tensor, path):
     np.save(path, image)
         
 model_keys = [
-    'mri2pet_base_base',
+    'mri2pet_noPretrain',
+    'baseDiffusion2',
+    'mri2pet_noPretrain2',
+    # 'mri2pet',
+    # 'mri2pet_noLoss',
+    # 'selfPretrainedDiffusion',
+    # 'noisyPretrainedDiffusion'
 ]
 
 for k in tqdm(model_keys):
