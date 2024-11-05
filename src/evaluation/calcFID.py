@@ -71,10 +71,12 @@ model_keys = [
     # 'noisyPretrainedDiffusion'
 ]
 
+
 for k in tqdm(model_keys):
-    model_path = f'/data/theodoroubp/MRI2PET/results/generated_datasets/{k}/'
-    model_dataset = [os.path.join(model_path, file) for file in os.listdir(model_path)]
     print(f"Starting {k}")
+    model_path = f'/data/theodoroubp/MRI2PET/results/generated_datasets/{k}/'
+    print(f"Dataset path {model_path} exits: {os.path.exists(model_path)}")
+    model_dataset = [os.path.join(model_path, file) for file in os.listdir(model_path)]
     model_act = get_inception_features(model, model_dataset)
     fid_values = []
     for i in range(config.n_bootstrap):
