@@ -134,14 +134,14 @@ def evaluate_model(model, data, has_mri, has_pet):
         f1s.append(metrics.f1_score(bs_labels, bs_preds))
         aurocs.append(metrics.roc_auc_score(bs_labels, bs_probs))
     
-    metrics = {
+    metrics_dict = {
         'Accuracy': (np.mean(accuracies), np.std(accuracies) / np.sqrt(config.n_bootstrap)),
         'Precision': (np.mean(precisions), np.std(precisions) / np.sqrt(config.n_bootstrap)),
         'Recall': (np.mean(recalls), np.std(recalls) / np.sqrt(config.n_bootstrap)),
         'F1': (np.mean(f1s), np.std(f1s) / np.sqrt(config.n_bootstrap)),
         'AUROC': (np.mean(aurocs), np.std(aurocs) / np.sqrt(config.n_bootstrap))
     }
-    return metrics
+    return metrics_dict
 
 experiments = [
     ('RealMRI', True, False, unpaired_mri_dataset),
@@ -156,6 +156,6 @@ experiments = [
 for key, hasMRI, hasPET, data in tqdm(experiments):
     print(key)
     model = train_model(data, hasMRI, hasPET, key)
-    metrics = evaluate_model(model, test_dataset, hasMRI, hasPET)
-    for k, v in metrics.items():
+    metrics_dict = evaluate_model(model, test_dataset, hasMRI, hasPET)
+    for k, v in metrics_dict.items():
         print(f"\t{k}: {v[0]:.5f} \\pm {v[1]:.5f}")
