@@ -74,6 +74,7 @@ model_keys = [
 for k in tqdm(model_keys):
     model_path = f'/data/theodoroubp/MRI2PET/results/generated_datasets/{k}/'
     model_dataset = [os.path.join(model_path, file) for file in os.listdir(model_path)]
+    print(f"Starting {k}")
     model_act = get_inception_features(model, model_dataset)
     fid_values = []
     for i in range(config.n_bootstrap):

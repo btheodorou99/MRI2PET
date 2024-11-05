@@ -16,6 +16,9 @@ class ImageEncoder(nn.Module):
         self.fc2 = nn.Linear(config.embed_dim, config.embed_dim)
         
     def forward(self, x):        
+        # Ready for 3D Convolution Input
+        x = x.unsqueeze(1)
+
         # Convolution + ReLU + MaxPooling
         x = F.relu(self.conv1(x))
         x = F.max_pool3d(x, 2)
