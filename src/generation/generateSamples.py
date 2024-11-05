@@ -10,7 +10,7 @@ from ..config import MRI2PETConfig
 from ..models.ganModel import Generator
 from ..models.diffusionModel import DiffusionModel
 
-SEED = 4
+SEED = 1234
 cudaNum = 0
 NUM_SAMPLES = 5
 random.seed(SEED)
@@ -88,11 +88,9 @@ for i in range(NUM_SAMPLES):
 model_keys = [
     'baseGAN',
     'baseDiffusion',
-    'noisyPretrainedDiffusion',
-    'selfPretrainedDiffusion',
-    'mri2pet',
-    'mri2pet_noLoss',
-    'mri2pet_noNoise',
+    'noisyPretrainedDiffusion_base_loss',
+    'mri2pet_base_base',
+    'mri2pet_base_loss',
     'mri2pet_noPretrain',
 ]
 

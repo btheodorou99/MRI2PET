@@ -133,7 +133,7 @@ def evaluate_model(model, data, has_mri, has_pet):
         precisions.append(metrics.precision_score(bs_labels, bs_preds, average="macro"))
         recalls.append(metrics.recall_score(bs_labels, bs_preds, average="macro"))
         f1s.append(metrics.f1_score(bs_labels, bs_preds, average="macro"))
-        aurocs.append(metrics.roc_auc_score(bs_labels, bs_probs, average="macro"))
+        aurocs.append(metrics.roc_auc_score(bs_labels, bs_probs, average="macro", multi_class="ovr"))
     
     metrics_dict = {
         'Accuracy': (np.mean(accuracies), np.std(accuracies) / np.sqrt(config.n_bootstrap)),

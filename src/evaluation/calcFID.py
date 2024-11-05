@@ -62,20 +62,18 @@ test_dataset = [pet_path for (mri_path, pet_path) in test_dataset]
 test_act = get_inception_features(model, test_dataset)
 
 model_keys = [
-    'mri2pet_noPretrain',
-    'baseDiffusion2',
-    'mri2pet_noPretrain2',
-    # 'mri2pet',
-    # 'mri2pet_noLoss',
-    # 'selfPretrainedDiffusion',
-    # 'noisyPretrainedDiffusion'
+    # 'mri2pet_noPretrain',
+    # 'baseDiffusion2',
+    # 'mri2pet_noPretrain2',
+    'mri2pet',
+    'mri2pet_noLoss',
+    'selfPretrainedDiffusion',
+    'noisyPretrainedDiffusion'
 ]
 
 
 for k in tqdm(model_keys):
-    print(f"Starting {k}")
     model_path = f'/data/theodoroubp/MRI2PET/results/generated_datasets/{k}/'
-    print(f"Dataset path {model_path} exits: {os.path.exists(model_path)}")
     model_dataset = [os.path.join(model_path, file) for file in os.listdir(model_path)]
     model_act = get_inception_features(model, model_dataset)
     fid_values = []
