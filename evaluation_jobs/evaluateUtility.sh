@@ -9,5 +9,4 @@
 #SBATCH --error=evaluateUtility.err
 #SBATCH --output=evaluateUtility.out
 
-module load python
 python -m src.evaluation.calcUtility
