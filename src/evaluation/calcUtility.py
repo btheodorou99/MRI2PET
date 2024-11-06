@@ -48,7 +48,7 @@ def get_batch(dataset, loc, batch_size, has_mri=False, has_pet=False):
     bs = len(image_paths)
     batch_mri = torch.zeros(bs, config.n_mri_channels, config.mri_image_dim, config.mri_image_dim, dtype=torch.float)
     batch_pet = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float)
-    batch_labels = torch.zeros(bs, config.downstream_dim, dtype=torch.float)
+    batch_labels = torch.zeros(bs, dtype=torch.long)
     for i, (m, p) in enumerate(image_paths):
         batch_labels[i] = adni_labels[getID(m)]
         if has_mri:
@@ -129,9 +129,9 @@ def evaluate_model(model, data, has_mri, has_pet):
         bs_preds = preds[bs_indices]
         bs_probs = probs[bs_indices]
         accuracies.append(metrics.accuracy_score(bs_labels, bs_preds))
-        precisions.append(metrics.precision_score(bs_labels, bs_preds, average="macro"))
-        recalls.append(metrics.recall_score(bs_labels, bs_preds, average="macro"))
-        f1s.append(metrics.f1_score(bs_labels, bs_preds, average="macro"))
+        precisions.append(metrics.precision_score(bs_labels, bs_preds, average="macro", zero_division=0.0))
+        recalls.append(metrics.recall_score(bs_labels, bs_preds, average="macro", zero_division=0.0))
+        f1s.append(metrics.f1_score(bs_labels, bs_preds, average="macro", zero_division=0.0))
         aurocs.append(metrics.roc_auc_score(bs_labels, bs_probs, average="macro", multi_class="ovr"))
     
     metrics_dict = {
