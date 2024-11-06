@@ -34,7 +34,7 @@ synthetic_dataset = [(m, p) for (m, p) in pickle.load(open('./src/data/synthetic
 synthetic_paired_dataset = [(m, p) for (m, p) in synthetic_dataset if m in train_mri]
 augmented_paired_dataset = real_paired_dataset + [(m, p) for (m, p) in synthetic_dataset if m not in train_mri]
 
-unpaired_mri_dataset = [(m, None) for m in pickle.load(open('./src/data/mriDataset.pkl', 'rb')) if '/ADNI/' in m and getID(m) in adni_labels and m not in train_mri and m not in test_mri]
+mri_dataset = [(m, None) for m in pickle.load(open('./src/data/mriDataset.pkl', 'rb')) if '/ADNI/' in m and getID(m) in adni_labels and m not in train_mri and m not in test_mri] + real_paired_dataset
 
 def load_image(image_path):
     img = np.load(image_path)
@@ -144,7 +144,8 @@ def evaluate_model(model, data, has_mri, has_pet):
     return metrics_dict
 
 experiments = [
-    ('RealMRI', True, False, unpaired_mri_dataset),
+    ('RealMRI', True, False, mri_dataset),
+    ('RealLimitedMRI', True, False, real_paired_dataset),
     ('RealPET', False, True, real_paired_dataset),
     ('SyntheticPET', False, True, synthetic_paired_dataset),
     ('AugmentedPET', False, True, augmented_paired_dataset),

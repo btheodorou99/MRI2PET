@@ -18,7 +18,7 @@ class MRI2PETConfig(object):
             downstream_batch_size = 128,
             downstream_epoch = 100,
             downstream_patience = 5,
-            downstream_lr = 5e-4,
+            downstream_lr = 1e-4,
             z_dim = 256,
             lambda_gp = 10,
             generator_interval = 2,
