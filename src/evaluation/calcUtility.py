@@ -66,7 +66,7 @@ def train_model(train_data, has_mri, has_pet, key):
     train_data, val_data = train_data[:int(0.8*len(train_data))], train_data[int(0.8*len(train_data)):]
     model = ImageClassifier(config, has_mri, has_pet).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=config.downstream_lr)
-    criterion = torch.nn.BCEWithLogitsLoss()
+    criterion = torch.nn.CrossEntropyLoss()
     best_loss = float('inf')
     curr_patience = 0
     for e in tqdm(range(config.downstream_epoch), desc=f"Training {key} Model", leave=False):
@@ -88,7 +88,6 @@ def train_model(train_data, has_mri, has_pet, key):
                 loss = criterion(output, labels)
                 running_loss.append(loss.cpu().detach().item())
         val_loss = np.mean(running_loss)
-        tqdm.write(f"{key} Loss (Epoch {e + 1}): {val_loss}")
         if val_loss < best_loss:
             best_loss = val_loss
             curr_patience = 0
@@ -104,19 +103,19 @@ def train_model(train_data, has_mri, has_pet, key):
     
 def evaluate_model(model, data, has_mri, has_pet):
     model.eval()
-    pred_list = []
+    prob_list = []
     label_list = []
     with torch.no_grad():
         for i in range(0, len(data), config.downstream_batch_size):
             mri, pet, labels = get_batch(data, i, config.batch_size, has_mri, has_pet)
             output = model(mri, pet)
-            preds = torch.sigmoid(output)
-            pred_list.extend(preds.tolist())
+            probs = torch.softmax(output, -1)
+            prob_list.extend(probs.tolist())
             label_list.extend(labels.tolist())
 
-    preds = np.array(pred_list)
+    probs = np.array(prob_list)
     labels = np.array(label_list)
-    rounded_preds = np.round(preds)
+    preds = np.argmax(probs, axis=1)
     
     accuracies = []
     precisions = []
@@ -127,8 +126,8 @@ def evaluate_model(model, data, has_mri, has_pet):
     for i in range(config.n_bootstrap):
         bs_indices = resample(np.arange(labels.shape[0]), replace=True)
         bs_labels = labels[bs_indices]
-        bs_preds = rounded_preds[bs_indices]
-        bs_probs = preds[bs_indices]
+        bs_preds = preds[bs_indices]
+        bs_probs = probs[bs_indices]
         accuracies.append(metrics.accuracy_score(bs_labels, bs_preds))
         precisions.append(metrics.precision_score(bs_labels, bs_preds, average="macro"))
         recalls.append(metrics.recall_score(bs_labels, bs_preds, average="macro"))
