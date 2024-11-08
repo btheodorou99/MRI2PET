@@ -2,12 +2,10 @@ import os
 import torch
 import random
 import pickle
-import importlib
 import numpy as np
-from tqdm import tqdm
+from scipy.ndimage import zoom
 import matplotlib.pyplot as plt
 from ..config import MRI2PETConfig
-from ..models.ganModel import Generator
 from ..models.diffusionModel import DiffusionModel
 
 SEED = 1234
@@ -51,26 +49,58 @@ def tensor_to_numpy(tensor):
     image = image.transpose((1, 2, 0))
     return image
 
-def save_slice_plots(array, path_prefix):
+def resize_array(array, target_shape):
+    # Calculate the zoom factors for each dimension
+    zoom_factors = (
+        target_shape / array.shape[0],
+        target_shape / array.shape[1],
+        1 
+    )
+    return zoom(array, zoom_factors)
+
+def expand_slices(array, target_shape):
+    zoom_factors = (
+        1,
+        1,
+        target_shape / array.shape[2]
+    )
+    return zoom(array, zoom_factors)
+
+def save_slice_plots(mri, real, synthetic, path_prefix, num):
     # Array: (Height, Width, Slices)
     # Directions: Axial, Sagittal, Coronal
-    
+    mri = resize_array(mri, real.shape[0])
+
     # Axial
-    for i in range(array.shape[2]):
-        slice = array[:, :, i]
-        if i % 5 == 0 and slice.max() > 0.05:
-            plt.imsave(f'{path_prefix}_Axial{i}.png', slice, cmap='gray')
+    for i in range(real.shape[2]):
+        slice_mri = mri[:, :, i+20]
+        slice_real = real[:, :, i]
+        slice_synthetic = synthetic[:, :, i]
+        combined_slice = np.hstack((slice_mri, slice_real, slice_synthetic))
+        if combined_slice.max() > 0.05:
+            plt.imsave(os.path.join(path_prefix, f'Axial_{num}_{i}.png'), slice, cmap='gray')
         
+    # For other views, we need to resize to get a square
+    mri = expand_slices(mri, real.shape[0])
+    real = expand_slices(real, real.shape[0])
+    synthetic = expand_slices(synthetic, real.shape[0])
+    
     # Sagittal
-    for i in range(array.shape[1]):
-        slice = array[:, i, :]
-        if i % 20 == 0 and slice.max() > 0.05: 
+    for i in range(real.shape[1]):
+        slice_mri = mri[:, i, :]
+        slice_real = real[:, i, :]
+        slice_synthetic = synthetic[:, i, :]
+        combined_slice = np.hstack((slice_mri, slice_real, slice_synthetic))
+        if combined_slice.max() > 0.05:
             plt.imsave(f'{path_prefix}_Sagittal{i}.png', slice, cmap='gray')
         
     # Coronal
-    for i in range(array.shape[0]):
-        slice = array[i, :, :]
-        if i % 20 == 0 and slice.max() > 0.05:
+    for i in range(real.shape[0]):
+        slice_mri = mri[i, :, :]
+        slice_real = real[i, :, :]
+        slice_synthetic = synthetic[i, :, :]
+        combined_slice = np.hstack((slice_mri, slice_real, slice_synthetic))
+        if combined_slice.max() > 0.05:
             plt.imsave(f'{path_prefix}_Coronal{i}.png', slice, cmap='gray')
         
 
@@ -79,39 +109,17 @@ sampleIdx = np.random.choice(len(test_dataset), size=NUM_SAMPLES)
 sample_data = [test_dataset[i] for i in sampleIdx]
 sample_contexts, real_images = get_batch(sample_data, 0, NUM_SAMPLES)
 
+model_key = 'mri2pet_base_loss',
+model = DiffusionModel(config)
+model.load_state_dict(torch.load(f'./src/save/{model_key}.pt', map_location='cpu')['model'])
+model = model.to(device)
+model.eval()
+
+with torch.no_grad():
+    sample_images = model.generate(sample_contexts)
 
 for i in range(NUM_SAMPLES):
-    real_image = tensor_to_numpy(real_images[i].cpu())
-    save_slice_plots(sample_contexts[i].cpu().clone().numpy().transpose((1, 2, 0)), f'./src/results/image_samples/realMRI_{i}')
-    save_slice_plots(real_image, f'./src/results/image_samples/realPET_{i}')
-
-model_keys = [
-    'baseGAN',
-    'baseDiffusion',
-    'noisyPretrainedDiffusion_base_loss',
-    'mri2pet_base_base',
-    'mri2pet_base_loss',
-    'mri2pet_noPretrain',
-]
-
-for k in tqdm(model_keys):
-    print(k)
-    if 'GAN' in k:
-        model = Generator(config)
-        model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location='cpu')['generator'])
-        model = model.to(device)
-        model.eval()
-        batch_size = config.batch_size
-    else:
-        model = DiffusionModel(config)
-        model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location='cpu')['model'])
-        model = model.to(device)
-        model.eval()
-        batch_size = config.batch_size // 5
-
-    with torch.no_grad():
-        sample_images = model.generate(sample_contexts)
-
-    for i in range(NUM_SAMPLES):
-        sample_image = tensor_to_numpy(sample_images[i].cpu())
-        save_slice_plots(sample_image, f'./src/results/image_samples/{k}_{i}')
+    real_mri = sample_contexts[i].cpu().clone().numpy().transpose((1, 2, 0))
+    real_pet = tensor_to_numpy(real_images[i].cpu())
+    synthetic_pet = tensor_to_numpy(sample_images[i].cpu())
+    save_slice_plots(real_mri, real_pet, synthetic_pet, f'./src/results/image_samples/', i)

@@ -1,10 +1,9 @@
-import os
 import torch
 import random
 import pickle
-import importlib
 import numpy as np
 from tqdm import tqdm
+from scipy.ndimage import zoom
 import matplotlib.pyplot as plt
 from ..config import MRI2PETConfig
 from ..models.ganModel import Generator
@@ -51,6 +50,14 @@ def tensor_to_numpy(tensor):
     image = image.transpose((1, 2, 0))
     return image
 
+def expand_slices(array, target_shape):
+    zoom_factors = (
+        1,
+        1,
+        target_shape / array.shape[2]
+    )
+    return zoom(array, zoom_factors)
+
 def save_slice_plots(array, path_prefix):
     # Array: (Height, Width, Slices)
     # Directions: Axial, Sagittal, Coronal
@@ -61,6 +68,9 @@ def save_slice_plots(array, path_prefix):
         if i % 5 == 0 and slice.max() > 0.05:
             plt.imsave(f'{path_prefix}_Axial{i}.png', slice, cmap='gray')
         
+    # For other views, we need to resize to get a square
+    array = expand_slices(array, array.shape[0])
+
     # Sagittal
     for i in range(array.shape[1]):
         slice = array[:, i, :]
