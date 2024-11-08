@@ -52,8 +52,8 @@ if os.path.exists(f"./src/save/baseGAN.pt"):
     checkpoint = torch.load(f'./src/save/baseGAN.pt', map_location=torch.device(device))
     generator.load_state_dict(checkpoint['generator'])
     discriminator.load_state_dict(checkpoint['discriminator'])
-    optimizer_G.load_state_dict(checkpoint['optimizer_g'])
-    optimizer_D.load_state_dict(checkpoint['optimizer_d'])
+    optimizer_G.load_state_dict(checkpoint['optimizer_G'])
+    optimizer_D.load_state_dict(checkpoint['optimizer_D'])
 
 for e in tqdm(range(2 * config.epoch)):
     shuffle_training_data(train_dataset)
