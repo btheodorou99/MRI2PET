@@ -62,12 +62,10 @@ test_dataset = [pet_path for (mri_path, pet_path) in test_dataset]
 test_act = get_inception_features(model, test_dataset)
 
 model_keys = [
-    # 'mri2pet_noPretrain',
-    # 'baseDiffusion2',
-    # 'mri2pet_noPretrain2',
+    'baseDiffusion2',
+    'mri2pet_noPretrain2',
     'mri2pet',
     'mri2pet_noLoss',
-    'selfPretrainedDiffusion',
     'noisyPretrainedDiffusion'
 ]
 
