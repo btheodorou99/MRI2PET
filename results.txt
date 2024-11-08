@@ -64,7 +64,6 @@ baseDiffusion2
 mri2pet
 mri2pet_noLoss
 mri2pet_noPretrain2
-selfPretrainedDiffusion
 noisyPretrainedDiffusion
 
 baseDiffusion2 FID: 57.405 \pm 0.048

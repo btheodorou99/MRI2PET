@@ -53,7 +53,6 @@ model_keys = [
     # 'mri2pet_noPretrain2',
     'mri2pet',
     'mri2pet_noLoss',
-    'selfPretrainedDiffusion',
     'noisyPretrainedDiffusion'
 ]
 
