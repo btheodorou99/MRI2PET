@@ -49,8 +49,8 @@ def save_image(tensor, path):
         
 model_keys = [
     # 'mri2pet_noPretrain',
-    # 'baseDiffusion2',
-    # 'mri2pet_noPretrain2',
+    'baseDiffusion2',
+    'mri2pet_noPretrain2',
     'mri2pet',
     'mri2pet_noLoss',
     'noisyPretrainedDiffusion'
