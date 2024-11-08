@@ -47,10 +47,11 @@ selfPretrainedDiffusion_base_base FID: 61.098 \pm 0.045
 selfPretrainedDiffusion_base_loss FID: 66.870 \pm 0.037
 noisyPretrainedDiffusion_base_base FID: 145.215 \pm 0.092
 noisyPretrainedDiffusion_base_loss FID: 63.904 \pm 0.040
+mri2pet_noPretrain FID: 77.979 \pm 0.043
 
 
 baseDiffusion: 67
-mri2pet_noPretrain: TBD
+mri2pet_noPretrain: 77
 mri2pet_base_base: 95
 mri2pet_base_loss: 51
 selfPretrainedDiffusion_base_base: 61
@@ -63,9 +64,59 @@ baseDiffusion2
 mri2pet
 mri2pet_noLoss
 mri2pet_noPretrain2
-selfPretrainedDiffusion_default
 selfPretrainedDiffusion
-noisyPretrainedDiffusion_default
 noisyPretrainedDiffusion
 
-Update paper
+baseDiffusion2 FID: 57.405 \pm 0.048
+mri2pet_noPretrain2 FID: 64.359 \pm 0.045
+
+
+
+RealMRI
+    Accuracy: 0.66545 \pm 0.00359
+    Precision: 0.66929 \pm 0.00363
+    Recall: 0.67049 \pm 0.00351
+    F1: 0.66680 \pm 0.00354
+    AUROC: 0.80583 \pm 0.00276
+RealLimitedMRI
+    Accuracy: 0.30074 \pm 0.00354
+    Precision: 0.10025 \pm 0.00118
+    Recall: 0.33333 \pm 0.00000
+    F1: 0.15376 \pm 0.00140
+    AUROC: 0.52089 \pm 0.00348
+RealPET
+    Accuracy: 0.48942 \pm 0.00430
+    Precision: 0.50361 \pm 0.00530
+    Recall: 0.51551 \pm 0.00346
+    F1: 0.45479 \pm 0.00420
+    AUROC: 0.66527 \pm 0.00320
+SyntheticPET
+    Accuracy: 0.30983 \pm 0.00360
+    Precision: 0.10328 \pm 0.00120
+    Recall: 0.33333 \pm 0.00000
+    F1: 0.15731 \pm 0.00141
+    AUROC: 0.47544 \pm 0.00363
+AugmentedPET
+    Accuracy: 0.46273 \pm 0.00473
+    Precision: 0.50428 \pm 0.00652
+    Recall: 0.48880 \pm 0.00444
+    F1: 0.43365 \pm 0.00464
+    AUROC: 0.65086 \pm 0.00325
+RealPaired
+    Accuracy: 0.49231 \pm 0.00446
+    Precision: 0.48381 \pm 0.00452
+    Recall: 0.51382 \pm 0.00391
+    F1: 0.47434 \pm 0.00401
+    AUROC: 0.70790 \pm 0.00340
+SyntheticPaired
+    Accuracy: 0.45298 \pm 0.00492
+    Precision: 0.46853 \pm 0.00536
+    Recall: 0.45812 \pm 0.00486
+    F1: 0.44791 \pm 0.00506
+    AUROC: 0.68291 \pm 0.00408
+AugmentedPaired
+    Accuracy: 0.63182 \pm 0.00429
+    Precision: 0.63055 \pm 0.00430
+    Recall: 0.64299 \pm 0.00408
+    F1: 0.63115 \pm 0.00423
+    AUROC: 0.83931 \pm 0.00233

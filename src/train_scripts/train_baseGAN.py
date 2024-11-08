@@ -7,7 +7,7 @@ from tqdm import tqdm
 from ..config import MRI2PETConfig
 from ..models.ganModel import Generator, Discriminator
 
-SEED = 4
+SEED = 1234
 cudaNum = 0
 NUM_SAMPLES = 25
 random.seed(SEED)

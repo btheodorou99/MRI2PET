@@ -8,7 +8,7 @@ from copy import deepcopy
 from ...config import MRI2PETConfig
 from ..models.paDiffusion import DiffusionModel
 
-SEED = 4
+SEED = 1234
 cudaNum = 0
 NUM_SAMPLES = 25
 random.seed(SEED)

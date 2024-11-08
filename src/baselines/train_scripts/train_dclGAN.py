@@ -10,7 +10,7 @@ from copy import deepcopy
 from ...config import MRI2PETConfig
 from ..models.dclGAN import Generator, Discriminator
 
-SEED = 4
+SEED = 1234
 cudaNum = 0
 NUM_SAMPLES = 25
 random.seed(SEED)

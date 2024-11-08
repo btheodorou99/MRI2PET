@@ -7,7 +7,7 @@ from tqdm import tqdm
 from ..config import MRI2PETConfig
 from ..models.diffusionModel import DiffusionModel
 
-SEED = 4
+SEED = 1234
 cudaNum = 0
 random.seed(SEED)
 np.random.seed(SEED)
@@ -61,4 +61,4 @@ with torch.no_grad():
             save_image(sample_images[j], pet_path)
             paired_dataset.append((mri_paths[j], pet_path))
 
-pickle.dump(paired_dataset, open(f'./src/data/syntheticDataset', 'wb'))
+pickle.dump(paired_dataset, open(f'./src/data/syntheticDataset.pkl', 'wb'))
