@@ -109,14 +109,21 @@ sampleIdx = np.random.choice(len(test_dataset), size=NUM_SAMPLES)
 sample_data = [test_dataset[i] for i in sampleIdx]
 sample_contexts, real_images = get_batch(sample_data, 0, NUM_SAMPLES)
 
-model_key = 'mri2pet_base_loss',
+model_key = 'mri2pet_base_loss'
 model = DiffusionModel(config)
 model.load_state_dict(torch.load(f'./src/save/{model_key}.pt', map_location='cpu')['model'])
 model = model.to(device)
 model.eval()
 
+sample_images = []
+config.batch_size = config.batch_size // 3
 with torch.no_grad():
-    sample_images = model.generate(sample_contexts)
+    for i in range(0, NUM_SAMPLES, config.batch_size):
+        batch_contexts = sample_contexts[i:i+config.batch_size]
+        batch_images = model.generate(batch_contexts)
+        sample_images.append(batch_images.cpu())
+
+sample_images = torch.cat(sample_images, dim=0)
 
 for i in range(NUM_SAMPLES):
     real_mri = sample_contexts[i].cpu().clone().numpy().transpose((1, 2, 0))
