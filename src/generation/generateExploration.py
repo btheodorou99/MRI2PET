@@ -129,4 +129,4 @@ for i in range(NUM_SAMPLES):
     real_mri = sample_contexts[i].cpu().clone().numpy().transpose((1, 2, 0))
     real_pet = tensor_to_numpy(real_images[i].cpu())
     synthetic_pet = tensor_to_numpy(sample_images[i].cpu())
-    save_slice_plots(real_mri, real_pet, synthetic_pet, f'./src/results/image_samples/', i)
+    save_slice_plots(real_mri, real_pet, synthetic_pet, f'./src/results/image_comparisons/', i)
