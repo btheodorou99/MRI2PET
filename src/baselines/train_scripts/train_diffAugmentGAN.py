@@ -12,7 +12,7 @@ from ...config import MRI2PETConfig
 from ...models.ganModel import Generator, Discriminator
 from ..models.diffAugmentGAN import DiffAugment
 
-SEED = 1234
+SEED = 4
 cudaNum = 0
 NUM_SAMPLES = 25
 random.seed(SEED)

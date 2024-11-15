@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from ..config import MRI2PETConfig
 from ..models.diffusionModel import DiffusionModel
 
-SEED = 1234
+SEED = 4
 cudaNum = 0
 NUM_SAMPLES = 100
 random.seed(SEED)

@@ -7,7 +7,7 @@ from tqdm import tqdm
 from ..config import MRI2PETConfig
 from ..models.diffusionModel import DiffusionModel
 
-SEED = 1234
+SEED = 4
 cudaNum = 0
 NUM_SAMPLES = 25
 random.seed(SEED)
