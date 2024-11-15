@@ -45,9 +45,9 @@ def shuffle_training_data(train_ehr_dataset):
 
 model = DiffusionModel(config, config.laplace_lambda).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
-if os.path.exists(f"./src/save/mri2pet_noPretrain2.pt"):
+if os.path.exists(f"./src/save/mri2pet_noPretrain.pt"):
     print("Loading previous model")
-    checkpoint = torch.load(f'./src/save/mri2pet_noPretrain2.pt', map_location=torch.device(device))
+    checkpoint = torch.load(f'./src/save/mri2pet_noPretrain.pt', map_location=torch.device(device))
     model.load_state_dict(checkpoint['model'])
     optimizer.load_state_dict(checkpoint['optimizer'])
 
@@ -88,4 +88,4 @@ for e in tqdm(range(config.epoch)):
             'optimizer': optimizer.state_dict(),
             'mode': 'train'
         }
-        torch.save(state, f'./src/save/mri2pet_noPretrain2.pt')
+        torch.save(state, f'./src/save/mri2pet_noPretrain.pt')
