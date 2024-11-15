@@ -3,11 +3,11 @@
 #SBATCH --nodes=1
 #SBATCH --mem=64g
 #SBATCH --cpus-per-task=8
-#SBATCH --job-name=mri2pet_noNoise
+#SBATCH --job-name=tune_self_base
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:a100:1
-#SBATCH --error=mri2pet_noNoise.err
-#SBATCH --output=mri2pet_noNoise.out
+#SBATCH --error=tune_self_base.err
+#SBATCH --output=tune_self_base.out
 
 module load python
-python -m src.train_scripts.train_MRI2PET_noNoise
+python -m src.train_scripts.tune_self_base

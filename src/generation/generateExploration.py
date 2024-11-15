@@ -92,7 +92,7 @@ def save_slice_plots(mri, real, synthetic, path_prefix, num):
         slice_synthetic = synthetic[:, i, :]
         combined_slice = np.hstack((slice_mri, slice_real, slice_synthetic))
         if combined_slice.max() > 0.05:
-            plt.imsave(f'{path_prefix}_Sagittal{i}.png', combined_slice, cmap='gray')
+            plt.imsave(os.path.join(path_prefix, f'Sagittal_{num}_{i}.png'), combined_slice, cmap='gray')
         
     # Coronal
     for i in range(real.shape[0]):
@@ -101,7 +101,7 @@ def save_slice_plots(mri, real, synthetic, path_prefix, num):
         slice_synthetic = synthetic[i, :, :]
         combined_slice = np.hstack((slice_mri, slice_real, slice_synthetic))
         if combined_slice.max() > 0.05:
-            plt.imsave(f'{path_prefix}_Coronal{i}.png', combined_slice, cmap='gray')
+            plt.imsave(os.path.join(path_prefix, f'Coronal_{num}_{i}.png'), combined_slice, cmap='gray')
         
 
 # Generate Samples

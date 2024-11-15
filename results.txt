@@ -59,15 +59,19 @@ selfPretrainedDiffusion_base_loss: 66
 noisyPretrainedDiffusion_base_base: 145
 noisyPretrainedDiffusion_base_loss: 63
 
+Real FID: 2.973 \pm 0.007
 
-baseDiffusion2
-mri2pet
-mri2pet_noLoss
-mri2pet_noPretrain2
-noisyPretrainedDiffusion
+baseDiffusion2 FID: 72.489 \pm 0.056
+mri2pet_noPretrain2 FID: 60.493 \pm 0.035
+mri2pet FID: 46.200 \pm 0.037
+mri2pet_noLoss FID: 46.340 \pm 0.042
+noisyPretrainedDiffusion FID: 118.046 \pm 0.084
 
-baseDiffusion2 FID: 57.405 \pm 0.048
-mri2pet_noPretrain2 FID: 64.359 \pm 0.045
+baseDiffusion2 FID: 84.070 \pm 0.079
+mri2pet_noPretrain2 FID: 65.230 \pm 0.045
+mri2pet FID: 240.985 \pm 0.031
+mri2pet_noLoss FID: 111.622 \pm 0.071
+noisyPretrainedDiffusion FID: 218.314 \pm 0.104
 
 
 

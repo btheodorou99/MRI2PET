@@ -10,4 +10,4 @@
 #SBATCH --output=pretrain_noisyPretrainedDiffusion_base.out
 
 module load python
-python -m src.train_scripts.pretrain_noisyPretrainedDiffusion_base
+python -m src.train_scripts.pretrain_noisyPretrainedDiffusion

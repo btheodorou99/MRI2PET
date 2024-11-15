@@ -3,11 +3,11 @@
 #SBATCH --nodes=1
 #SBATCH --mem=64g
 #SBATCH --cpus-per-task=8
-#SBATCH --job-name=self_base_base
+#SBATCH --job-name=tune_self_loss
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:a100:1
-#SBATCH --error=tune_self_base_base.err
-#SBATCH --output=tune_self_base_base.out
+#SBATCH --error=tune_self_loss.err
+#SBATCH --output=tune_self_loss.out
 
 module load python
-python -m src.train_scripts.tune_self_base_base
+python -m src.train_scripts.tune_self_loss

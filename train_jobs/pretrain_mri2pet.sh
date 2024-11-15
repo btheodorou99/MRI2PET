@@ -6,8 +6,8 @@
 #SBATCH --job-name=mri2pet
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:a100:1
-#SBATCH --error=pretrain_mri2pet_noiseLoss.err
-#SBATCH --output=pretrain_mri2pet_noiseLoss.out
+#SBATCH --error=pretrain_mri2pet_base.err
+#SBATCH --output=pretrain_mri2pet_base.out
 
 module load python
-python -m src.train_scripts.pretrain_MRI2PET_noiseLoss
+python -m src.train_scripts.pretrain_MRI2PET

@@ -87,7 +87,7 @@ config.batch_size = config.batch_size // steps_per_batch
 #     }
 #     torch.save(state, f'./src/save/noisyPretrainedDiffusion.pt')
 
-for e in tqdm(range(config.epoch + 93)):
+for e in tqdm(range(config.epoch)):
     shuffle_training_data(train_dataset)
     train_losses = []
     model.train()
