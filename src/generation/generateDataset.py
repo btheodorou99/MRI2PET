@@ -51,8 +51,14 @@ model_keys = [
     'baseDiffusion',
     'mri2pet_noPretrain',
     'mri2pet_noLoss',
-    'noisyPretrainedDiffusion'
+    'noisyPretrainedDiffusion',
     'mri2pet',
+    'mri2pet_largerBS',
+    'mri2pet_lowerLR',
+    'mri2pet_lrWarmup',
+    'mri2pet_newOptimizer',
+    'mri2pet_smallerGC',
+    'mri2pet_weightDecay',
 ]
 
 for k in tqdm(model_keys):
