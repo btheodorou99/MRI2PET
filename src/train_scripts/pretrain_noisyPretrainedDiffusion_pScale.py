@@ -19,17 +19,17 @@ if torch.cuda.is_available():
     torch.cuda.manual_seed_all(SEED)
 
 pretrain_dataset = pickle.load(open('./src/data/mriDataset.pkl', 'rb'))
-pretrain_dataset = [(mri_path, os.path.join(config.mri_style_dir, mri_path.split('/')[-1])) for mri_path in pretrain_dataset]
+pretrain_dataset = [(mri_path, os.path.join(config.mri_pretrain_dir, mri_path.split('/')[-1])) for mri_path in pretrain_dataset]
 train_dataset = pickle.load(open('./src/data/trainDataset.pkl', 'rb'))
 val_dataset = pickle.load(open('./src/data/valDataset.pkl', 'rb'))
 
-if os.path.exists("./src/data/globalMean.pkl"):
-    global_mean = pickle.load(open("./src/data/globalMean.pkl", "rb"))
-    global_std = pickle.load(open("./src/data/globalStd.pkl", "rb"))
+if os.path.exists("./src/data/globalMeanPretrain.pkl"):
+    global_mean = pickle.load(open("./src/data/globalMeanPretrain.pkl", "rb"))
+    global_std = pickle.load(open("./src/data/globalStdPretrain.pkl", "rb"))
 else:
     means = []
     variances = []
-    for (_, image) in train_dataset + val_dataset:
+    for (_, image) in pretrain_dataset:
         img = np.load(image)
         means.append(np.mean(img))
         variances.append(np.var(img))
@@ -37,14 +37,16 @@ else:
     global_mean = np.mean(means)
     global_variance = np.mean(variances) + np.mean((np.array(means) - global_mean) ** 2)
     global_std = np.sqrt(global_variance)
-    pickle.dump(global_mean, open("./src/data/globalMean.pkl", "wb"))
-    pickle.dump(global_std, open("./src/data/globalStd.pkl", "wb"))
+    pickle.dump(global_mean, open("./src/data/globalMeanPretrain.pkl", "wb"))
+    pickle.dump(global_std, open("./src/data/globalStdPretrain.pkl", "wb"))
 
 def load_image(image_path, is_mri=True):
     img = np.load(image_path)
     img = img.transpose((2,0,1))
     img = torch.from_numpy(img)
-    if not is_mri:
+    if is_mri:
+        img += torch.randn(img.size())
+    else:
         img = (img - global_mean) / global_std
     return img
 
@@ -63,25 +65,27 @@ def shuffle_training_data(train_ehr_dataset):
     random.shuffle(train_ehr_dataset)
 
 model = DiffusionModel(config, config.laplace_lambda).to(device)
-if os.path.exists(f"./src/save/selfPretrainedDiffusion_base.pt"):
+optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
+if os.path.exists(f"./src/save/noisyPretrainedDiffusion_base_pScale.pt"):
     print("Loading previous model")
-    checkpoint = torch.load(f'./src/save/selfPretrainedDiffusion_base.pt', map_location=torch.device(device))
+    checkpoint = torch.load(f'./src/save/noisyPretrainedDiffusion_base_pScale.pt', map_location=torch.device(device))
     model.load_state_dict(checkpoint['model'])
+    optimizer.load_state_dict(checkpoint['optimizer'])
 
 steps_per_batch = 8
 config.batch_size = config.batch_size // steps_per_batch
-optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
 
-for e in tqdm(range(config.epoch)):
-    shuffle_training_data(train_dataset)
-    train_losses = []
+for e in tqdm(range(config.pretrain_epoch)):
+    shuffle_training_data(pretrain_dataset)
+    pretrain_losses = []
     model.train()
     curr_step = 0
     optimizer.zero_grad()
-    for i in range(0, len(train_dataset), config.batch_size):
-        batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
-        loss, _ = model(batch_context, batch_images, gen_loss=True, includeLaplace=True)
-        train_losses.append(loss.cpu().detach().item())
+    for i in range(0, len(pretrain_dataset), config.batch_size):
+        batch_context, batch_images = get_batch(pretrain_dataset, i, config.batch_size)
+        optimizer.zero_grad()
+        loss, _ = model(batch_context, batch_images, gen_loss=True)
+        pretrain_losses.append(loss.cpu().detach().item())
         loss = loss / steps_per_batch
         loss.backward()
         curr_step += 1
@@ -91,19 +95,11 @@ for e in tqdm(range(config.epoch)):
             optimizer.zero_grad()
             curr_step = 0
     
-    model.eval()
-    with torch.no_grad():
-        val_losses = []
-        for v_i in range(0, len(val_dataset), config.batch_size):
-            batch_context, batch_images = get_batch(val_dataset, v_i, config.batch_size)                 
-            val_loss, _ = model(batch_context, batch_images, gen_loss=True)
-            val_losses.append((val_loss).cpu().detach().item())
-        
-        cur_val_loss = np.mean(val_losses)
-        print("Epoch %d Validation Loss:%.7f"%(e, cur_val_loss), flush=True)
-        state = {
-            'model': model.state_dict(),
-            'optimizer': optimizer.state_dict(),
-            'mode': 'train'
-        }
-        torch.save(state, f'./src/save/selfPretrainedDiffusion.pt')
+    cur_pretrain_loss = np.mean(pretrain_losses)
+    print("Epoch %d Training Loss:%.7f"%(e, cur_pretrain_loss), flush=True)
+    state = {
+        'model': model.state_dict(),
+        'optimizer': optimizer.state_dict(),
+        'mode': 'pretrain'
+    }
+    torch.save(state, f'./src/save/noisyPretrainedDiffusion_base_pScale.pt')

@@ -289,7 +289,6 @@ class DiffusionModel(nn.Module):
             else:
                 noise = torch.zeros_like(x, device=context.device)
             x = 1 / torch.sqrt(alpha) * (x - ((1 - alpha) / (torch.sqrt(1 - alpha_hat))) * predicted_noise) + torch.sqrt(beta) * noise
-        x = x.clamp(-1,1)
         return x
     
     def calculate_nll(self, context, input_images):

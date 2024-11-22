@@ -23,18 +23,29 @@ pretrain_dataset = [(mri_path, os.path.join(config.mri_style_dir, mri_path.split
 train_dataset = pickle.load(open('./src/data/trainDataset.pkl', 'rb'))
 val_dataset = pickle.load(open('./src/data/valDataset.pkl', 'rb'))
 
-def getNoise(epoch):
-    if epoch >= 500:
-        return 1
-    else:
-        return (1 - 0.01) * (epoch / 500) + 0.01
+if os.path.exists("./src/data/globalMean.pkl"):
+    global_mean = pickle.load(open("./src/data/globalMean.pkl", "rb"))
+    global_std = pickle.load(open("./src/data/globalStd.pkl", "rb"))
+else:
+    means = []
+    variances = []
+    for (_, image) in train_dataset + val_dataset:
+        img = np.load(image)
+        means.append(np.mean(img))
+        variances.append(np.var(img))
+
+    global_mean = np.mean(means)
+    global_variance = np.mean(variances) + np.mean((np.array(means) - global_mean) ** 2)
+    global_std = np.sqrt(global_variance)
+    pickle.dump(global_mean, open("./src/data/globalMean.pkl", "wb"))
+    pickle.dump(global_std, open("./src/data/globalStd.pkl", "wb"))
 
 def load_image(image_path, is_mri=True):
     img = np.load(image_path)
     img = img.transpose((2,0,1))
     img = torch.from_numpy(img)
     if not is_mri:
-        img = 2 * img - 1
+        img = (img - global_mean) / global_std
     return img
 
 def get_batch(dataset, loc, batch_size):

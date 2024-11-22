@@ -149,7 +149,6 @@ def run_style_transfer_on_slices(content_slices, style_slices, num_steps=100, st
     input_img = content_img.clone()
     styled_img = run_style_transfer(content_img, style_img, input_img, num_steps, style_weight, content_weight)
     styled_img = styled_img.mean(dim=1)
-    # styled_img = (styled_img - styled_img.min()) / (styled_img.max() - styled_img.min())
     return styled_img
 
 def load_image(path):
@@ -171,6 +170,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load all PET images as style images
 style_img = ants.image_read("./src/data/petTemplate.nii")
+style_img = style_img.reorient_image2("RAS")
+style_img = ants.resample_image(style_img, (config.pet_image_dim, config.pet_image_dim, config.n_pet_channels), use_voxels=True, interp_type=3)
 style_img = style_img.numpy()
 style_img = (style_img - style_img.min()) / (style_img.max() - style_img.min())
 style_img = style_img.transpose((2, 0, 1))

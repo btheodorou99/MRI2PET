@@ -63,9 +63,9 @@ def shuffle_training_data(train_ehr_dataset):
     random.shuffle(train_ehr_dataset)
 
 model = DiffusionModel(config, config.laplace_lambda).to(device)
-if os.path.exists(f"./src/save/selfPretrainedDiffusion_base.pt"):
+if os.path.exists(f"./src/save/mri2pet_base_pScale.pt"):
     print("Loading previous model")
-    checkpoint = torch.load(f'./src/save/selfPretrainedDiffusion_base.pt', map_location=torch.device(device))
+    checkpoint = torch.load(f'./src/save/mri2pet_base_pScale.pt', map_location=torch.device(device))
     model.load_state_dict(checkpoint['model'])
 
 steps_per_batch = 8
@@ -80,7 +80,7 @@ for e in tqdm(range(config.epoch)):
     optimizer.zero_grad()
     for i in range(0, len(train_dataset), config.batch_size):
         batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
-        loss, _ = model(batch_context, batch_images, gen_loss=True, includeLaplace=True)
+        loss, _ = model(batch_context, batch_images, gen_loss=True)
         train_losses.append(loss.cpu().detach().item())
         loss = loss / steps_per_batch
         loss.backward()
@@ -106,4 +106,4 @@ for e in tqdm(range(config.epoch)):
             'optimizer': optimizer.state_dict(),
             'mode': 'train'
         }
-        torch.save(state, f'./src/save/selfPretrainedDiffusion.pt')
+        torch.save(state, f'./src/save/mri2pet_noLoss_pScale.pt')

@@ -1,8 +1,10 @@
 PET_ConvertToNifti
 PET_PreProcessing
+# CHECK QUALITY
 buildDatset
 MRI_PreProcessing
 PET_PostProcessing
+# CHECK QUALITY
 MRI_PostProcessing
 scalePretrain
 styleTransfer

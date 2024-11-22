@@ -20,13 +20,15 @@ if torch.cuda.is_available():
     torch.cuda.manual_seed_all(SEED)
 
 test_dataset = pickle.load(open('./src/data/testDataset.pkl', 'rb'))
+global_mean = pickle.load(open("./src/data/globalMean.pkl", "rb"))
+global_std = pickle.load(open("./src/data/globalStd.pkl", "rb"))
 
 def load_image(image_path, is_mri=True):
     img = np.load(image_path)
     img = img.transpose((2,0,1))
     img = torch.from_numpy(img)
     if not is_mri:
-        img = 2 * img - 1
+        img = (img - global_mean) / global_std
     return img
 
 def get_batch(dataset, loc, batch_size):
@@ -44,7 +46,8 @@ def tensor_to_numpy(tensor):
     """Convert a torch tensor to a numpy array."""
     # Convert to a numpy array
     image = tensor.cpu().clone()
-    image = (image + 1) / 2.0
+    image = (image * global_std) + global_mean
+    image = (image - image.min()) / (image.max() - image.min())
     image = image.numpy()
     image = image.transpose((1, 2, 0))
     return image

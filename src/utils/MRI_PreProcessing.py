@@ -19,7 +19,7 @@ def convert_mri_path(fpath):
 
 def process_mri(fpath):
     img = ants.image_read(fpath)
-    img = ants.from_numpy(np.flip(img[:, 10:-10, :], axis=0))
+    img = img.reorient_image2(orientation='RAS')
     img = ants.resample_image(img, (config.mri_image_dim, config.mri_image_dim, config.n_mri_channels), use_voxels=True, interp_type=3)
     return img
 
@@ -29,5 +29,5 @@ for mri_fpath in tqdm(mri_list):
         continue
 
     img = process_mri(mri_fpath)
-    img = ants.utils.convert_nibabel.to_nibabel(img)
+    img = ants.to_nibabel(img)
     nib.save(img, fpath)

@@ -21,13 +21,15 @@ if torch.cuda.is_available():
     torch.cuda.manual_seed_all(SEED)
 
 test_dataset = pickle.load(open('./src/data/testDataset.pkl', 'rb'))
+global_mean = pickle.load(open("./src/data/globalMean.pkl", "rb"))
+global_std = pickle.load(open("./src/data/globalStd.pkl", "rb"))
 
 def load_image(image_path, is_mri=True):
     img = np.load(image_path)
     img = img.transpose((2,0,1))
     img = torch.from_numpy(img)
     if not is_mri:
-        img = 2 * img - 1
+        img = (img - global_mean) / global_std
     return img
 
 def get_batch(dataset, loc, batch_size):
@@ -41,11 +43,15 @@ def get_batch(dataset, loc, batch_size):
         
     return batch_context, batch_image
 
-def tensor_to_numpy(tensor):
+def tensor_to_numpy(tensor, isGan=False):
     """Convert a torch tensor to a numpy array."""
     # Convert to a numpy array
     image = tensor.cpu().clone()
-    image = (image + 1) / 2.0
+    if isGan:
+        image = (image + 1.0) / 2.0
+    else:
+        image = (image * global_std) + global_mean
+    image = (image - image.min()) / (image.max() - image.min())
     image = image.numpy()
     image = image.transpose((1, 2, 0))
     return image
@@ -105,6 +111,7 @@ model_keys = [
 
 for k in tqdm(model_keys):
     print(k)
+    isGan = 'GAN' in k
     if 'GAN' in k:
         model = Generator(config)
         model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location='cpu')['generator'])
@@ -122,5 +129,5 @@ for k in tqdm(model_keys):
         sample_images = model.generate(sample_contexts)
 
     for i in range(NUM_SAMPLES):
-        sample_image = tensor_to_numpy(sample_images[i].cpu())
+        sample_image = tensor_to_numpy(sample_images[i].cpu(), isGan)
         save_slice_plots(sample_image, f'./src/results/image_samples/{k}_{i}')

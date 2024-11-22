@@ -18,6 +18,8 @@ if torch.cuda.is_available():
     torch.cuda.manual_seed_all(SEED)
 
 mri_dataset = [m for m in pickle.load(open('./src/data/mriDataset.pkl', 'rb')) if '/ADNI/' in m]
+global_mean = pickle.load(open("./src/data/globalMean.pkl", "rb"))
+global_std = pickle.load(open("./src/data/globalStd.pkl", "rb"))
 
 def load_image(image_path):
     img = np.load(image_path)
@@ -38,7 +40,8 @@ def save_image(tensor, path):
     """Save a torch tensor as an image."""
     # Convert the tensor to a PIL image and save
     image = tensor.cpu().clone()
-    image = (image + 1) / 2.0
+    image = (image * global_std) + global_mean
+    image = (image - image.min()) / (image.max() - image.min())
     image = image.numpy()
     image = image.transpose((1, 2, 0))
     np.save(path, image)

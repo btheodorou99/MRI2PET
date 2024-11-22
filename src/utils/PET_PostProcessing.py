@@ -16,7 +16,7 @@ random.shuffle(pairs)
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
-# Perform Registrations to PET Mean and Subject MRI
+# Perform Registrations to Subject MRI
 for mri_niix, pet_file in tqdm(pairs):
     pet_niix = os.path.join(pet_dir, pet_file).replace('.npy', '.nii')
     npy_filename = pet_file.replace('.nii', '.npy')
@@ -26,8 +26,11 @@ for mri_niix, pet_file in tqdm(pairs):
 
     img = ants.image_read(pet_niix)
     mri_img = ants.image_read(mri_niix)
-    mri_img = ants.resample_image(img, (config.pet_image_dim, config.pet_image_dim, config.n_pet_channels), use_voxels=True, interp_type=3)
     img = ants.registration(fixed=mri_img, moving=img, type_of_transform='Affine')['warpedmovout']        
+    img = ants.n4_bias_field_correction(img)
+    img.reorient_image2('RAS')
+    img = ants.resample_image(img, (config.pet_image_dim, config.pet_image_dim, config.n_pet_channels), use_voxels=True, interp_type=3)
+    
     data = img.numpy()
     data = (data - data.min()) / (data.max() - data.min())
 

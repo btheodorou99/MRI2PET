@@ -2,6 +2,7 @@ import os
 import ants
 import pickle
 import random
+import antspynet
 import numpy as np
 from tqdm import tqdm
 import nibabel as nib
@@ -15,7 +16,6 @@ if not os.path.exists(output_dir):
 
 template = ants.image_read('./src/data/petTemplate.nii')
 
-# {subject_id}--{date}--{some_ids}.nii
 single_files = []
 problem_files = []
 allFiles = os.listdir(pet_dir)
@@ -25,13 +25,11 @@ for niix_file in tqdm(allFiles):
     if os.path.exists(os.path.join(output_dir, niix_file)):
         continue
 
-    print(niix_file)
     try:
-        subject_id, date, some_ids = niix_file[:-4].split('--')
         img = ants.image_read(os.path.join(pet_dir, niix_file))
         if len(img.shape) == 4:
             num_time_points = img.shape[3]
-            
+
             # Register to First on Initial Pass
             reference_frame = ants.slice_image(img, axis=3, idx=0)
             initial_registered_frames = [reference_frame]
@@ -58,12 +56,11 @@ for niix_file in tqdm(allFiles):
         img = ants.registration(fixed=template, moving=img, type_of_transform="Affine")['warpedmovout']
 
         # Strip the skull
-
-        # Reorient the direction
+        seg = antspynet.brain_extraction(img, modality="t1")
+        img = ants.from_numpy(img.numpy() * seg.numpy(), origin=img.origin, spacing=img.spacing, direction=img.direction)
         
-
-        img = ants.resample_image(img, (config.pet_image_dim, config.pet_image_dim, config.n_pet_channels), use_voxels=True, interp_type=3)
-        img = ants.utils.convert_nibabel.to_nibabel(img)
+        # Save the image
+        img = ants.to_nibabel(img)
         nib.save(img, os.path.join(output_dir, niix_file))
     except:
         problem_files.append(niix_file)

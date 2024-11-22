@@ -78,7 +78,7 @@ for subject_id in tqdm(os.listdir(pet_dir)):
                     nifti_files = [f for f in os.listdir(tempdir) if f.endswith(('.nii', '.nii.gz'))]
                     if nifti_files:
                         img = ants.image_read(os.path.join(tempdir, nifti_files[0]))
-                        img = ants.utils.convert_nibabel.to_nibabel(img)
+                        img = ants.to_nibabel(img)
                         nib.save(img, output_filename)
                         os.remove(os.path.join(tempdir, nifti_files[0]))
                 except Exception as e:

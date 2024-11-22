@@ -22,6 +22,8 @@ if torch.cuda.is_available():
 
 test_dataset = pickle.load(open('./src/data/testDataset.pkl', 'rb'))
 test_dataset = [mri_path for (mri_path, pet_path) in test_dataset]
+global_mean = pickle.load(open("./src/data/globalMean.pkl", "rb"))
+global_std = pickle.load(open("./src/data/globalStd.pkl", "rb"))
 
 def load_image(image_path):
     img = np.load(image_path)
@@ -38,11 +40,15 @@ def get_batch(dataset, loc, batch_size):
         
     return batch_context
   
-def save_image(tensor, path):
+def save_image(tensor, path, isGan=False):
     """Save a torch tensor as an image."""
     # Convert the tensor to a PIL image and save
     image = tensor.cpu().clone()
-    image = (image + 1) / 2.0
+    if isGan:
+        image = (image + 1.0) / 2.0
+    else:
+        image = (image * global_std) + global_mean
+    image = (image - image.min()) / (image.max() - image.min())
     image = image.numpy()
     image = image.transpose((1, 2, 0))
     np.save(path, image)
@@ -63,6 +69,7 @@ model_keys = [
 
 for k in tqdm(model_keys):
     print(k)
+    isGan = 'GAN' in k
     os.makedirs(f'/data/theodoroubp/MRI2PET/results/generated_datasets/{k}', exist_ok=True)
     if 'GAN' in k:
         model = Generator(config)
@@ -82,4 +89,4 @@ for k in tqdm(model_keys):
             sample_contexts = get_batch(test_dataset, i, batch_size)
             sample_images = model.generate(sample_contexts)
             for j in range(sample_images.size(0)):
-                save_image(sample_images[j], f'/data/theodoroubp/MRI2PET/results/generated_datasets/{k}/sampleImage_{i+j}.npy')
+                save_image(sample_images[j], f'/data/theodoroubp/MRI2PET/results/generated_datasets/{k}/sampleImage_{i+j}.npy', isGan)
