@@ -51,7 +51,7 @@ if os.path.exists(f"./src/save/mri2pet_noPretrain.pt"):
     model.load_state_dict(checkpoint['model'])
     optimizer.load_state_dict(checkpoint['optimizer'])
 
-steps_per_batch = 3
+steps_per_batch = 8
 config.batch_size = config.batch_size // steps_per_batch
 
 for e in tqdm(range(config.epoch)):
@@ -68,7 +68,7 @@ for e in tqdm(range(config.epoch)):
         loss.backward()
         curr_step += 1
         if curr_step % steps_per_batch == 0:
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
             optimizer.step()
             optimizer.zero_grad()
             curr_step = 0

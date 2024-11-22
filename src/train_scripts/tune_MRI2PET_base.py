@@ -57,7 +57,7 @@ if os.path.exists(f"./src/save/mri2pet_base.pt"):
     checkpoint = torch.load(f'./src/save/mri2pet_base.pt', map_location=torch.device(device))
     model.load_state_dict(checkpoint['model'])
 
-steps_per_batch = 3
+steps_per_batch = 8
 config.batch_size = config.batch_size // steps_per_batch
 optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
 
@@ -75,7 +75,7 @@ for e in tqdm(range(config.epoch)):
         loss.backward()
         curr_step += 1
         if curr_step % steps_per_batch == 0:
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
             optimizer.step()
             optimizer.zero_grad()
             curr_step = 0
@@ -95,4 +95,4 @@ for e in tqdm(range(config.epoch)):
             'optimizer': optimizer.state_dict(),
             'mode': 'train'
         }
-        torch.save(state, f'./src/save/mri2pet_base_base.pt')
+        torch.save(state, f'./src/save/mri2pet_noLoss.pt')
