@@ -23,8 +23,7 @@ def find_pet(pet_dir):
         date = datetime.strptime(date, "%Y-%m-%d")
         if subject_id not in data_dict:
             data_dict[subject_id] = {}
-        # data_dict[subject_id][date] = {'shape': ants.image_read(fpath).numpy().shape, 'filename': fpath.replace('PET_Nifti_PreProcessed', 'PET').replace('.nii', '.npy')}
-        data_dict[subject_id][date] = {'filename': fpath.replace('PET_Nifti_PreProcessed', 'PET').replace('.nii', '.npy')}
+        data_dict[subject_id][date] = {'shape': ants.image_read(fpath).numpy().shape, 'filename': fpath.replace('PET_Nifti_PreProcessed', 'PET').replace('.nii', '.npy')}
     return data_dict
 
 def find_mri(mri_dir, prefix, parseDate=False):
@@ -43,8 +42,7 @@ def find_mri(mri_dir, prefix, parseDate=False):
                     saveDate = date
                 if subject_id not in data_dict:
                     data_dict[subject_id] = {}
-                # data_dict[subject_id][saveDate] = {'shape': ants.image_read(fpath).numpy().shape, 'filename': fpath}
-                data_dict[subject_id][saveDate] = {'filename': fpath}
+                data_dict[subject_id][saveDate] = {'shape': ants.image_read(fpath).numpy().shape, 'filename': fpath}
     return data_dict
 
 def convert_mri_path(fpath):
@@ -73,13 +71,13 @@ def map_pet_to_mri(mri_dict, pet_dict):
     height_counter = Counter()
     channel_counter = Counter()
 
-    # for subject_id, dates in pet_dict.items():
-    #     for date, info in dates.items():
-    #         height_counter[info['shape'][0]] += 1
-    #         channel_counter[info['shape'][2]] += 1
+    for subject_id, dates in pet_dict.items():
+        for date, info in dates.items():
+            height_counter[info['shape'][0]] += 1
+            channel_counter[info['shape'][2]] += 1
 
     paired_images = []
-    mri_dates = {sub_id: {date: convert_mri_path(info['filename']) for date, info in dates.items()} # if len(info['shape']) == 3 and info['shape'][2] > 1}
+    mri_dates = {sub_id: {date: convert_mri_path(info['filename']) for date, info in dates.items() if len(info['shape']) == 3 and info['shape'][2] > 1}
                  for sub_id, dates in mri_dict.items()}
     mri_dates = {sub_id: dates for sub_id, dates in mri_dates.items() if dates}
 
@@ -99,31 +97,29 @@ def map_pet_to_mri(mri_dict, pet_dict):
             paired_images.append((mri_dates[sub_id][closest_mri_date], pet_info['filename']))
             mri_dates[sub_id].pop(closest_mri_date)
 
-    # return paired_images, height_counter, channel_counter
-    return paired_images
+    return paired_images, height_counter, channel_counter
 
 # Build the MRI data dictionaries
 adni_mri_dict = find_mri(adni_dir, 'ADNI', parseDate=True)
-# ppmi_mri_dict = find_mri(ppmi_dir, 'PPMI')
-# ukbb_mri_dict = find_mri(ukbb_dir, 'UKBB')
-# mri_dict = {**adni_mri_dict, **ppmi_mri_dict, **ukbb_mri_dict}
+ppmi_mri_dict = find_mri(ppmi_dir, 'PPMI')
+ukbb_mri_dict = find_mri(ukbb_dir, 'UKBB')
+mri_dict = {**adni_mri_dict, **ppmi_mri_dict, **ukbb_mri_dict}
 
 # Load the PET data dictionary
 pet_dict = find_pet(pet_dir)
 
 # Map PET to MRI
-# pet_mri_pairs, pet_heights, pet_channels = map_pet_to_mri(adni_mri_dict, pet_dict)
-# print("PET Heights:", pet_heights)
-# print("PET Channels:", pet_channels)
-pet_mri_pairs = map_pet_to_mri(adni_mri_dict, pet_dict)
+pet_mri_pairs, pet_heights, pet_channels = map_pet_to_mri(adni_mri_dict, pet_dict)
+print("PET Heights:", pet_heights)
+print("PET Channels:", pet_channels)
 
-# # Filter MRI images, count dimensions, and # save the filtered MRI paths
-# original_mri_paths, converted_mri_paths, mri_heights, mri_channels = filter_mri_images(mri_dict)
-# print("MRI Heights:", mri_heights)
-# print("MRI Channels:", mri_channels)
-# print("MRI Paths:", len(converted_mri_paths))
-# save_data('./src/data/mriDataset.pkl', converted_mri_paths)
-# save_data('./src/data/original_mriDataset.pkl', original_mri_paths)
+# Filter MRI images, count dimensions, and save the filtered MRI paths
+original_mri_paths, converted_mri_paths, mri_heights, mri_channels = filter_mri_images(mri_dict)
+print("MRI Heights:", mri_heights)
+print("MRI Channels:", mri_channels)
+print("MRI Paths:", len(converted_mri_paths))
+save_data('./src/data/mriDataset.pkl', converted_mri_paths)
+save_data('./src/data/original_mriDataset.pkl', original_mri_paths)
 
 # Save the PET-MRI pairs
 print("PET-MRI Pairs:", len(pet_mri_pairs))

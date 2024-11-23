@@ -52,4 +52,4 @@ class MRI2PETConfig(object):
         self.mri_style_dir = mri_style_dir
 
 # MRI Paths: 22956
-# PET-MRI Pairs: 2767
+# PET-MRI Pairs: 2578

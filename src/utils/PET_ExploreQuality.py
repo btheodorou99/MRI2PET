@@ -1,9 +1,10 @@
 import os
 import ants
+import numpy as np
 from tqdm import tqdm
 from collections import Counter
 
-input_dir = "/data/CARD_AA/data/ADNI/PET_Nifti_PreProcessed/"
+input_dir = "/data/CARD_AA/data/ADNI/PET/"
 output_dir = "/data/theodoroubp/MRI2PET/results/data_exploration/"
 os.makedirs(output_dir, exist_ok=True)
 
@@ -15,7 +16,7 @@ for f in tqdm(os.listdir(input_dir)):
     if not f.endswith(".nii") or os.path.exists(os.path.join(output_dir, f.replace(".nii", ".png"))):
         continue
 
-    img = ants.image_read(os.path.join(input_dir, f))
+    img = ants.from_numpy(np.load(os.path.join(input_dir, f)))
     if len(img.shape) == 4:
         img = ants.from_numpy(img[:, :, :, 0])
 
@@ -26,6 +27,7 @@ for f in tqdm(os.listdir(input_dir)):
     try:
         ants.plot(
             img,
+            axis=2,
             nslices=9,
             title=str(img.shape[0]),
             filename=f"{output_dir}{f.replace('.nii', '.png')}",
