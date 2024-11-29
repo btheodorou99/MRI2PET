@@ -6,8 +6,8 @@
 #SBATCH --job-name=selfPretrainedDiffusion
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:a100:1
-#SBATCH --error=pretrain_selfPretrainedDiffusion_base.err
-#SBATCH --output=pretrain_selfPretrainedDiffusion_base.out
+#SBATCH --error=pretrain_selfPretrainedDiffusion.err
+#SBATCH --output=pretrain_selfPretrainedDiffusion.out
 
 module load python
-python -m src.train_scripts.pretrain_selfPretrainedDiffusion_base
+python -m src.train_scripts.pretrain_selfPretrainedDiffusion

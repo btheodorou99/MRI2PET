@@ -6,8 +6,8 @@
 #SBATCH --job-name=noisyPretrainedDiffusion
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:a100:1
-#SBATCH --error=pretrain_noisyPretrainedDiffusion_base.err
-#SBATCH --output=pretrain_noisyPretrainedDiffusion_base.out
+#SBATCH --error=pretrain_noisyPretrainedDiffusion.err
+#SBATCH --output=pretrain_noisyPretrainedDiffusion.out
 
 module load python
 python -m src.train_scripts.pretrain_noisyPretrainedDiffusion

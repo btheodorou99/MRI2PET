@@ -6,7 +6,7 @@
 #SBATCH --job-name=styleTransfer
 #SBATCH --array=1-10
 #SBATCH --partition=gpu
-#SBATCH --gres=gpu:k80:1
+#SBATCH --gres=gpu:p100:1
 
 module load python
 python -m src.utils.styleTransfer
