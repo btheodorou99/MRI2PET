@@ -16,7 +16,7 @@ TO RUN:
     - Tune MRI2PET Smaller Loss
     - Tune Noisy
     - Tune Self
-    - Tune Noisy (Pretrain Scale)
+    --- Tune Noisy (Pretrain Scale)
     - Tune Self (Pretrain Scale)
 
 
