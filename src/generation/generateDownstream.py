@@ -46,7 +46,7 @@ def save_image(tensor, path):
     image = image.transpose((1, 2, 0))
     np.save(path, image)
         
-k = 'mri2pet_base_loss'
+k = 'mri2pet'
 os.makedirs(f'/data/theodoroubp/MRI2PET/results/downstream_dataset/', exist_ok=True)
 model = DiffusionModel(config)
 model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location='cpu')['model'])

@@ -20,23 +20,8 @@ if torch.cuda.is_available():
     torch.cuda.manual_seed_all(SEED)
 
 test_dataset = pickle.load(open('./src/data/testDataset.pkl', 'rb'))
-
-if os.path.exists("./src/data/globalMean.pkl"):
-    global_mean = pickle.load(open("./src/data/globalMean.pkl", "rb"))
-    global_std = pickle.load(open("./src/data/globalStd.pkl", "rb"))
-else:
-    means = []
-    variances = []
-    for (_, image) in train_dataset + val_dataset:
-        img = np.load(image)
-        means.append(np.mean(img))
-        variances.append(np.var(img))
-
-    global_mean = np.mean(means)
-    global_variance = np.mean(variances) + np.mean((np.array(means) - global_mean) ** 2)
-    global_std = np.sqrt(global_variance)
-    pickle.dump(global_mean, open("./src/data/globalMean.pkl", "wb"))
-    pickle.dump(global_std, open("./src/data/globalStd.pkl", "wb"))
+global_mean = pickle.load(open("./src/data/globalMean.pkl", "rb"))
+global_std = pickle.load(open("./src/data/globalStd.pkl", "rb"))
 
 def load_image(image_path, is_mri=True):
     img = np.load(image_path)
@@ -59,9 +44,17 @@ def get_batch(dataset, loc, batch_size):
 
 model_keys = [
     'baseDiffusion',
-    'mri2pet_base_base',
-    'mri2pet_base_loss',
-    'noisyPretrainedDiffusion_base_loss',
+    'mri2pet',
+    'mri2pet_pScale',
+    'mri2pet_sameOptimizer',
+    'mri2pet_smallerLoss',
+    'mri2pet_noPretrain',
+    'mri2pet_noLoss',
+    'mri2pet_noLoss_pScale',
+    'selfPretrainedDiffusion',
+    'selfPretrainedDiffusion_pScale',
+    'noisyPretrainedDiffusion',
+    'noisyPretrainedDiffusion_pScale',
 ]
 
 config.batch_size = config.batch_size // 5

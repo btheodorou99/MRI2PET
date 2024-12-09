@@ -63,16 +63,18 @@ test_act = get_inception_features(model, test_dataset)
 
 model_keys = [
     'baseDiffusion',
+    'baseGAN',
+    'mri2pet',
+    'mri2pet_pScale',
+    'mri2pet_sameOptimizer',
+    'mri2pet_smallerLoss',
     'mri2pet_noPretrain',
     'mri2pet_noLoss',
+    'mri2pet_noLoss_pScale',
+    'selfPretrainedDiffusion',
+    'selfPretrainedDiffusion_pScale',
     'noisyPretrainedDiffusion',
-    'mri2pet',
-    'mri2pet_largerBS',
-    'mri2pet_lowerLR',
-    'mri2pet_lrWarmup',
-    'mri2pet_newOptimizer',
-    'mri2pet_smallerGC',
-    'mri2pet_weightDecay',
+    'noisyPretrainedDiffusion_pScale',
 ]
 
 for k in tqdm(model_keys):
