@@ -10,7 +10,7 @@ from ..models.diffusionModel import DiffusionModel
 
 SEED = 4
 cudaNum = 0
-NUM_SAMPLES = 100
+NUM_SAMPLES = 25
 random.seed(SEED)
 np.random.seed(SEED)
 torch.manual_seed(SEED)

@@ -22,15 +22,34 @@ TO RUN:
 
 
 FID:
-
-
-
-BPD:
-
-
+    baseDiffusion FID: 62.474 \pm 0.033
+    baseGAN FID: 303.725 \pm 0.066
+    mri2pet FID: 65.457 \pm 0.031
+    mri2pet_pScale FID: 61.863 \pm 0.032
+    mri2pet_sameOptimizer FID: 70.207 \pm 0.031
+    mri2pet_smallerLoss FID: 63.464 \pm 0.029
+    mri2pet_noPretrain FID: 281.452 \pm 0.077
+    mri2pet_noLoss FID: 64.505 \pm 0.033
+    mri2pet_noLoss_pScale FID: 63.610 \pm 0.035
+    selfPretrainedDiffusion FID: 69.915 \pm 0.030
+    selfPretrainedDiffusion_pScale FID: 64.210 \pm 0.037
+    noisyPretrainedDiffusion FID: 68.052 \pm 0.035
+    noisyPretrainedDiffusion_pScale FID: 66.604 \pm 0.028
 
 IS:
-
+    baseDiffusion Inception Score: 1.811 \pm 0.001
+    baseGAN Inception Score: 1.930 \pm 0.001
+    mri2pet Inception Score: 1.795 \pm 0.001
+    mri2pet_pScale Inception Score: 1.852 \pm 0.001
+    mri2pet_sameOptimizer Inception Score: 1.882 \pm 0.001
+    mri2pet_smallerLoss Inception Score: 1.850 \pm 0.001
+    mri2pet_noPretrain Inception Score: 1.193 \pm 0.000
+    mri2pet_noLoss Inception Score: 1.874 \pm 0.001
+    mri2pet_noLoss_pScale Inception Score: 1.835 \pm 0.001
+    selfPretrainedDiffusion Inception Score: 1.898 \pm 0.001
+    selfPretrainedDiffusion_pScale Inception Score: 1.787 \pm 0.001
+    noisyPretrainedDiffusion Inception Score: 1.765 \pm 0.001
+    noisyPretrainedDiffusion_pScale Inception Score: 1.866 \pm 0.001
 
 
 Utility:
