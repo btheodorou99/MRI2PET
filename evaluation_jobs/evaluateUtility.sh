@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --job-name=evaluateUtility
 #SBATCH --partition=gpu
-#SBATCH --gres=gpu:p100:1
+#SBATCH --gres=gpu:a100:1
 #SBATCH --error=evaluateUtility.err
 #SBATCH --output=evaluateUtility.out
 
