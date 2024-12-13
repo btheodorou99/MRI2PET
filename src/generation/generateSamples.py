@@ -1,3 +1,4 @@
+import ants
 import torch
 import random
 import pickle
@@ -56,6 +57,23 @@ def tensor_to_numpy(tensor, isGan=False):
     image = image.transpose((1, 2, 0))
     return image
 
+def resize_array(array, target_shape):
+    # Calculate the zoom factors for each dimension
+    zoom_factors = (
+        target_shape / array.shape[0],
+        target_shape / array.shape[1],
+        1 
+    )
+    return zoom(array, zoom_factors)
+
+def align_mri(mri, pet):
+    mri = ants.from_numpy(mri)
+    pet = ants.from_numpy(pet)
+    mri = ants.registration(fixed=pet, moving=mri, type_of_transform='Affine')['warpedmovout']
+    mri = mri.numpy()
+    mri = (mri - mri.min()) / (mri.max() - mri.min())
+    return mri
+
 def expand_slices(array, target_shape):
     zoom_factors = (
         1,
@@ -71,8 +89,7 @@ def save_slice_plots(array, path_prefix):
     # Axial
     for i in range(array.shape[2]):
         slice = array[:, :, i]
-        if i % 5 == 0 and slice.max() > 0.05:
-            plt.imsave(f'{path_prefix}_Axial{i}.png', slice, cmap='gray')
+        plt.imsave(f'{path_prefix}_Axial{i}.png', slice, cmap='gray')
         
     # For other views, we need to resize to get a square
     array = expand_slices(array, array.shape[0])
@@ -80,13 +97,13 @@ def save_slice_plots(array, path_prefix):
     # Sagittal
     for i in range(array.shape[1]):
         slice = array[:, i, :]
-        if i % 20 == 0 and slice.max() > 0.05: 
+        if i % 5 == 0 and slice.max() > 0.05: 
             plt.imsave(f'{path_prefix}_Sagittal{i}.png', slice, cmap='gray')
         
     # Coronal
     for i in range(array.shape[0]):
         slice = array[i, :, :]
-        if i % 20 == 0 and slice.max() > 0.05:
+        if i % 5 == 0 and slice.max() > 0.05:
             plt.imsave(f'{path_prefix}_Coronal{i}.png', slice, cmap='gray')
         
 
@@ -97,9 +114,12 @@ sample_contexts, real_images = get_batch(sample_data, 0, NUM_SAMPLES)
 
 
 for i in range(NUM_SAMPLES):
-    real_image = tensor_to_numpy(real_images[i].cpu())
-    save_slice_plots(sample_contexts[i].cpu().clone().numpy().transpose((1, 2, 0)), f'./src/results/image_samples/realMRI_{i}')
-    save_slice_plots(real_image, f'./src/results/image_samples/realPET_{i}')
+    real_pet = tensor_to_numpy(real_images[i].cpu())
+    real_mri = resize_array(sample_contexts[i].cpu().clone().numpy().transpose((1, 2, 0)), real_pet.shape[0])
+    aligned_mri = align_mri(np.copy(real_mri), real_pet)
+    save_slice_plots(real_mri, f'./src/results/image_samples/realMRI_{i}')
+    save_slice_plots(aligned_mri, f'./src/results/image_samples/realMRI_Aligned_{i}')
+    save_slice_plots(real_pet, f'./src/results/image_samples/realPET_{i}')
 
 model_keys = [
     'baseDiffusion2',

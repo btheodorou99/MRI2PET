@@ -5,19 +5,26 @@ TO RUN:
     * Pretrain Noisy (Pretrain Scale)
     * Pretrain Self
     * Pretrain Self (Pretrain Scale)
-    - * Train Base Diffusion
-    - * Train No Pretrain
-    - * Train Base GAN
+    * Train Base Diffusion
+    * Train No Pretrain
+    * Train Base GAN
     * Tune MRI2PET No Loss
     * Tune MRI2PET
-    - * Tune MRI2PET No Loss (Pretrain Scale)
-    - * Tune MRI2PET (Pretrain Scale)
+    * Tune MRI2PET No Loss (Pretrain Scale)
+    * Tune MRI2PET (Pretrain Scale)
     * Tune MRI2PET Same Optimizer
     * Tune MRI2PET Smaller Loss
     * Tune Noisy
     * Tune Self
-    - * Tune Noisy (Pretrain Scale)
-    - * Tune Self (Pretrain Scale)
+    * Tune Noisy (Pretrain Scale)
+    * Tune Self (Pretrain Scale)
+    - Tweak Base Diffusion
+    - Tweak No Pretrain
+    - Tweak Base GAN
+    - Tweak MRI2PET No Loss (Pretrain Scale)
+    - Tweak MRI2PET (Pretrain Scale)
+    - Tweak Noisy (Pretrain Scale)
+    - Tweak Self (Pretrain Scale)
 
 
 

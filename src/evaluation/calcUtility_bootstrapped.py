@@ -15,7 +15,6 @@ from ..models.downstreamModel import ImageClassifier
 
 config = MRI2PETConfig()
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-NUM_RUNS = 10
 
 def getID(path):
     fname = path.split('/')[-1]
@@ -62,13 +61,7 @@ def get_batch(dataset, loc, batch_size, has_mri=False, has_pet=False):
 def shuffle_training_data(train_ehr_dataset):
     random.shuffle(train_ehr_dataset)
 
-def train_model(train_data, has_mri, has_pet, key, seed):
-    # Set seed
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-
+def train_model(train_data, has_mri, has_pet, key):
     shuffle_training_data(train_data)
     train_data, val_data = train_data[:int(0.8*len(train_data))], train_data[int(0.8*len(train_data)):]
     model = ImageClassifier(config, has_mri, has_pet).to(device)
@@ -124,18 +117,29 @@ def evaluate_model(model, data, has_mri, has_pet):
     labels = np.array(label_list)
     preds = np.argmax(probs, axis=1)
     
-    accuracy = metrics.accuracy_score(labels, preds)
-    precision = metrics.precision_score(labels, preds, average="macro", zero_division=0.0)
-    recall = metrics.recall_score(labels, preds, average="macro", zero_division=0.0)
-    f1 = metrics.f1_score(labels, preds, average="macro", zero_division=0.0)
-    auroc = metrics.roc_auc_score(labels, probs, average="macro", multi_class="ovr")
+    accuracies = []
+    precisions = []
+    recalls = []
+    f1s = []
+    aurocs = []
+    
+    for i in range(config.n_bootstrap):
+        bs_indices = resample(np.arange(labels.shape[0]), replace=True)
+        bs_labels = labels[bs_indices]
+        bs_preds = preds[bs_indices]
+        bs_probs = probs[bs_indices]
+        accuracies.append(metrics.accuracy_score(bs_labels, bs_preds))
+        precisions.append(metrics.precision_score(bs_labels, bs_preds, average="macro", zero_division=0.0))
+        recalls.append(metrics.recall_score(bs_labels, bs_preds, average="macro", zero_division=0.0))
+        f1s.append(metrics.f1_score(bs_labels, bs_preds, average="macro", zero_division=0.0))
+        aurocs.append(metrics.roc_auc_score(bs_labels, bs_probs, average="macro", multi_class="ovr"))
     
     metrics_dict = {
-        'Accuracy': accuracy,
-        'Precision': precision,
-        'Recall': recall,
-        'F1': f1,
-        'AUROC': auroc,
+        'Accuracy': (np.mean(accuracies), np.std(accuracies) / np.sqrt(config.n_bootstrap)),
+        'Precision': (np.mean(precisions), np.std(precisions) / np.sqrt(config.n_bootstrap)),
+        'Recall': (np.mean(recalls), np.std(recalls) / np.sqrt(config.n_bootstrap)),
+        'F1': (np.mean(f1s), np.std(f1s) / np.sqrt(config.n_bootstrap)),
+        'AUROC': (np.mean(aurocs), np.std(aurocs) / np.sqrt(config.n_bootstrap))
     }
     return metrics_dict
 
@@ -152,14 +156,7 @@ experiments = [
 
 for key, hasMRI, hasPET, data in tqdm(experiments):
     print(key)
-    
-    metrics_dict = {}
-    for seed in tqdm(range(NUM_RUNS), desc="Training Runs", leave=False):
-        model = train_model(data, hasMRI, hasPET, key, seed)
-        run_dict = evaluate_model(model, test_dataset, hasMRI, hasPET)
-        for k in run_dict:
-            metrics_dict[k] = metrics_dict.get(k, []) + [run_dict[k]]
-
-    metrics_dict = {k: (np.mean(v), np.std(v) / np.sqrt(NUM_RUNS)) for k, v in metrics_dict.items()}
+    model = train_model(data, hasMRI, hasPET, key)
+    metrics_dict = evaluate_model(model, test_dataset, hasMRI, hasPET)
     for k, v in metrics_dict.items():
         print(f"\t{k}: {v[0]:.5f} \\pm {v[1]:.5f}")
