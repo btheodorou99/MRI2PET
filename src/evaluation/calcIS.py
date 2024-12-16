@@ -62,7 +62,7 @@ def get_inception_score(model, dataset):
 
 model_keys = [
     'baseDiffusion_tweaked',
-    'baseGAN_tweaked',
+    # 'baseGAN_tweaked',
     'mri2pet_pScale_tweaked',
     'mri2pet_noPretrain_tweaked',
     'mri2pet_noLoss_pScale_tweaked',

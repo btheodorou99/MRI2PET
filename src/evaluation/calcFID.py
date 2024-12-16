@@ -79,7 +79,7 @@ test_act = get_inception_features(model, test_dataset)
 
 model_keys = [
     'baseDiffusion_tweaked',
-    'baseGAN_tweaked',
+    # 'baseGAN_tweaked',
     'mri2pet_pScale_tweaked',
     'mri2pet_noPretrain_tweaked',
     'mri2pet_noLoss_pScale_tweaked',

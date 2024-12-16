@@ -44,7 +44,6 @@ def get_batch(dataset, loc, batch_size):
 
 model_keys = [
     'baseDiffusion_tweaked',
-    'baseGAN_tweaked',
     'mri2pet_pScale_tweaked',
     'mri2pet_noPretrain_tweaked',
     'mri2pet_noLoss_pScale_tweaked',
