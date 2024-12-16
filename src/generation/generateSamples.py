@@ -123,7 +123,7 @@ for i in range(NUM_SAMPLES):
 
 model_keys = [
     'baseDiffusion_tweaked',
-    'baseGAN_tweaked',
+    # 'baseGAN_tweaked',
     'mri2pet_pScale_tweaked',
     'mri2pet_noPretrain_tweaked',
     'mri2pet_noLoss_pScale_tweaked',
