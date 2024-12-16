@@ -60,7 +60,7 @@ model_keys = [
     'mri2pet_noPretrain_tweaked',
     'mri2pet_noLoss_pScale_tweaked',
     'selfPretrainedDiffusion_pScale_tweaked',
-    'noisyPretrainedDiffusion_pScale_tweaked',
+    # 'noisyPretrainedDiffusion_pScale_tweaked',
 ]
 
 for k in tqdm(model_keys):

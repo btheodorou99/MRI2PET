@@ -43,18 +43,13 @@ def get_batch(dataset, loc, batch_size):
     return batch_context, batch_image
 
 model_keys = [
-    'baseDiffusion',
-    'mri2pet',
-    'mri2pet_pScale',
-    'mri2pet_sameOptimizer',
-    'mri2pet_smallerLoss',
-    'mri2pet_noPretrain',
-    'mri2pet_noLoss',
-    'mri2pet_noLoss_pScale',
-    'selfPretrainedDiffusion',
-    'selfPretrainedDiffusion_pScale',
-    'noisyPretrainedDiffusion',
-    'noisyPretrainedDiffusion_pScale',
+    'baseDiffusion_tweaked',
+    'baseGAN_tweaked',
+    'mri2pet_pScale_tweaked',
+    'mri2pet_noPretrain_tweaked',
+    'mri2pet_noLoss_pScale_tweaked',
+    'selfPretrainedDiffusion_pScale_tweaked',
+    # 'noisyPretrainedDiffusion_pScale_tweaked',
 ]
 
 config.batch_size = config.batch_size // 5

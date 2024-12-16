@@ -122,11 +122,13 @@ for i in range(NUM_SAMPLES):
     save_slice_plots(real_pet, f'./src/results/image_samples/realPET_{i}')
 
 model_keys = [
-    'baseDiffusion2',
-    'mri2pet_noPretrain2',
-    'mri2pet',
-    'mri2pet_noLoss',
-    'noisyPretrainedDiffusion'
+    'baseDiffusion_tweaked',
+    'baseGAN_tweaked',
+    'mri2pet_pScale_tweaked',
+    'mri2pet_noPretrain_tweaked',
+    'mri2pet_noLoss_pScale_tweaked',
+    'selfPretrainedDiffusion_pScale_tweaked',
+    # 'noisyPretrainedDiffusion_pScale_tweaked',
 ]
 
 for k in tqdm(model_keys):
