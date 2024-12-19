@@ -55,7 +55,7 @@ for k in tqdm(model_keys):
     for i in range(config.n_bootstrap):
         bs_indices = resample(np.arange(len(psnr_values)), replace=True)
         bs_scores = [psnr_values[i] for i in bs_indices]
-        psnr_values.append(bs_scores.mean())
+        psnr_values.append(np.mean(bs_scores))
     psnr_value = (np.mean(psnr_values), np.std(psnr_values) / np.sqrt(config.n_bootstrap))
     print(f'{k} psnr: {psnr_value[0]:.3f} \\pm {psnr_value[1]:.3f}')
     pickle.dump(psnr_value, open(f'./src/results/quantitative_evaluations/{k}_psnr_average.pkl', 'wb'))

@@ -55,7 +55,7 @@ for k in tqdm(model_keys):
     for i in range(config.n_bootstrap):
         bs_indices = resample(np.arange(len(ssim_values)), replace=True)
         bs_scores = [ssim_values[i] for i in bs_indices]
-        ssim_values.append(bs_scores.mean())
+        ssim_values.append(np.mean(bs_scores))
     ssim_value = (np.mean(ssim_values), np.std(ssim_values) / np.sqrt(config.n_bootstrap))
     print(f'{k} SSIM: {ssim_value[0]:.3f} \\pm {ssim_value[1]:.3f}')
     pickle.dump(ssim_value, open(f'./src/results/quantitative_evaluations/{k}_ssim_average.pkl', 'wb'))
