@@ -87,24 +87,24 @@ def save_slice_plots(array, path_prefix):
     # Directions: Axial, Sagittal, Coronal
     
     # Axial
-    for i in range(array.shape[2]):
+    for i in range(5,20):
         slice = array[:, :, i]
         plt.imsave(f'{path_prefix}_Axial{i}.png', slice, cmap='gray')
         
-    # For other views, we need to resize to get a square
-    array = expand_slices(array, array.shape[0])
+    # # For other views, we need to resize to get a square
+    # array = expand_slices(array, array.shape[0])
 
-    # Sagittal
-    for i in range(array.shape[1]):
-        slice = array[:, i, :]
-        if i % 5 == 0 and slice.max() > 0.05: 
-            plt.imsave(f'{path_prefix}_Sagittal{i}.png', slice, cmap='gray')
+    # # Sagittal
+    # for i in range(array.shape[1]):
+    #     slice = array[:, i, :]
+    #     if i % 5 == 0 and slice.max() > 0.05: 
+    #         plt.imsave(f'{path_prefix}_Sagittal{i}.png', slice, cmap='gray')
         
-    # Coronal
-    for i in range(array.shape[0]):
-        slice = array[i, :, :]
-        if i % 5 == 0 and slice.max() > 0.05:
-            plt.imsave(f'{path_prefix}_Coronal{i}.png', slice, cmap='gray')
+    # # Coronal
+    # for i in range(array.shape[0]):
+    #     slice = array[i, :, :]
+    #     if i % 5 == 0 and slice.max() > 0.05:
+    #         plt.imsave(f'{path_prefix}_Coronal{i}.png', slice, cmap='gray')
         
 
 # Generate Samples
@@ -122,6 +122,19 @@ for i in range(NUM_SAMPLES):
     save_slice_plots(real_pet, f'./src/results/image_samples/realPET_{i}')
 
 model_keys = [
+    'baseDiffusion',
+    'baseGAN',
+    'mri2pet',
+    'mri2pet_pScale',
+    'mri2pet_sameOptimizer',
+    'mri2pet_smallerLoss',
+    'mri2pet_noPretrain',
+    'mri2pet_noLoss',
+    'mri2pet_noLoss_pScale',
+    'selfPretrainedDiffusion',
+    'selfPretrainedDiffusion_pScale',
+    'noisyPretrainedDiffusion',
+    'noisyPretrainedDiffusion_pScale',
     'baseDiffusion_tweaked',
     # 'baseGAN_tweaked',
     'mri2pet_pScale_tweaked',

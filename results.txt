@@ -29,24 +29,44 @@ TO RUN:
 
 
 FID:
-    baseDiffusion FID: 62.474 \pm 0.033
-    baseGAN FID: 303.725 \pm 0.066
-    mri2pet FID: 65.457 \pm 0.031
-    mri2pet_pScale FID: 61.863 \pm 0.032
-    mri2pet_sameOptimizer FID: 70.207 \pm 0.031
-    mri2pet_smallerLoss FID: 63.464 \pm 0.029
-    mri2pet_noPretrain FID: 281.452 \pm 0.077
-    mri2pet_noLoss FID: 64.505 \pm 0.033
-    mri2pet_noLoss_pScale FID: 63.610 \pm 0.035
-    selfPretrainedDiffusion FID: 69.915 \pm 0.030
-    selfPretrainedDiffusion_pScale FID: 64.210 \pm 0.037
-    noisyPretrainedDiffusion FID: 68.052 \pm 0.035
-    noisyPretrainedDiffusion_pScale FID: 66.604 \pm 0.028
-    baseDiffusion_tweaked FID: 63.864 \pm 0.037
-    mri2pet_pScale_tweaked FID: 61.857 \pm 0.033
-    mri2pet_noPretrain_tweaked FID: 108.409 \pm 0.048
-    mri2pet_noLoss_pScale_tweaked FID: 61.231 \pm 0.030
-    selfPretrainedDiffusion_pScale_tweaked FID: 62.795 \pm 0.030
+    baseDiffusion FID: 62.430 \pm 0.027
+    baseGAN FID: 303.763 \pm 0.058
+    mri2pet FID: 65.418 \pm 0.029
+    mri2pet_pScale FID: 61.836 \pm 0.029
+    mri2pet_sameOptimizer FID: 70.221 \pm 0.029
+    mri2pet_smallerLoss FID: 63.387 \pm 0.026
+    mri2pet_noPretrain FID: 281.500 \pm 0.078
+    mri2pet_noLoss FID: 64.481 \pm 0.034
+    mri2pet_noLoss_pScale FID: 63.605 \pm 0.031
+    selfPretrainedDiffusion FID: 69.841 \pm 0.029
+    selfPretrainedDiffusion_pScale FID: 64.146 \pm 0.031
+    noisyPretrainedDiffusion FID: 68.002 \pm 0.040
+    noisyPretrainedDiffusion_pScale FID: 66.618 \pm 0.027
+    baseDiffusion_tweaked FID: 63.844 \pm 0.046
+    mri2pet_pScale_tweaked FID: 61.735 \pm 0.032
+    mri2pet_noPretrain_tweaked FID: 108.401 \pm 0.046
+    mri2pet_noLoss_pScale_tweaked FID: 61.213 \pm 0.029
+    selfPretrainedDiffusion_pScale_tweaked FID: 62.753 \pm 0.029
+
+Content FID:
+    baseDiffusion FID: 54.444 \pm 0.047
+    baseGAN FID: 321.717 \pm 0.087
+    mri2pet FID: 61.207 \pm 0.051
+    mri2pet_pScale FID: 53.687 \pm 0.045
+    mri2pet_sameOptimizer FID: 67.344 \pm 0.053
+    mri2pet_smallerLoss FID: 56.388 \pm 0.047
+    mri2pet_noPretrain FID: 323.054 \pm 0.113
+    mri2pet_noLoss FID: 56.357 \pm 0.056
+    mri2pet_noLoss_pScale FID: 55.710 \pm 0.053
+    selfPretrainedDiffusion FID: 65.970 \pm 0.046
+    selfPretrainedDiffusion_pScale FID: 57.679 \pm 0.051
+    noisyPretrainedDiffusion FID: 64.258 \pm 0.054
+    noisyPretrainedDiffusion_pScale FID: 60.300 \pm 0.046
+    baseDiffusion_tweaked FID: 54.431 \pm 0.072
+    mri2pet_pScale_tweaked FID: 53.005 \pm 0.043
+    mri2pet_noPretrain_tweaked FID: 111.708 \pm 0.089
+    mri2pet_noLoss_pScale_tweaked FID: 50.214 \pm 0.044
+    selfPretrainedDiffusion_pScale_tweaked FID: 53.903 \pm 0.050
 
 IS:
     baseDiffusion Inception Score: 1.811 \pm 0.001
@@ -120,3 +140,6 @@ AugmentedPaired
     Recall: 0.64299 \pm 0.00408
     F1: 0.63115 \pm 0.00423
     AUROC: 0.83931 \pm 0.00233
+
+
+Write a script which has variables at the top for image_dir, a list of model_keys, and num_images which then looks in image dir for image files of the form {model_key}_{image_num}_Axial{slice}.png and generates a large image array where each row is one image_num in num_images it puts slice_idx in [10, 13, 15, 17, 20] for each model in that row.

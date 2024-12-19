@@ -124,6 +124,7 @@ def evaluate_model(model, data, has_mri, has_pet):
     labels = np.array(label_list)
     preds = np.argmax(probs, axis=1)
     
+    
     accuracy = metrics.accuracy_score(labels, preds)
     precision = metrics.precision_score(labels, preds, average="macro", zero_division=0.0)
     recall = metrics.recall_score(labels, preds, average="macro", zero_division=0.0)
