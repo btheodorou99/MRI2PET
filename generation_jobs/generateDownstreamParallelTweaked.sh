@@ -7,8 +7,8 @@
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:a100:1
 #SBATCH --array=0-4
-#SBATCH --error=generateDownstreamParallelTweaked%A_%a.err
-#SBATCH --output=generateDownstreamParallelTweaked%A_%a.err
+#SBATCH --error=generateDownstreamParallelTweaked_%a.err
+#SBATCH --output=generateDownstreamParallelTweaked_%a.err
 
 module load python
-python -m src.generation.generateDownstreamParallelTweaked
+python -m src.generation.generateDownstreamParallelTweaked $SLURM_ARRAY_TASK_ID
