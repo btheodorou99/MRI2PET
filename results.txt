@@ -42,6 +42,11 @@ FID:
     selfPretrainedDiffusion_pScale FID: 64.210 \pm 0.037
     noisyPretrainedDiffusion FID: 68.052 \pm 0.035
     noisyPretrainedDiffusion_pScale FID: 66.604 \pm 0.028
+    baseDiffusion_tweaked FID: 63.864 \pm 0.037
+    mri2pet_pScale_tweaked FID: 61.857 \pm 0.033
+    mri2pet_noPretrain_tweaked FID: 108.409 \pm 0.048
+    mri2pet_noLoss_pScale_tweaked FID: 61.231 \pm 0.030
+    selfPretrainedDiffusion_pScale_tweaked FID: 62.795 \pm 0.030
 
 IS:
     baseDiffusion Inception Score: 1.811 \pm 0.001
@@ -57,6 +62,11 @@ IS:
     selfPretrainedDiffusion_pScale Inception Score: 1.787 \pm 0.001
     noisyPretrainedDiffusion Inception Score: 1.765 \pm 0.001
     noisyPretrainedDiffusion_pScale Inception Score: 1.866 \pm 0.001
+    baseDiffusion_tweaked Inception Score: 1.852 \pm 0.001
+    mri2pet_pScale_tweaked Inception Score: 1.858 \pm 0.001
+    mri2pet_noPretrain_tweaked Inception Score: 1.938 \pm 0.001
+    mri2pet_noLoss_pScale_tweaked Inception Score: 1.872 \pm 0.001
+    selfPretrainedDiffusion_pScale_tweaked Inception Score: 1.868 \pm 0.001
 
 
 Utility:
