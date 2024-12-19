@@ -54,12 +54,12 @@ def save_image(tensor, path, isGan=False):
     np.save(path, image)
         
 model_keys = [
-    'baseDiffusion_tweaked',
-    # 'baseGAN_tweaked',
-    'mri2pet_pScale_tweaked',
-    'mri2pet_noPretrain_tweaked',
-    'mri2pet_noLoss_pScale_tweaked',
-    'selfPretrainedDiffusion_pScale_tweaked',
+    # 'baseDiffusion_tweaked',
+    'baseGAN_tweaked',
+    # 'mri2pet_pScale_tweaked',
+    # 'mri2pet_noPretrain_tweaked',
+    # 'mri2pet_noLoss_pScale_tweaked',
+    # 'selfPretrainedDiffusion_pScale_tweaked',
     # 'noisyPretrainedDiffusion_pScale_tweaked',
 ]
 
