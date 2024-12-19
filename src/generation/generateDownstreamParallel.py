@@ -46,22 +46,29 @@ def save_image(tensor, path):
     image = image.transpose((1, 2, 0))
     np.save(path, image)
         
-k = 'mri2pet'
-os.makedirs(f'/data/theodoroubp/MRI2PET/results/downstream_dataset_tweaked/', exist_ok=True)
+k = 'mri2pet_pScale'
+os.makedirs(f'/data/theodoroubp/MRI2PET/results/downstream_dataset/', exist_ok=True)
 model = DiffusionModel(config)
 model.load_state_dict(torch.load(f'./src/save/{k}.pt', map_location='cpu')['model'])
 model = model.to(device)
 model.eval()
 batch_size = config.batch_size // 3
 
-paired_dataset = []
+idx = list(range(len(mri_dataset)))
+import sys
+run = int(sys.argv[1])
+tot_runs = 5
+idx = idx[run*len(idx)//tot_runs:(run+1)*len(idx)//tot_runs]
+mri_dataset = [mri_dataset[i] for i in idx]
+
+# paired_dataset = []
 with torch.no_grad():
     for i in tqdm(range(0, len(mri_dataset), batch_size), leave=False):
         sample_contexts, mri_paths = get_batch(mri_dataset, i, batch_size)
         sample_images = model.generate(sample_contexts)
         for j in range(sample_images.size(0)):
-            pet_path = f'/data/theodoroubp/MRI2PET/results/downstream_dataset/syntheticImage_{i+j}.npy'
+            pet_path = f'/data/theodoroubp/MRI2PET/results/downstream_dataset/syntheticImage_{idx[i+j]}.npy'
             save_image(sample_images[j], pet_path)
-            paired_dataset.append((mri_paths[j], pet_path))
+            # paired_dataset.append((mri_paths[j], pet_path))
 
-pickle.dump(paired_dataset, open(f'./src/data/syntheticDataset.pkl', 'wb'))
+# pickle.dump(paired_dataset, open(f'./src/data/syntheticDataset.pkl', 'wb'))

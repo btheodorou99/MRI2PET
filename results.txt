@@ -91,6 +91,42 @@ IS:
 
 Utility:
 
+RealMRI
+    Accuracy: 0.60240 \pm 0.00940
+    Precision: 0.60544 \pm 0.01319
+    Recall: 0.59655 \pm 0.01039
+    F1: 0.59630 \pm 0.01069
+    AUROC: 0.77971 \pm 0.00864
+RealLimitedMRI
+    Accuracy: 0.42760 \pm 0.00038
+    Precision: 0.15074 \pm 0.00766
+    Recall: 0.33381 \pm 0.00045
+    F1: 0.20352 \pm 0.00351
+    AUROC: 0.50902 \pm 0.00444
+RealPET
+    Accuracy: 0.48440 \pm 0.01554
+    Precision: 0.38231 \pm 0.05162
+    Recall: 0.42308 \pm 0.02255
+    F1: 0.36784 \pm 0.03893
+    AUROC: 0.61684 \pm 0.02318
+SyntheticPET
+    Accuracy: 0.46920 \pm 0.01817
+    Precision: 0.28228 \pm 0.04974
+    Recall: 0.39850 \pm 0.02528
+    F1: 0.31320 \pm 0.04017
+    AUROC: 0.59465 \pm 0.02353
+
+
+
+
+
+
+
+
+
+
+
+
 
 RealMRI
     Accuracy: 0.66545 \pm 0.00359
