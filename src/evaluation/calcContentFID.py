@@ -23,7 +23,7 @@ def load_image(image_path):
     img = torch.from_numpy(img)
     return img
 
-def gen_content_idx(dataset, threshold=1.05):
+def gen_content_idx(dataset, threshold=1.00):
     mapping = {}
     for i in range(len(dataset)):
         img = load_image(dataset[i])
