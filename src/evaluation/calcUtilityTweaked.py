@@ -30,7 +30,7 @@ test_dataset = [(m, p) for (m, p) in pickle.load(open('./src/data/testDataset.pk
 train_mri = set([m for (m, p) in real_paired_dataset])
 test_mri = set([m for (m, p) in test_dataset])
 
-synthetic_dataset = [(m, p) for (m, p) in pickle.load(open('./src/data/syntheticDataset.pkl', 'rb')) if getID(m) in adni_labels and m not in test_mri]
+synthetic_dataset = [(m, p.replace('downstream_dataset', 'downstream_dataset_tweaked')) for (m, p) in pickle.load(open('./src/data/syntheticDataset.pkl', 'rb')) if getID(m) in adni_labels and m not in test_mri]
 synthetic_paired_dataset = [(m, p) for (m, p) in synthetic_dataset if m in train_mri]
 augmented_paired_dataset = real_paired_dataset + [(m, p) for (m, p) in synthetic_dataset if m not in train_mri]
 
@@ -143,7 +143,7 @@ experiments = [
     # ('RealMRI', True, False, mri_dataset),
     # ('RealLimitedMRI', True, False, real_paired_dataset),
     # ('RealPET', False, True, real_paired_dataset),
-    # ('RealPaired', True, True, real_paired_dataset),
+    ('RealPaired', True, True, real_paired_dataset),
     ('SyntheticPET', False, True, synthetic_paired_dataset),
     ('AugmentedPET', False, True, augmented_paired_dataset),
     ('SyntheticPaired', True, True, synthetic_paired_dataset),
