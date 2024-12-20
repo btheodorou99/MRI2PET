@@ -122,25 +122,25 @@ for i in range(NUM_SAMPLES):
     save_slice_plots(real_pet, f'./src/results/image_samples/realPET_{i}')
 
 model_keys = [
-    # 'baseDiffusion',
-    # 'baseGAN',
-    # 'mri2pet',
-    # 'mri2pet_pScale',
-    # 'mri2pet_sameOptimizer',
-    # 'mri2pet_smallerLoss',
-    # 'mri2pet_noPretrain',
-    # 'mri2pet_noLoss',
-    # 'mri2pet_noLoss_pScale',
-    # 'selfPretrainedDiffusion',
-    # 'selfPretrainedDiffusion_pScale',
-    # 'noisyPretrainedDiffusion',
-    # 'noisyPretrainedDiffusion_pScale',
-    # 'baseDiffusion_tweaked',
+    'baseDiffusion',
+    'baseGAN',
+    'mri2pet',
+    'mri2pet_pScale',
+    'mri2pet_sameOptimizer',
+    'mri2pet_smallerLoss',
+    'mri2pet_noPretrain',
+    'mri2pet_noLoss',
+    'mri2pet_noLoss_pScale',
+    'selfPretrainedDiffusion',
+    'selfPretrainedDiffusion_pScale',
+    'noisyPretrainedDiffusion',
+    'noisyPretrainedDiffusion_pScale',
+    'baseDiffusion_tweaked',
     'baseGAN_tweaked',
-    # 'mri2pet_pScale_tweaked',
-    # 'mri2pet_noPretrain_tweaked',
-    # 'mri2pet_noLoss_pScale_tweaked',
-    # 'selfPretrainedDiffusion_pScale_tweaked',
+    'mri2pet_pScale_tweaked',
+    'mri2pet_noPretrain_tweaked',
+    'mri2pet_noLoss_pScale_tweaked',
+    'selfPretrainedDiffusion_pScale_tweaked',
     'noisyPretrainedDiffusion_pScale_tweaked',
 ]
 
@@ -165,4 +165,4 @@ for k in tqdm(model_keys):
 
     for i in range(NUM_SAMPLES):
         sample_image = tensor_to_numpy(sample_images[i].cpu(), isGan)
-        save_slice_plots(sample_image, f'./src/results/image_samples2/{k}_{i}')
+        save_slice_plots(sample_image, f'./src/results/image_samples/{k}_{i}')

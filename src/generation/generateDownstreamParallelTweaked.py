@@ -7,15 +7,15 @@ from tqdm import tqdm
 from ..config import MRI2PETConfig
 from ..models.diffusionModel import DiffusionModel
 
-SEED = 4
+# SEED = 4
 cudaNum = 0
-random.seed(SEED)
-np.random.seed(SEED)
-torch.manual_seed(SEED)
+# random.seed(SEED)
+# np.random.seed(SEED)
+# torch.manual_seed(SEED)
 config = MRI2PETConfig()
 device = torch.device(f"cuda:{cudaNum}" if torch.cuda.is_available() else "cpu")
-if torch.cuda.is_available():
-    torch.cuda.manual_seed_all(SEED)
+# if torch.cuda.is_available():
+#     torch.cuda.manual_seed_all(SEED)
 
 mri_dataset = [m for m in pickle.load(open('./src/data/mriDataset.pkl', 'rb')) if '/ADNI/' in m]
 global_mean = pickle.load(open("./src/data/globalMean.pkl", "rb"))

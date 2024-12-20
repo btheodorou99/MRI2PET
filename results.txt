@@ -13,10 +13,12 @@ FID:
     noisyPretrainedDiffusion FID: 68.002 $\pm$ 0.040
     noisyPretrainedDiffusion_pScale FID: 66.618 $\pm$ 0.027
     baseDiffusion_tweaked FID: 63.844 $\pm$ 0.046
+    baseGAN_tweaked FID: 303.615 $\pm$ 0.063
     mri2pet_pScale_tweaked FID: 61.735 $\pm$ 0.032
     mri2pet_noPretrain_tweaked FID: 108.401 $\pm$ 0.046
     mri2pet_noLoss_pScale_tweaked FID: 61.213 $\pm$ 0.029
     selfPretrainedDiffusion_pScale_tweaked FID: 62.753 $\pm$ 0.029
+    noisyPretrainedDiffusion_pScale_tweaked FID: 62.569 $\pm$ 0.025
 
 SSIM
     baseDiffusion SSIM: 0.764 $\pm$ 0.005
@@ -125,3 +127,9 @@ Utility:
         Recall: 0.38623 $\pm$ 0.02512
         F1: 0.28112 $\pm$ 0.03619
         AUROC: 0.57124 $\pm$ 0.02359
+    AugmentedPaired
+        Accuracy: 0.57760 \pm 0.01744
+        Precision: 0.56497 \pm 0.02323
+        Recall: 0.56349 \pm 0.02105
+        F1: 0.55906 \pm 0.02317
+        AUROC: 0.74801 \pm 0.02081

@@ -3,7 +3,7 @@ import numpy as np
 from PIL import Image
 
 # Variables
-image_dir = '/Users/theodoroubp/Desktop/Samples2/'
+image_dir = '/Users/theodoroubp/Desktop/Samples/'
 model_keys = [
     'realMRI_Aligned', 
     'realPET', 
@@ -11,10 +11,11 @@ model_keys = [
     'mri2pet_noLoss_pScale_tweaked',
     'mri2pet_noPretrain_tweaked',
     'baseDiffusion_tweaked',
-    # 'selfPretrainedDiffusion_pScale_tweaked',
+    # 'noisyPretrainedDiffusion_pScale_tweaked',
+    # 'baseGAN_tweaked',
 ]
 num_images = 5
-slice_indices = [9, 12, 15]
+slice_indices = [10, 13, 15]
 image_size = 128
 gap_size = 64
 
@@ -22,7 +23,7 @@ gap_size = 64
 total_width = len(model_keys) * len(slice_indices) * image_size + (len(model_keys) - 1) * gap_size
 
 # Initialize the large image array
-large_image_array = np.zeros((num_images * image_size, total_width, 3), dtype=np.uint8)
+large_image_array = 255 * np.ones((num_images * image_size, total_width, 3), dtype=np.uint8)
 
 # Loop through each image number
 for image_number in range(num_images):
