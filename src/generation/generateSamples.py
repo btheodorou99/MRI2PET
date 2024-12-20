@@ -136,7 +136,7 @@ model_keys = [
     # 'noisyPretrainedDiffusion',
     # 'noisyPretrainedDiffusion_pScale',
     # 'baseDiffusion_tweaked',
-    # 'baseGAN_tweaked',
+    'baseGAN_tweaked',
     # 'mri2pet_pScale_tweaked',
     # 'mri2pet_noPretrain_tweaked',
     # 'mri2pet_noLoss_pScale_tweaked',
@@ -165,4 +165,4 @@ for k in tqdm(model_keys):
 
     for i in range(NUM_SAMPLES):
         sample_image = tensor_to_numpy(sample_images[i].cpu(), isGan)
-        save_slice_plots(sample_image, f'./src/results/image_samples/{k}_{i}')
+        save_slice_plots(sample_image, f'./src/results/image_samples2/{k}_{i}')

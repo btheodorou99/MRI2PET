@@ -38,6 +38,7 @@ SSIM
     mri2pet_noPretrain_tweaked SSIM: 0.260 $\pm$ 0.008
     mri2pet_noLoss_pScale_tweaked SSIM: 0.827 $\pm$ 0.004
     selfPretrainedDiffusion_pScale_tweaked SSIM: 0.863 $\pm$ 0.004
+    noisyPretrainedDiffusion_pScale_tweaked SSIM: 0.854 $\pm$ 0.004
 
 PSNR
     baseDiffusion psnr: 21.005 $\pm$ 0.137
@@ -59,6 +60,7 @@ PSNR
     mri2pet_noPretrain_tweaked psnr: 15.644 $\pm$ 0.134
     mri2pet_noLoss_pScale_tweaked psnr: 23.156 $\pm$ 0.120
     selfPretrainedDiffusion_pScale_tweaked psnr: 24.743 $\pm$ 0.124
+    noisyPretrainedDiffusion_pScale_tweaked psnr: 24.615 $\pm$ 0.130
 
 IS:
     baseDiffusion Inception Score: 1.811 $\pm$ 0.001
