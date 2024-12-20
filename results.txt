@@ -1,181 +1,125 @@
-TO RUN:
-    * Pretrain MRI2PET
-    * Pretrain MRI2PET (Pretrain Scale)
-    * Pretrain Noisy
-    * Pretrain Noisy (Pretrain Scale)
-    * Pretrain Self
-    * Pretrain Self (Pretrain Scale)
-    * Train Base Diffusion
-    * Train No Pretrain
-    * Train Base GAN
-    * Tune MRI2PET No Loss
-    * Tune MRI2PET
-    * Tune MRI2PET No Loss (Pretrain Scale)
-    * Tune MRI2PET (Pretrain Scale)
-    * Tune MRI2PET Same Optimizer
-    * Tune MRI2PET Smaller Loss
-    * Tune Noisy
-    * Tune Self
-    * Tune Noisy (Pretrain Scale)
-    * Tune Self (Pretrain Scale)
-    - Tweak Base Diffusion
-    - Tweak No Pretrain
-    - Tweak Base GAN
-    - Tweak MRI2PET No Loss (Pretrain Scale)
-    - Tweak MRI2PET (Pretrain Scale)
-    - Tweak Noisy (Pretrain Scale)
-    - Tweak Self (Pretrain Scale)
-
-
-
 FID:
-    baseDiffusion FID: 62.430 \pm 0.027
-    baseGAN FID: 303.763 \pm 0.058
-    mri2pet FID: 65.418 \pm 0.029
-    mri2pet_pScale FID: 61.836 \pm 0.029
-    mri2pet_sameOptimizer FID: 70.221 \pm 0.029
-    mri2pet_smallerLoss FID: 63.387 \pm 0.026
-    mri2pet_noPretrain FID: 281.500 \pm 0.078
-    mri2pet_noLoss FID: 64.481 \pm 0.034
-    mri2pet_noLoss_pScale FID: 63.605 \pm 0.031
-    selfPretrainedDiffusion FID: 69.841 \pm 0.029
-    selfPretrainedDiffusion_pScale FID: 64.146 \pm 0.031
-    noisyPretrainedDiffusion FID: 68.002 \pm 0.040
-    noisyPretrainedDiffusion_pScale FID: 66.618 \pm 0.027
-    baseDiffusion_tweaked FID: 63.844 \pm 0.046
-    mri2pet_pScale_tweaked FID: 61.735 \pm 0.032
-    mri2pet_noPretrain_tweaked FID: 108.401 \pm 0.046
-    mri2pet_noLoss_pScale_tweaked FID: 61.213 \pm 0.029
-    selfPretrainedDiffusion_pScale_tweaked FID: 62.753 \pm 0.029
+    baseDiffusion FID: 62.430 $\pm$ 0.027
+    baseGAN FID: 303.763 $\pm$ 0.058
+    mri2pet FID: 65.418 $\pm$ 0.029
+    mri2pet_pScale FID: 61.836 $\pm$ 0.029
+    mri2pet_sameOptimizer FID: 70.221 $\pm$ 0.029
+    mri2pet_smallerLoss FID: 63.387 $\pm$ 0.026
+    mri2pet_noPretrain FID: 281.500 $\pm$ 0.078
+    mri2pet_noLoss FID: 64.481 $\pm$ 0.034
+    mri2pet_noLoss_pScale FID: 63.605 $\pm$ 0.031
+    selfPretrainedDiffusion FID: 69.841 $\pm$ 0.029
+    selfPretrainedDiffusion_pScale FID: 64.146 $\pm$ 0.031
+    noisyPretrainedDiffusion FID: 68.002 $\pm$ 0.040
+    noisyPretrainedDiffusion_pScale FID: 66.618 $\pm$ 0.027
+    baseDiffusion_tweaked FID: 63.844 $\pm$ 0.046
+    mri2pet_pScale_tweaked FID: 61.735 $\pm$ 0.032
+    mri2pet_noPretrain_tweaked FID: 108.401 $\pm$ 0.046
+    mri2pet_noLoss_pScale_tweaked FID: 61.213 $\pm$ 0.029
+    selfPretrainedDiffusion_pScale_tweaked FID: 62.753 $\pm$ 0.029
 
-Content FID:
-    baseDiffusion FID: 54.444 \pm 0.047
-    baseGAN FID: 321.717 \pm 0.087
-    mri2pet FID: 61.207 \pm 0.051
-    mri2pet_pScale FID: 53.687 \pm 0.045
-    mri2pet_sameOptimizer FID: 67.344 \pm 0.053
-    mri2pet_smallerLoss FID: 56.388 \pm 0.047
-    mri2pet_noPretrain FID: 323.054 \pm 0.113
-    mri2pet_noLoss FID: 56.357 \pm 0.056
-    mri2pet_noLoss_pScale FID: 55.710 \pm 0.053
-    selfPretrainedDiffusion FID: 65.970 \pm 0.046
-    selfPretrainedDiffusion_pScale FID: 57.679 \pm 0.051
-    noisyPretrainedDiffusion FID: 64.258 \pm 0.054
-    noisyPretrainedDiffusion_pScale FID: 60.300 \pm 0.046
-    baseDiffusion_tweaked FID: 54.431 \pm 0.072
-    mri2pet_pScale_tweaked FID: 53.005 \pm 0.043
-    mri2pet_noPretrain_tweaked FID: 111.708 \pm 0.089
-    mri2pet_noLoss_pScale_tweaked FID: 50.214 \pm 0.044
-    selfPretrainedDiffusion_pScale_tweaked FID: 53.903 \pm 0.050
+SSIM
+    baseDiffusion SSIM: 0.764 $\pm$ 0.005
+    baseGAN SSIM: 0.101 $\pm$ 0.002
+    mri2pet SSIM: 0.845 $\pm$ 0.004
+    mri2pet_pScale SSIM: 0.858 $\pm$ 0.004
+    mri2pet_sameOptimizer SSIM: 0.833 $\pm$ 0.004
+    mri2pet_smallerLoss SSIM: 0.848 $\pm$ 0.004
+    mri2pet_noPretrain SSIM: 0.033 $\pm$ 0.001
+    mri2pet_noLoss SSIM: 0.792 $\pm$ 0.005
+    mri2pet_noLoss_pScale SSIM: 0.781 $\pm$ 0.005
+    selfPretrainedDiffusion SSIM: 0.852 $\pm$ 0.003
+    selfPretrainedDiffusion_pScale SSIM: 0.856 $\pm$ 0.004
+    noisyPretrainedDiffusion SSIM: 0.809 $\pm$ 0.005
+    noisyPretrainedDiffusion_pScale SSIM: 0.849 $\pm$ 0.004
+    baseDiffusion_tweaked SSIM: 0.764 $\pm$ 0.011
+    baseGAN_tweaked SSIM: 0.101 $\pm$ 0.002
+    mri2pet_pScale_tweaked SSIM: 0.857 $\pm$ 0.004
+    mri2pet_noPretrain_tweaked SSIM: 0.260 $\pm$ 0.008
+    mri2pet_noLoss_pScale_tweaked SSIM: 0.827 $\pm$ 0.004
+    selfPretrainedDiffusion_pScale_tweaked SSIM: 0.863 $\pm$ 0.004
+
+PSNR
+    baseDiffusion psnr: 21.005 $\pm$ 0.137
+    baseGAN psnr: 13.712 $\pm$ 0.025
+    mri2pet psnr: 24.195 $\pm$ 0.115
+    mri2pet_pScale psnr: 24.625 $\pm$ 0.127
+    mri2pet_sameOptimizer psnr: 23.683 $\pm$ 0.112
+    mri2pet_smallerLoss psnr: 24.323 $\pm$ 0.133
+    mri2pet_noPretrain psnr: 8.306 $\pm$ 0.079
+    mri2pet_noLoss psnr: 22.008 $\pm$ 0.140
+    mri2pet_noLoss_pScale psnr: 21.851 $\pm$ 0.136
+    selfPretrainedDiffusion psnr: 24.355 $\pm$ 0.119
+    selfPretrainedDiffusion_pScale psnr: 24.641 $\pm$ 0.134
+    noisyPretrainedDiffusion psnr: 24.300 $\pm$ 0.139
+    noisyPretrainedDiffusion_pScale psnr: 24.118 $\pm$ 0.131
+    baseDiffusion_tweaked psnr: 21.396 $\pm$ 0.216
+    baseGAN_tweaked psnr: 13.712 $\pm$ 0.025
+    mri2pet_pScale_tweaked psnr: 24.771 $\pm$ 0.123
+    mri2pet_noPretrain_tweaked psnr: 15.644 $\pm$ 0.134
+    mri2pet_noLoss_pScale_tweaked psnr: 23.156 $\pm$ 0.120
+    selfPretrainedDiffusion_pScale_tweaked psnr: 24.743 $\pm$ 0.124
 
 IS:
-    baseDiffusion Inception Score: 1.811 \pm 0.001
-    baseGAN Inception Score: 1.930 \pm 0.001
-    mri2pet Inception Score: 1.795 \pm 0.001
-    mri2pet_pScale Inception Score: 1.852 \pm 0.001
-    mri2pet_sameOptimizer Inception Score: 1.882 \pm 0.001
-    mri2pet_smallerLoss Inception Score: 1.850 \pm 0.001
-    mri2pet_noPretrain Inception Score: 1.193 \pm 0.000
-    mri2pet_noLoss Inception Score: 1.874 \pm 0.001
-    mri2pet_noLoss_pScale Inception Score: 1.835 \pm 0.001
-    selfPretrainedDiffusion Inception Score: 1.898 \pm 0.001
-    selfPretrainedDiffusion_pScale Inception Score: 1.787 \pm 0.001
-    noisyPretrainedDiffusion Inception Score: 1.765 \pm 0.001
-    noisyPretrainedDiffusion_pScale Inception Score: 1.866 \pm 0.001
-    baseDiffusion_tweaked Inception Score: 1.852 \pm 0.001
-    mri2pet_pScale_tweaked Inception Score: 1.858 \pm 0.001
-    mri2pet_noPretrain_tweaked Inception Score: 1.938 \pm 0.001
-    mri2pet_noLoss_pScale_tweaked Inception Score: 1.872 \pm 0.001
-    selfPretrainedDiffusion_pScale_tweaked Inception Score: 1.868 \pm 0.001
-
+    baseDiffusion Inception Score: 1.811 $\pm$ 0.001
+    baseGAN Inception Score: 1.930 $\pm$ 0.001
+    mri2pet Inception Score: 1.795 $\pm$ 0.001
+    mri2pet_pScale Inception Score: 1.852 $\pm$ 0.001
+    mri2pet_sameOptimizer Inception Score: 1.882 $\pm$ 0.001
+    mri2pet_smallerLoss Inception Score: 1.850 $\pm$ 0.001
+    mri2pet_noPretrain Inception Score: 1.193 $\pm$ 0.000
+    mri2pet_noLoss Inception Score: 1.874 $\pm$ 0.001
+    mri2pet_noLoss_pScale Inception Score: 1.835 $\pm$ 0.001
+    selfPretrainedDiffusion Inception Score: 1.898 $\pm$ 0.001
+    selfPretrainedDiffusion_pScale Inception Score: 1.787 $\pm$ 0.001
+    noisyPretrainedDiffusion Inception Score: 1.765 $\pm$ 0.001
+    noisyPretrainedDiffusion_pScale Inception Score: 1.866 $\pm$ 0.001
+    baseDiffusion_tweaked Inception Score: 1.852 $\pm$ 0.001
+    mri2pet_pScale_tweaked Inception Score: 1.858 $\pm$ 0.001
+    mri2pet_noPretrain_tweaked Inception Score: 1.938 $\pm$ 0.001
+    mri2pet_noLoss_pScale_tweaked Inception Score: 1.872 $\pm$ 0.001
+    selfPretrainedDiffusion_pScale_tweaked Inception Score: 1.868 $\pm$ 0.001
 
 Utility:
-
-RealMRI
-    Accuracy: 0.60240 \pm 0.00940
-    Precision: 0.60544 \pm 0.01319
-    Recall: 0.59655 \pm 0.01039
-    F1: 0.59630 \pm 0.01069
-    AUROC: 0.77971 \pm 0.00864
-RealLimitedMRI
-    Accuracy: 0.42760 \pm 0.00038
-    Precision: 0.15074 \pm 0.00766
-    Recall: 0.33381 \pm 0.00045
-    F1: 0.20352 \pm 0.00351
-    AUROC: 0.50902 \pm 0.00444
-RealPET
-    Accuracy: 0.48440 \pm 0.01554
-    Precision: 0.38231 \pm 0.05162
-    Recall: 0.42308 \pm 0.02255
-    F1: 0.36784 \pm 0.03893
-    AUROC: 0.61684 \pm 0.02318
-SyntheticPET
-    Accuracy: 0.46920 \pm 0.01817
-    Precision: 0.28228 \pm 0.04974
-    Recall: 0.39850 \pm 0.02528
-    F1: 0.31320 \pm 0.04017
-    AUROC: 0.59465 \pm 0.02353
-
-
-
-
-
-
-
-
-
-
-
-
-
-RealMRI
-    Accuracy: 0.66545 \pm 0.00359
-    Precision: 0.66929 \pm 0.00363
-    Recall: 0.67049 \pm 0.00351
-    F1: 0.66680 \pm 0.00354
-    AUROC: 0.80583 \pm 0.00276
-RealLimitedMRI
-    Accuracy: 0.30074 \pm 0.00354
-    Precision: 0.10025 \pm 0.00118
-    Recall: 0.33333 \pm 0.00000
-    F1: 0.15376 \pm 0.00140
-    AUROC: 0.52089 \pm 0.00348
-RealPET
-    Accuracy: 0.48942 \pm 0.00430
-    Precision: 0.50361 \pm 0.00530
-    Recall: 0.51551 \pm 0.00346
-    F1: 0.45479 \pm 0.00420
-    AUROC: 0.66527 \pm 0.00320
-SyntheticPET
-    Accuracy: 0.30983 \pm 0.00360
-    Precision: 0.10328 \pm 0.00120
-    Recall: 0.33333 \pm 0.00000
-    F1: 0.15731 \pm 0.00141
-    AUROC: 0.47544 \pm 0.00363
-AugmentedPET
-    Accuracy: 0.46273 \pm 0.00473
-    Precision: 0.50428 \pm 0.00652
-    Recall: 0.48880 \pm 0.00444
-    F1: 0.43365 \pm 0.00464
-    AUROC: 0.65086 \pm 0.00325
-RealPaired
-    Accuracy: 0.49231 \pm 0.00446
-    Precision: 0.48381 \pm 0.00452
-    Recall: 0.51382 \pm 0.00391
-    F1: 0.47434 \pm 0.00401
-    AUROC: 0.70790 \pm 0.00340
-SyntheticPaired
-    Accuracy: 0.45298 \pm 0.00492
-    Precision: 0.46853 \pm 0.00536
-    Recall: 0.45812 \pm 0.00486
-    F1: 0.44791 \pm 0.00506
-    AUROC: 0.68291 \pm 0.00408
-AugmentedPaired
-    Accuracy: 0.63182 \pm 0.00429
-    Precision: 0.63055 \pm 0.00430
-    Recall: 0.64299 \pm 0.00408
-    F1: 0.63115 \pm 0.00423
-    AUROC: 0.83931 \pm 0.00233
-
-
-Write a script which has variables at the top for image_dir, a list of model_keys, and num_images which then looks in image dir for image files of the form {model_key}_{image_num}_Axial{slice}.png and generates a large image array where each row is one image_num in num_images it puts slice_idx in [10, 13, 15, 17, 20] for each model in that row.
+    RealMRI
+        Accuracy: 0.60240 $\pm$ 0.00940
+        Precision: 0.60544 $\pm$ 0.01319
+        Recall: 0.59655 $\pm$ 0.01039
+        F1: 0.59630 $\pm$ 0.01069
+        AUROC: 0.77971 $\pm$ 0.00864
+    RealLimitedMRI
+        Accuracy: 0.42760 $\pm$ 0.00038
+        Precision: 0.15074 $\pm$ 0.00766
+        Recall: 0.33381 $\pm$ 0.00045
+        F1: 0.20352 $\pm$ 0.00351
+        AUROC: 0.50902 $\pm$ 0.00444
+    RealPET
+        Accuracy: 0.48440 $\pm$ 0.01554
+        Precision: 0.38231 $\pm$ 0.05162
+        Recall: 0.42308 $\pm$ 0.02255
+        F1: 0.36784 $\pm$ 0.03893
+        AUROC: 0.61684 $\pm$ 0.02318
+    RealPaired
+        Accuracy: 0.48360 $\pm$ 0.01847
+        Precision: 0.34831 $\pm$ 0.04871
+        Recall: 0.42434 $\pm$ 0.02540
+        F1: 0.36004 $\pm$ 0.03983
+        AUROC: 0.61525 $\pm$ 0.02653
+    SyntheticPET
+        Accuracy: 0.45920 $\pm$ 0.01092
+        Precision: 0.33741 $\pm$ 0.05089
+        Recall: 0.39722 $\pm$ 0.02154
+        F1: 0.32325 $\pm$ 0.04028
+        AUROC: 0.60625 $\pm$ 0.02089
+    AugmentedPET
+        Accuracy: 0.44440 $\pm$ 0.01739
+        Precision: 0.42103 $\pm$ 0.01222
+        Recall: 0.42394 $\pm$ 0.01283
+        F1: 0.40658 $\pm$ 0.01390
+        AUROC: 0.60344 $\pm$ 0.01738
+    SyntheticPaired
+        Accuracy: 0.46720 $\pm$ 0.01955
+        Precision: 0.26254 $\pm$ 0.05222
+        Recall: 0.38623 $\pm$ 0.02512
+        F1: 0.28112 $\pm$ 0.03619
+        AUROC: 0.57124 $\pm$ 0.02359

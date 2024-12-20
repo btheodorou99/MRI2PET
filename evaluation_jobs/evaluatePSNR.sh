@@ -10,7 +10,7 @@
 module load python
 echo "Average PSNR"
 python -m src.evaluation.calcPSNR_average
-echo "Average Content PSNR"
+echo "Multichannel PSNR"
 python -m src.evaluation.calcPSNR_multichannel
 echo "Multichannel Content PSNR"
 python -m src.evaluation.calcPSNR_multichannel_content
