@@ -59,7 +59,8 @@ import sys
 run = int(sys.argv[1])
 tot_runs = 5
 idx = idx[run*len(idx)//tot_runs:(run+1)*len(idx)//tot_runs]
-mri_dataset = [mri_dataset[i] for i in idx]
+mri_dataset = [mri_dataset[i] for i in idx if not os.path.exists(f'/data/theodoroubp/MRI2PET/results/downstream_dataset_tweaked/syntheticImage_{i}.npy')]
+idx = [i for i in idx if not os.path.exists(f'/data/theodoroubp/MRI2PET/results/downstream_dataset_tweaked/syntheticImage_{i}.npy')]
 
 # paired_dataset = []
 with torch.no_grad():
