@@ -12,9 +12,16 @@ from sklearn import metrics
 from ..config import MRI2PETConfig
 from ..models.downstreamModel import ImageClassifier
 
+SEED = 4
+cudaNum = 0
+NUM_RUNS = 25
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
 config = MRI2PETConfig()
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-NUM_RUNS = 10
+device = torch.device(f"cuda:{cudaNum}" if torch.cuda.is_available() else "cpu")
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(SEED)
 
 def getID(path):
     fname = path.split('/')[-1]
@@ -140,22 +147,23 @@ def evaluate_model(model, data, has_mri, has_pet):
     return metrics_dict
 
 experiments = [
-    # ('RealMRI', True, False, mri_dataset),
-    # ('RealLimitedMRI', True, False, real_paired_dataset),
-    # ('RealPET', False, True, real_paired_dataset),
-    # ('RealPaired', True, True, real_paired_dataset),
+    ('RealMRI', True, False, mri_dataset),
+    ('RealLimitedMRI', True, False, real_paired_dataset),
+    ('RealPET', False, True, real_paired_dataset),
+    ('RealPaired', True, True, real_paired_dataset),
     ('SyntheticPET', False, True, synthetic_paired_dataset),
     ('AugmentedPET', False, True, augmented_paired_dataset),
     ('SyntheticPaired', True, True, synthetic_paired_dataset),
     ('AugmentedPaired', True, True, augmented_paired_dataset),
 ]
 
+seeds = [i * SEED for i in range(NUM_RUNS)]
 for key, hasMRI, hasPET, data in tqdm(experiments):
     print(key)
     
     metrics_dict = {}
-    for seed in tqdm(range(NUM_RUNS), desc="Training Runs", leave=False):
-        model = train_model(data, hasMRI, hasPET, key, seed)
+    for run in tqdm(range(NUM_RUNS), desc="Training Runs", leave=False):
+        model = train_model(data, hasMRI, hasPET, key, seeds[run])
         run_dict = evaluate_model(model, test_dataset, hasMRI, hasPET)
         for k in run_dict:
             metrics_dict[k] = metrics_dict.get(k, []) + [run_dict[k]]
