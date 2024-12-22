@@ -110,26 +110,26 @@ Utility:
         F1: 0.36004 $\pm$ 0.03983
         AUROC: 0.61525 $\pm$ 0.02653
     SyntheticPET
-        Accuracy: 0.45920 $\pm$ 0.01092
-        Precision: 0.33741 $\pm$ 0.05089
-        Recall: 0.39722 $\pm$ 0.02154
-        F1: 0.32325 $\pm$ 0.04028
-        AUROC: 0.60625 $\pm$ 0.02089
+        Accuracy: 0.48120 \pm 0.01724
+        Precision: 0.29795 \pm 0.04995
+        Recall: 0.40877 \pm 0.02416
+        F1: 0.32436 \pm 0.03952
+        AUROC: 0.60452 \pm 0.02510
     AugmentedPET
-        Accuracy: 0.44440 $\pm$ 0.01739
-        Precision: 0.42103 $\pm$ 0.01222
-        Recall: 0.42394 $\pm$ 0.01283
-        F1: 0.40658 $\pm$ 0.01390
-        AUROC: 0.60344 $\pm$ 0.01738
+        Accuracy: 0.49360 \pm 0.00729
+        Precision: 0.46241 \pm 0.00506
+        Recall: 0.46321 \pm 0.00792
+        F1: 0.44520 \pm 0.00615
+        AUROC: 0.65861 \pm 0.00592
     SyntheticPaired
-        Accuracy: 0.46720 $\pm$ 0.01955
-        Precision: 0.26254 $\pm$ 0.05222
-        Recall: 0.38623 $\pm$ 0.02512
-        F1: 0.28112 $\pm$ 0.03619
-        AUROC: 0.57124 $\pm$ 0.02359
+        Accuracy: 0.52360 \pm 0.02022
+        Precision: 0.40160 \pm 0.05423
+        Recall: 0.46553 \pm 0.02760
+        F1: 0.40020 \pm 0.04196
+        AUROC: 0.64374 \pm 0.02753
     AugmentedPaired
-        Accuracy: 0.57760 \pm 0.01744
-        Precision: 0.56497 \pm 0.02323
-        Recall: 0.56349 \pm 0.02105
-        F1: 0.55906 \pm 0.02317
-        AUROC: 0.74801 \pm 0.02081
+        Accuracy: 0.60480 \pm 0.00614
+        Precision: 0.60736 \pm 0.00507
+        Recall: 0.59538 \pm 0.00529
+        F1: 0.59738 \pm 0.00501
+        AUROC: 0.78101 \pm 0.00430
