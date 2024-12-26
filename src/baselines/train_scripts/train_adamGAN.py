@@ -109,7 +109,7 @@ for e in tqdm(range(config.pretrain_epoch)):
         'optimizer_D': optimizer_D,
         'epoch': e
     }
-    torch.save(state, f'./src/save/adamGAN.pt')
+    torch.save(state, f'./src/save/adamGAN_base.pt')
 
 
 
@@ -165,7 +165,7 @@ state = {
     'optimizer_D': optimizer_D,
     'epoch': e
 }
-torch.save(state, f'./src/save/adamGAN.pt')
+torch.save(state, f'./src/save/adamGAN_probing.pt')
         
 probing_dataset = train_dataset[-5*config.batch_size:]
 filter_fisher_g = dict()        

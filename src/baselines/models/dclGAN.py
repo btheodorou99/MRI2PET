@@ -5,33 +5,37 @@ import random
 import torch.nn as nn
 import torch.nn.functional as F
 
-class ImageEncoder(nn.Module):
-    def __init__(self, config, is_mri=True):
-        super(ImageEncoder, self).__init__()
-        self.n_channels = config.n_mri_channels if is_mri else config.n_pet_channels
-        self.image_dim = config.mri_image_dim if is_mri else config.pet_image_dim
 
-        self.conv1 = nn.Conv2d(self.n_channels, 32, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
-        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
-        self.conv4 = nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1)
-        self.flat_dim = 256 * (self.image_dim // 16) * (self.image_dim // 16)
+class ImageEncoder(nn.Module):
+    def __init__(self, config, is_mri):
+        super(ImageEncoder, self).__init__()
+        self.is_mri = is_mri
+        self.depth = config.n_mri_channels if self.is_mri else config.n_pet_channels
+        self.image_dim = config.mri_image_dim if self.is_mri else config.pet_image_dim
+
+        self.conv1 = nn.Conv3d(1, 8, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv3d(8, 16, kernel_size=3, stride=1, padding=1)
+        self.conv3 = nn.Conv3d(16, 32, kernel_size=3, stride=1, padding=1)
+        self.conv4 = nn.Conv3d(32, 64, kernel_size=3, stride=1, padding=1)
+        self.flat_dim = (
+            64 * (self.depth // 16) * (self.image_dim // 16) * (self.image_dim // 16)
+        )
         self.fc1 = nn.Linear(self.flat_dim, config.embed_dim)
         self.fc2 = nn.Linear(config.embed_dim, config.embed_dim)
-        
-    def forward(self, x):        
+
+    def forward(self, x):
         # Convolution + ReLU + MaxPooling
         x = F.relu(self.conv1(x))
-        x = F.max_pool2d(x, 2)
-        
+        x = F.max_pool3d(x, 2)
+
         x = F.relu(self.conv2(x))
-        x = F.max_pool2d(x, 2)
-        
+        x = F.max_pool3d(x, 2)
+
         x = F.relu(self.conv3(x))
-        x = F.max_pool2d(x, 2)
-        
+        x = F.max_pool3d(x, 2)
+
         x = F.relu(self.conv4(x))
-        x = F.max_pool2d(x, 2)
+        x = F.max_pool3d(x, 2)
 
         # Flattening the output
         x = x.view(-1, self.flat_dim)
@@ -41,47 +45,82 @@ class ImageEncoder(nn.Module):
         x = self.fc2(x)
         return x
 
+
 class Generator(nn.Module):
     def __init__(self, config):
         super(Generator, self).__init__()
         self.init_dim = config.pet_image_dim // 32
+        self.init_depth = config.n_pet_channels // (2 * 2 * 3 * 1 * 1)
         self.z_dim = config.z_dim
 
         self.context_emb = ImageEncoder(config, is_mri=True)
-        self.init_map = nn.Linear(config.z_dim + config.embed_dim, 32 * (self.init_dim ** 2))
+        self.init_map = nn.Linear(
+            config.z_dim + config.embed_dim, 8 * self.init_depth * (self.init_dim**2)
+        )
 
-        self.gen1 = self._gen_block(32, 64)
-        self.gen2 = self._gen_block(64, 128)
-        self.gen3 = self._gen_block(128, 128)
-        self.gen4 = self._gen_block(128, 64)
-        self.gen5 = self._gen_block(64, 32)
+        self.gen1 = self._gen_block(8, 16)
+        self.gen2 = self._gen_block(16, 32)
+        self.gen3 = self._gen_block(32, 32)
+        self.gen4 = self._gen_block(32, 16)
+        self.gen5 = self._gen_block_single(16, 8)
         self.output = nn.Sequential(
-            nn.Conv2d(32, 16, kernel_size=3, stride=1, padding=1),
+            nn.Conv3d(8, 4, kernel_size=3, stride=1, padding=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(16, config.n_pet_channels, kernel_size=3, stride=1, padding=1),
-            nn.Tanh()
+            nn.Conv3d(4, 1, kernel_size=3, stride=1, padding=1),
+            nn.Tanh(),
         )
 
     def _gen_block(self, in_channels, out_channels):
         return nn.Sequential(
-            nn.BatchNorm2d(in_channels),
-            nn.ConvTranspose2d(in_channels, out_channels, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.BatchNorm3d(in_channels),
+            nn.ConvTranspose3d(
+                in_channels,
+                out_channels,
+                kernel_size=4,
+                stride=2,
+                padding=1,
+                bias=False,
+            ),
+            nn.LeakyReLU(0.2, inplace=True),
+        )
+
+    def _gen_block_single(self, in_channels, out_channels):
+        return nn.Sequential(
+            nn.BatchNorm3d(in_channels),
+            nn.ConvTranspose3d(
+                in_channels,
+                out_channels,
+                kernel_size=(3, 4, 4),
+                stride=(1, 2, 2),
+                padding=(1, 1, 1),
+                bias=False,
+            ),
             nn.LeakyReLU(0.2, inplace=True),
         )
 
     def forward(self, noise, context_images, finetune=False):
+        context_images = context_images.unsqueeze(1)
         context = self.context_emb(context_images)
         gen_input = torch.cat((context, noise), -1)
         gen_input = self.init_map(gen_input)
-        gen_input = gen_input.view(gen_input.size(0), 16, self.init_size, self.init_size)
+        gen_input = gen_input.view(
+            gen_input.size(0), 8, self.init_depth, self.init_dim, self.init_dim
+        )
         act1 = self.gen1(gen_input)
         act2 = self.gen2(act1)
         act3 = self.gen3(act2)
         act4 = self.gen4(act3)
         act5 = self.gen5(act4)
         img = self.output(act5)
-        return [act1.flatten(1), act2.flatten(1), act3.flatten(1), act4.flatten(1), act5.flatten(1)], img if finetune else img
-    
+        img = img.squeeze(1)
+        return [
+            act1.flatten(1),
+            act2.flatten(1),
+            act3.flatten(1),
+            act4.flatten(1),
+            act5.flatten(1),
+        ], (img if finetune else img)
+
     def compute_dcl_loss(self, acts_S, acts_T, tau):
         random_layer = random.randint(0, len(acts_S)-1)
         acts_S = acts_S[random_layer]
@@ -93,11 +132,12 @@ class Generator(nn.Module):
             loss += - torch.log(pos_cl / neg_cl)
         loss /= acts_S.shape[0]
         return loss
-    
+
     def generate(self, context_images):
         z = torch.randn(context_images.size(0), self.z_dim, device=context_images.device)
         images = self.forward(z, context_images)
         return images
+
 
 class Discriminator(nn.Module):
     def __init__(self, config):
@@ -133,7 +173,7 @@ class Discriminator(nn.Module):
             nn.Linear(128, 1),
             nn.Sigmoid()
         )
-        
+
         self.patch_output = nn.Sequential(
             nn.Linear(512, 128),
             nn.LeakyReLU(0.2, inplace=True),
@@ -142,6 +182,8 @@ class Discriminator(nn.Module):
         )
 
     def forward(self, img, context_images, finetune=False):
+        img = img.unsqueeze(1)
+        context_images = context_images.unsqueeze(1)
         context = self.context_emb(context_images)
         image = self.image_emb(img)
         disc_input = torch.cat((context, image), -1)
@@ -155,7 +197,7 @@ class Discriminator(nn.Module):
         act5 = self.block5(act4)
         validity = self.final(act5)
         return [act1, act2, act3, act4, act5], validity if finetune else validity
-    
+
     def compute_dcl_loss(self, acts_S, acts_T, acts_R, tau):
         random_layer = random.randint(0, len(acts_S)-1)
         acts_S = acts_S[random_layer]
@@ -173,15 +215,15 @@ class Discriminator(nn.Module):
         # Interpolate real and fake samples
         alpha = torch.rand(real_samples.size(0), 1, 1, 1, device=real_samples.device)
         interpolates = (alpha * real_samples + ((1 - alpha) * fake_samples)).requires_grad_(True)
-        
+
         d_interpolates = self.forward(interpolates, context_images)
         fake = torch.ones(d_interpolates.shape, requires_grad=False, device=real_samples.device)
-        
+
         gradients = torch.autograd.grad(
             outputs=d_interpolates, inputs=interpolates,
             grad_outputs=fake, create_graph=True, retain_graph=True, only_inputs=True
         )[0]
-        
+
         gradients = gradients.view(gradients.size(0), -1)
         gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean()
         return gradient_penalty

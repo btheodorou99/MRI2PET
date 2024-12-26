@@ -18,14 +18,14 @@ def weights_init(m):
         m.weight.data.normal_(1.0, 0.02)
         m.bias.data.fill_(0)
 
-def conv2d(*args, **kwargs):
-    return spectral_norm(nn.Conv2d(*args, **kwargs))
+def conv3d(*args, **kwargs):
+    return spectral_norm(nn.Conv3d(*args, **kwargs))
 
-def convTranspose2d(*args, **kwargs):
-    return spectral_norm(nn.ConvTranspose2d(*args, **kwargs))
+def convTranspose3d(*args, **kwargs):
+    return spectral_norm(nn.ConvTranspose3d(*args, **kwargs))
 
-def batchNorm2d(*args, **kwargs):
-    return nn.BatchNorm2d(*args, **kwargs)
+def batchNorm3d(*args, **kwargs):
+    return nn.BatchNorm3d(*args, **kwargs)
 
 def linear(*args, **kwargs):
     return spectral_norm(nn.Linear(*args, **kwargs))
@@ -75,9 +75,9 @@ class SEBlock(nn.Module):
     def __init__(self, ch_in, ch_out):
         super().__init__()
 
-        self.main = nn.Sequential(  nn.AdaptiveAvgPool2d(4), 
-                                    conv2d(ch_in, ch_out, 4, 1, 0, bias=False), Swish(),
-                                    conv2d(ch_out, ch_out, 1, 1, 0, bias=False), nn.Sigmoid() )
+        self.main = nn.Sequential(  nn.AdaptiveAvgPool3d(4), 
+                                    conv3d(ch_in, ch_out, 4, 1, 0, bias=False), Swish(),
+                                    conv3d(ch_out, ch_out, 1, 1, 0, bias=False), nn.Sigmoid() )
 
     def forward(self, feat_small, feat_big):
         return feat_big * self.main(feat_small)
@@ -88,8 +88,8 @@ class InitLayer(nn.Module):
         super().__init__()
 
         self.init = nn.Sequential(
-                        convTranspose2d(nz, channel*2, 4, 1, 0, bias=False),
-                        batchNorm2d(channel*2), GLU() )
+                        convTranspose3d(nz, channel*2, 4, 1, 0, bias=False),
+                        batchNorm3d(channel*2), GLU() )
 
     def forward(self, noise):
         noise = noise.view(noise.shape[0], -1, 1, 1)
@@ -99,22 +99,22 @@ class InitLayer(nn.Module):
 def UpBlock(in_planes, out_planes):
     block = nn.Sequential(
         nn.Upsample(scale_factor=2, mode='nearest'),
-        conv2d(in_planes, out_planes*2, 3, 1, 1, bias=False),
+        conv3d(in_planes, out_planes*2, 3, 1, 1, bias=False),
         #convTranspose2d(in_planes, out_planes*2, 4, 2, 1, bias=False),
-        batchNorm2d(out_planes*2), GLU())
+        batchNorm3d(out_planes*2), GLU())
     return block
 
 
 def UpBlockComp(in_planes, out_planes):
     block = nn.Sequential(
         nn.Upsample(scale_factor=2, mode='nearest'),
-        conv2d(in_planes, out_planes*2, 3, 1, 1, bias=False),
+        conv3d(in_planes, out_planes*2, 3, 1, 1, bias=False),
         #convTranspose2d(in_planes, out_planes*2, 4, 2, 1, bias=False),
         NoiseInjection(),
-        batchNorm2d(out_planes*2), GLU(),
-        conv2d(out_planes, out_planes*2, 3, 1, 1, bias=False),
+        batchNorm3d(out_planes*2), GLU(),
+        conv3d(out_planes, out_planes*2, 3, 1, 1, bias=False),
         NoiseInjection(),
-        batchNorm2d(out_planes*2), GLU()
+        batchNorm3d(out_planes*2), GLU()
         )
     return block
 
@@ -148,8 +148,8 @@ class Generator(nn.Module):
         self.se_128 = SEBlock(nfc[8], nfc[128])
         self.se_256 = SEBlock(nfc[16], nfc[256])
 
-        self.to_128 = conv2d(nfc[128], nc, 1, 1, 0, bias=False) 
-        self.to_big = conv2d(nfc[im_size], nc, 3, 1, 1, bias=False) 
+        self.to_128 = conv3d(nfc[128], nc, 1, 1, 0, bias=False) 
+        self.to_big = conv3d(nfc[im_size], nc, 3, 1, 1, bias=False) 
         
         if im_size > 256:
             self.feat_512 = UpBlockComp(nfc[256], nfc[512]) 
@@ -191,8 +191,8 @@ class DownBlock(nn.Module):
         super(DownBlock, self).__init__()
 
         self.main = nn.Sequential(
-            conv2d(in_planes, out_planes, 4, 2, 1, bias=False),
-            batchNorm2d(out_planes), nn.LeakyReLU(0.2, inplace=True),
+            conv3d(in_planes, out_planes, 4, 2, 1, bias=False),
+            batchNorm3d(out_planes), nn.LeakyReLU(0.2, inplace=True),
             )
 
     def forward(self, feat):
@@ -204,16 +204,16 @@ class DownBlockComp(nn.Module):
         super(DownBlockComp, self).__init__()
 
         self.main = nn.Sequential(
-            conv2d(in_planes, out_planes, 4, 2, 1, bias=False),
-            batchNorm2d(out_planes), nn.LeakyReLU(0.2, inplace=True),
-            conv2d(out_planes, out_planes, 3, 1, 1, bias=False),
-            batchNorm2d(out_planes), nn.LeakyReLU(0.2)
+            conv3d(in_planes, out_planes, 4, 2, 1, bias=False),
+            batchNorm3d(out_planes), nn.LeakyReLU(0.2, inplace=True),
+            conv3d(out_planes, out_planes, 3, 1, 1, bias=False),
+            batchNorm3d(out_planes), nn.LeakyReLU(0.2)
             )
 
         self.direct = nn.Sequential(
-            nn.AvgPool2d(2, 2),
-            conv2d(in_planes, out_planes, 1, 1, 0, bias=False),
-            batchNorm2d(out_planes), nn.LeakyReLU(0.2))
+            nn.AvgPool3d(2, 2),
+            conv3d(in_planes, out_planes, 1, 1, 0, bias=False),
+            batchNorm3d(out_planes), nn.LeakyReLU(0.2))
 
     def forward(self, feat):
         return (self.main(feat) + self.direct(feat)) / 2
@@ -235,18 +235,18 @@ class Discriminator(nn.Module):
 
         if im_size == 1024:
             self.down_from_big = nn.Sequential( 
-                                    conv2d(nc, nfc[1024], 4, 2, 1, bias=False),
+                                    conv3d(nc, nfc[1024], 4, 2, 1, bias=False),
                                     nn.LeakyReLU(0.2, inplace=True),
-                                    conv2d(nfc[1024], nfc[512], 4, 2, 1, bias=False),
-                                    batchNorm2d(nfc[512]),
+                                    conv3d(nfc[1024], nfc[512], 4, 2, 1, bias=False),
+                                    batchNorm3d(nfc[512]),
                                     nn.LeakyReLU(0.2, inplace=True))
         elif im_size == 512:
             self.down_from_big = nn.Sequential( 
-                                    conv2d(nc, nfc[512], 4, 2, 1, bias=False),
+                                    conv3d(nc, nfc[512], 4, 2, 1, bias=False),
                                     nn.LeakyReLU(0.2, inplace=True) )
         elif im_size == 256:
             self.down_from_big = nn.Sequential( 
-                                    conv2d(nc, nfc[512], 3, 1, 1, bias=False),
+                                    conv3d(nc, nfc[512], 3, 1, 1, bias=False),
                                     nn.LeakyReLU(0.2, inplace=True) )
 
         self.down_4  = DownBlockComp(nfc[512], nfc[256])
@@ -256,22 +256,22 @@ class Discriminator(nn.Module):
         self.down_64 = DownBlockComp(nfc[32],  nfc[16])
 
         self.rf_big = nn.Sequential(
-                            conv2d(nfc[16] , nfc[8], 1, 1, 0, bias=False),
-                            batchNorm2d(nfc[8]), nn.LeakyReLU(0.2, inplace=True),
-                            conv2d(nfc[8], 1, 4, 1, 0, bias=False))
+                            conv3d(nfc[16] , nfc[8], 1, 1, 0, bias=False),
+                            batchNorm3d(nfc[8]), nn.LeakyReLU(0.2, inplace=True),
+                            conv3d(nfc[8], 1, 4, 1, 0, bias=False))
 
         self.se_2_16 = SEBlock(nfc[512], nfc[64])
         self.se_4_32 = SEBlock(nfc[256], nfc[32])
         self.se_8_64 = SEBlock(nfc[128], nfc[16])
         
         self.down_from_small = nn.Sequential( 
-                                            conv2d(nc, nfc[256], 4, 2, 1, bias=False), 
+                                            conv3d(nc, nfc[256], 4, 2, 1, bias=False), 
                                             nn.LeakyReLU(0.2, inplace=True),
                                             DownBlock(nfc[256],  nfc[128]),
                                             DownBlock(nfc[128],  nfc[64]),
                                             DownBlock(nfc[64],  nfc[32]), )
 
-        self.rf_small = conv2d(nfc[32], 1, 4, 1, 0, bias=False)
+        self.rf_small = conv3d(nfc[32], 1, 4, 1, 0, bias=False)
 
         self.decoder_big = SimpleDecoder(nfc[16], nc)
         self.decoder_part = SimpleDecoder(nfc[32], nc)
@@ -339,8 +339,8 @@ class SimpleDecoder(nn.Module):
         def upBlock(in_planes, out_planes):
             block = nn.Sequential(
                 nn.Upsample(scale_factor=2, mode='nearest'),
-                conv2d(in_planes, out_planes*2, 3, 1, 1, bias=False),
-                batchNorm2d(out_planes*2), GLU())
+                conv3d(in_planes, out_planes*2, 3, 1, 1, bias=False),
+                batchNorm3d(out_planes*2), GLU())
             return block
 
         self.main = nn.Sequential(  nn.AdaptiveAvgPool2d(8),
@@ -348,7 +348,7 @@ class SimpleDecoder(nn.Module):
                                     upBlock(nfc[16], nfc[32]),
                                     upBlock(nfc[32], nfc[64]),
                                     upBlock(nfc[64], nfc[128]),
-                                    conv2d(nfc[128], nc, 3, 1, 1, bias=False),
+                                    conv3d(nfc[128], nc, 3, 1, 1, bias=False),
                                     nn.Tanh() )
 
     def forward(self, input):
@@ -374,13 +374,13 @@ class TextureDiscriminator(nn.Module):
             nfc[k] = int(v*ndf)
 
         self.down_from_small = nn.Sequential( 
-                                            conv2d(nc, nfc[256], 4, 2, 1, bias=False), 
+                                            conv3d(nc, nfc[256], 4, 2, 1, bias=False), 
                                             nn.LeakyReLU(0.2, inplace=True),
                                             DownBlock(nfc[256],  nfc[128]),
                                             DownBlock(nfc[128],  nfc[64]),
                                             DownBlock(nfc[64],  nfc[32]), )
         self.rf_small = nn.Sequential(
-                            conv2d(nfc[16], 1, 4, 1, 0, bias=False))
+                            conv3d(nfc[16], 1, 4, 1, 0, bias=False))
 
         self.decoder_small = SimpleDecoder(nfc[32], nc)
         

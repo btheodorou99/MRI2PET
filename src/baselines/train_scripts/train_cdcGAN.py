@@ -111,7 +111,7 @@ for e in tqdm(range(config.pretrain_epoch)):
         'optimizer_D': optimizer_D,
         'epoch': e
     }
-    torch.save(state, f'./src/save/cdcGAN.pt')
+    torch.save(state, f'./src/save/cdcGAN_base.pt')
 
 G_s = deepcopy(generator).eval().requires_grad_(False)
 init_z = torch.randn(len(train_dataset), config.z_dim, device=device)

@@ -102,7 +102,7 @@ for e in tqdm(range(config.pretrain_epoch)):
         'optimizer_D': optimizer_D,
         'epoch': e
     }
-    torch.save(state, f'./src/save/dclGAN.pt')
+    torch.save(state, f'./src/save/dclGAN_base.pt')
 
 G_s = deepcopy(generator).eval().requires_grad_(False)
 optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=config.lr)

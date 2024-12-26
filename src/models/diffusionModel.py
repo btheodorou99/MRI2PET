@@ -10,7 +10,6 @@ class ImageEncoder(nn.Module):
         super(ImageEncoder, self).__init__()
         self.depth = config.n_mri_channels
         self.image_dim = config.mri_image_dim
-
         self.conv1 = nn.Conv3d(1, 8, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv3d(8, 16, kernel_size=3, stride=1, padding=1)
         self.conv3 = nn.Conv3d(16, 32, kernel_size=3, stride=1, padding=1)

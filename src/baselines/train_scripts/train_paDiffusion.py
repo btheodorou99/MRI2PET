@@ -27,13 +27,13 @@ LAMBDA1 = 0.5
 LAMBDA2 = 0.5
 LAMBDA3 = 0.05
 
-if os.path.exists("./src/data/globalMean.pkl"):
-    global_mean = pickle.load(open("./src/data/globalMean.pkl", "rb"))
-    global_std = pickle.load(open("./src/data/globalStd.pkl", "rb"))
+if os.path.exists("./src/data/globalMeanPretrain.pkl"):
+    global_mean = pickle.load(open("./src/data/globalMeanPretrain.pkl", "rb"))
+    global_std = pickle.load(open("./src/data/globalStdPretrain.pkl", "rb"))
 else:
     means = []
     variances = []
-    for (_, image) in train_dataset + val_dataset:
+    for _, image in pretrain_dataset:
         img = np.load(image)
         means.append(np.mean(img))
         variances.append(np.var(img))
@@ -41,8 +41,8 @@ else:
     global_mean = np.mean(means)
     global_variance = np.mean(variances) + np.mean((np.array(means) - global_mean) ** 2)
     global_std = np.sqrt(global_variance)
-    pickle.dump(global_mean, open("./src/data/globalMean.pkl", "wb"))
-    pickle.dump(global_std, open("./src/data/globalStd.pkl", "wb"))
+    pickle.dump(global_mean, open("./src/data/globalMeanPretrain.pkl", "wb"))
+    pickle.dump(global_std, open("./src/data/globalStdPretrain.pkl", "wb"))
 
 def load_image(image_path, is_mri=True):
     img = np.load(image_path)
@@ -69,25 +69,34 @@ def shuffle_training_data(train_ehr_dataset):
     random.shuffle(train_ehr_dataset)
 
 model = DiffusionModel(config).to(device)
-optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
 if os.path.exists(f"./src/save/paDiffusion.pt"):
     print("Loading previous model")
     checkpoint = torch.load(f'./src/save/paDiffusion.pt', map_location=torch.device(device))
     model.load_state_dict(checkpoint['model'])
-    optimizer.load_state_dict(checkpoint['optimizer'])
+
+steps_per_batch = 8
+config.batch_size = config.batch_size // steps_per_batch
+optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
 
 for e in tqdm(range(config.pretrain_epoch)):
     shuffle_training_data(pretrain_dataset)
     pretrain_losses = []
     model.train()
+    curr_step = 0
+    optimizer.zero_grad()
     for i in range(0, len(pretrain_dataset), config.batch_size):
         batch_context, batch_images = get_batch(pretrain_dataset, i, config.batch_size)
-        optimizer.zero_grad()
         loss, _ = model(batch_context, batch_images, gen_loss=True)
-        loss.backward()
-        optimizer.step()
         pretrain_losses.append(loss.cpu().detach().item())
-    
+        loss = loss / steps_per_batch
+        loss.backward()
+        curr_step += 1
+        if curr_step % steps_per_batch == 0:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
+            optimizer.step()
+            optimizer.zero_grad()
+            curr_step = 0
+
     cur_pretrain_loss = np.mean(pretrain_losses)
     print("Epoch %d Training Loss:%.7f"%(e, cur_pretrain_loss), flush=True)
     state = {
@@ -95,7 +104,7 @@ for e in tqdm(range(config.pretrain_epoch)):
         'optimizer': optimizer.state_dict(),
         'mode': 'pretrain'
     }
-    torch.save(state, f'./src/save/paDiffusion.pt')
+    torch.save(state, f'./src/save/paDiffusion_base.pt')
 
 model_S = deepcopy(model)
 optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
@@ -104,18 +113,24 @@ for e in tqdm(range(config.epoch)):
     shuffle_training_data(train_dataset)
     train_losses = []
     model.train()
+    curr_step = 0
+    optimizer.zero_grad()
     for i in range(0, len(train_dataset), config.batch_size):
         batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
-        optimizer.zero_grad()
+        train_losses.append(loss.cpu().detach().item())
         l_simple, x_T = model(batch_context, batch_images, gen_loss=True, output_images=True)
         _, x_S = model_S(batch_context, batch_images, gen_loss=True, output_images=True)
         l_img = model.compute_pairwise_sim_loss(x_S, x_T)
         l_hf, l_hfmse = model.compute_high_freq_loss(x_S, x_T, batch_images)
         loss = l_simple + LAMBDA1 * l_img + LAMBDA2 * l_hf + LAMBDA3 * l_hfmse
-        
+        loss = loss / steps_per_batch
         loss.backward()
-        optimizer.step()
-        train_losses.append(loss.cpu().detach().item())
+        curr_step += 1
+        if curr_step % steps_per_batch == 0:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
+            optimizer.step()
+            optimizer.zero_grad()
+            curr_step = 0
     
     model.eval()
     with torch.no_grad():
