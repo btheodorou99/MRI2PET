@@ -61,13 +61,13 @@ def get_inception_score(model, dataset):
     return (np.mean(is_scores), np.std(is_scores) / np.sqrt(config.n_bootstrap))
 
 model_keys = [
-    "baseDiffusion",
-    "baseGAN",
-    "mri2pet",
-    "mri2pet_noPretrain",
-    "mri2pet_noLoss",
-    "selfPretrainedDiffusion",
-    "noisyPretrainedDiffusion",
+    "paDiffusion",
+    "maskedGAN",
+    "fastGAN",
+    "diffAugmentGAN",
+    "dclGAN",
+    "cdcGAN",
+    "adamGAN",
 ]
 
 for k in tqdm(model_keys):
