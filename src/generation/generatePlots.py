@@ -7,12 +7,12 @@ image_dir = '/Users/theodoroubp/Desktop/Samples/'
 model_keys = [
     'realMRI_Aligned', 
     'realPET', 
-    'mri2pet_pScale_tweaked',
-    'mri2pet_noLoss_pScale_tweaked',
-    'mri2pet_noPretrain_tweaked',
-    'baseDiffusion_tweaked',
-    # 'noisyPretrainedDiffusion_pScale_tweaked',
-    # 'baseGAN_tweaked',
+    'mri2pet',
+    'mri2pet_noLoss',
+    'mri2pet_noPretrain',
+    'baseDiffusion',
+    # 'noisyPretrainedDiffusion',
+    # 'baseGAN',
 ]
 num_images = 5
 slice_indices = [10, 13, 15]

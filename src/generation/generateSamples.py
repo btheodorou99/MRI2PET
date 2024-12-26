@@ -125,23 +125,10 @@ model_keys = [
     'baseDiffusion',
     'baseGAN',
     'mri2pet',
-    'mri2pet_pScale',
-    'mri2pet_sameOptimizer',
-    'mri2pet_smallerLoss',
     'mri2pet_noPretrain',
     'mri2pet_noLoss',
-    'mri2pet_noLoss_pScale',
     'selfPretrainedDiffusion',
-    'selfPretrainedDiffusion_pScale',
     'noisyPretrainedDiffusion',
-    'noisyPretrainedDiffusion_pScale',
-    'baseDiffusion_tweaked',
-    'baseGAN_tweaked',
-    'mri2pet_pScale_tweaked',
-    'mri2pet_noPretrain_tweaked',
-    'mri2pet_noLoss_pScale_tweaked',
-    'selfPretrainedDiffusion_pScale_tweaked',
-    'noisyPretrainedDiffusion_pScale_tweaked',
 ]
 
 for k in tqdm(model_keys):
