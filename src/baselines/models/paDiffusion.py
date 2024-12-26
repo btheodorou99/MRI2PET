@@ -9,30 +9,29 @@ from einops import rearrange, repeat
 class ImageEncoder(nn.Module):
     def __init__(self, config):
         super(ImageEncoder, self).__init__()
-        self.n_channels = config.n_mri_channels
+        self.depth = config.n_mri_channels
         self.image_dim = config.mri_image_dim
-
-        self.conv1 = nn.Conv2d(self.n_channels, 32, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
-        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
-        self.conv4 = nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1)
-        self.flat_dim = 256 * (self.image_dim // 16) * (self.image_dim // 16)
+        self.conv1 = nn.Conv3d(1, 8, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv3d(8, 16, kernel_size=3, stride=1, padding=1)
+        self.conv3 = nn.Conv3d(16, 32, kernel_size=3, stride=1, padding=1)
+        self.conv4 = nn.Conv3d(32, 64, kernel_size=3, stride=1, padding=1)
+        self.flat_dim = 64 * (self.depth // 16) * (self.image_dim // 16) * (self.image_dim // 16)
         self.fc1 = nn.Linear(self.flat_dim, config.embed_dim)
         self.fc2 = nn.Linear(config.embed_dim, config.embed_dim)
         
     def forward(self, x):        
         # Convolution + ReLU + MaxPooling
         x = F.relu(self.conv1(x))
-        x = F.max_pool2d(x, 2)
+        x = F.max_pool3d(x, 2)
         
         x = F.relu(self.conv2(x))
-        x = F.max_pool2d(x, 2)
+        x = F.max_pool3d(x, 2)
         
         x = F.relu(self.conv3(x))
-        x = F.max_pool2d(x, 2)
+        x = F.max_pool3d(x, 2)
         
         x = F.relu(self.conv4(x))
-        x = F.max_pool2d(x, 2)
+        x = F.max_pool3d(x, 2)
 
         # Flattening the output
         x = x.view(-1, self.flat_dim)

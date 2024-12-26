@@ -60,7 +60,7 @@ if os.path.exists(f"./src/save/diffAugmentGAN.pt"):
     optimizer_G.load_state_dict(checkpoint['optimizer_g'])
     optimizer_D.load_state_dict(checkpoint['optimizer_d'])
 
-for e in tqdm(range(config.epoch)):
+for e in tqdm(range(config.epoch*config.generator_interval)):
     shuffle_training_data(train_dataset)
     generator.train()
     discriminator.train()

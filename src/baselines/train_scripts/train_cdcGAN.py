@@ -118,7 +118,7 @@ init_z = torch.randn(len(train_dataset), config.z_dim, device=device)
 optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=config.lr)
 optimizer_G = torch.optim.Adam(generator.parameters(), lr=config.lr)
 
-for e in tqdm(range(config.epoch)):
+for e in tqdm(range(config.epoch*config.generator_interval)):
     shuffle_training_data(train_dataset)
     generator.train()
     discriminator.train()

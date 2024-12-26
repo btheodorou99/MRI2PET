@@ -168,9 +168,7 @@ state = {
 torch.save(state, f'./src/save/adamGAN.pt')
         
 probing_dataset = train_dataset[-5*config.batch_size:]
-# filter_grad_g = dict()
-filter_fisher_g = dict()
-# filter_grad_d = dict()          
+filter_fisher_g = dict()        
 filter_fisher_d = dict()
 
 optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=config.lr)
@@ -197,25 +195,6 @@ for i in range(0, len(probing_dataset), config.batch_size):
         # 2) Estimate the fisher information and grad of each parameter
         g_grads, est_fisher_info_g   = generator.estimate_fisher(loglikelihood=g_loss_fisher)
         d_grads, est_fisher_info_d   = discriminator.estimate_fisher(loglikelihood=d_loss_fisher)
-
-        # # Grad
-        # # store grad for G
-        # for k, (n, p) in enumerate(generator.named_parameters()):
-        #     if p.requires_grad:
-        #         if g_grads[k] is not None:
-        #             if i == 0 and fisher_idx == 0:
-        #                 filter_grad_g[n] =  g_grads[k].detach()
-        #             else:
-        #                 filter_grad_g[n] += g_grads[k].detach()
-
-        # # store grad for D
-        # for k, (n, p) in enumerate(discriminator.named_parameters()):
-        #     if p.requires_grad:
-        #         if d_grads[k] is not None:
-        #             if i == 0 and fisher_idx == 0:
-        #                 filter_grad_d[n] =  d_grads[k].detach()
-        #             else:
-        #                 filter_grad_d[n] += d_grads[k].detach()
 
         # FIM
         # Record filter-level FIM in G
