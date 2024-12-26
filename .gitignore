@@ -1,4 +1,6 @@
 src/data/
+src/save/
+src/results/
 src/utils/deleteProcessed.py
 src/utils/archive/
 *.pyc
