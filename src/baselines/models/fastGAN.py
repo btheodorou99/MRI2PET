@@ -101,7 +101,8 @@ def UpBlock(in_planes, out_planes):
         nn.Upsample(scale_factor=2, mode='nearest'),
         conv3d(in_planes, out_planes*2, 3, 1, 1, bias=False),
         #convTranspose2d(in_planes, out_planes*2, 4, 2, 1, bias=False),
-        # batchNorm3d(out_planes*2), GLU()
+        # batchNorm3d(out_planes*2), 
+        GLU()
     )
     return block
 
@@ -165,8 +166,8 @@ class Generator(nn.Module):
         feat_4   = self.init(input)
         feat_8   = self.feat_8(feat_4)
         feat_16  = self.feat_16(feat_8)
-        feat_32  = self.feat_32(feat_16).contiguous()
-        feat_64  = self.feat_64(feat_32).contiguous()
+        feat_32  = self.feat_32(feat_16)
+        feat_64  = self.feat_64(feat_32)
         feat_64  = self.se_64( feat_4, feat_64)
 
         feat_128 = self.se_128( feat_8, self.feat_128(feat_64) )
