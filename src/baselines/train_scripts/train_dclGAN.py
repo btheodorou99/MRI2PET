@@ -151,7 +151,7 @@ for e in tqdm(range(config.epoch*config.generator_interval)):
             # Train Generator
             acts_T, fake_imgs = generator(z, batch_context, finetune=True)
             acts_S, _ = G_s(z, batch_context, finetune=True)
-            fake_validity = discriminator(fake_imgs, batch_context, finetune=True)
+            fake_validity = discriminator(fake_imgs, batch_context, finetune=False)
             g_loss = -torch.mean(fake_validity)
             g_loss += DCL_LAMBDA1 * generator.compute_dcl_loss(acts_S, acts_T, DCL_TAU)
             g_loss = g_loss / steps_per_batch
