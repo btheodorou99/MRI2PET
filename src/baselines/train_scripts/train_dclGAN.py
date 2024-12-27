@@ -65,7 +65,7 @@ if os.path.exists(f"./src/save/dclGAN.pt"):
     optimizer_G.load_state_dict(checkpoint['optimizer_g'])
     optimizer_D.load_state_dict(checkpoint['optimizer_d'])
 
-steps_per_batch = 2
+steps_per_batch = 4
 config.batch_size = config.batch_size // steps_per_batch
 
 # for e in tqdm(range(config.pretrain_epoch)):
