@@ -200,7 +200,7 @@ class Discriminator(nn.Module):
         loss = 0
         for i in range(acts_S.shape[0]):
             pos_cl = torch.exp(F.cosine_similarity(acts_S[i], acts_T[i], dim=-1) / tau)
-            neg_cl = pos_cl + torch.sum([torch.exp(F.cosine_similarity(acts_T[i], acts_R[j]) / tau, dim=-1) for j in range(acts_S.shape[0]) if j != i])
+            neg_cl = pos_cl + torch.sum([torch.exp(F.cosine_similarity(acts_T[i], acts_R[j], dim=-1) / tau) for j in range(acts_S.shape[0]) if j != i])
             loss += - torch.log(pos_cl / neg_cl)
         loss /= acts_S.shape[0]
         return loss
