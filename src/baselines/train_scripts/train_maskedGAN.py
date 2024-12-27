@@ -164,6 +164,7 @@ for e in tqdm(range(config.epoch*config.generator_interval)):
             optimizer_D.zero_grad()
 
         if i % (config.generator_interval * config.batch_size) == 0:
+            print(curr_step, steps_per_batch * config.generator_interval)
             # Train Generator
             acts_T, fake_imgs = generator(z, batch_context, finetune=True)
             acts_S, _ = G_s(z, batch_context, finetune=True)
