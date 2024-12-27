@@ -183,7 +183,7 @@ for i in range(0, len(probing_dataset), config.batch_size):
         img_real = batch_images[fisher_idx].view(1,config.n_pet_channels,config.pet_image_dim,config.pet_image_dim)
 
         # 1) Obtain predicted results
-        img_fake, _ = generator(img_noise, img_context)
+        img_fake = generator(img_noise, img_context)
         fake_pred_fisher = discriminator(img_fake, batch_context)
         real_pred_fisher = discriminator(img_real, batch_context)
         g_loss_fisher = -torch.mean(fake_pred_fisher)
