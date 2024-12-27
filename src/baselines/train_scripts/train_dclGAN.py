@@ -101,7 +101,7 @@ for e in tqdm(range(config.pretrain_epoch)):
             g_loss = -torch.mean(fake_validity)
             g_loss = g_loss / steps_per_batch
             g_loss.backward()
-            if curr_step % (steps_per_batch * config.generator_interval) == 0:
+            if (curr_step + 1) % (steps_per_batch * config.generator_interval) == 0:
                 torch.nn.utils.clip_grad_norm_(generator.parameters(), 0.5)
                 optimizer_G.step()
                 optimizer_G.zero_grad()

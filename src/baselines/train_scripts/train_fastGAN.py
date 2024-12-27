@@ -131,8 +131,6 @@ for e in tqdm(range(config.epoch)):
         
         for p, avg_p in zip(generator.parameters(), avg_param_G):
             avg_p.mul_(0.999).add_(0.001 * p.data)
-            
-        raise Exception("Stop")
 
     backup_para = copy_G_params(generator)
     load_params(generator, avg_param_G)
