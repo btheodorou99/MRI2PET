@@ -57,8 +57,8 @@ if os.path.exists(f"./src/save/diffAugmentGAN.pt"):
     checkpoint = torch.load(f'./src/save/diffAugmentGAN.pt', map_location=torch.device(device))
     generator.load_state_dict(checkpoint['generator'])
     discriminator.load_state_dict(checkpoint['discriminator'])
-    optimizer_G.load_state_dict(checkpoint['optimizer_g'])
-    optimizer_D.load_state_dict(checkpoint['optimizer_d'])
+    optimizer_G.load_state_dict(checkpoint['optimizer_G'])
+    optimizer_D.load_state_dict(checkpoint['optimizer_D'])
 
 steps_per_batch = 2
 config.batch_size = config.batch_size // steps_per_batch
