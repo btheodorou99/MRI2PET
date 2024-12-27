@@ -124,7 +124,7 @@ def UpBlockComp(in_planes, out_planes):
 class Generator(nn.Module):
     def __init__(self, config):
         super(Generator, self).__init__()
-        ngf=16
+        ngf=8
         nz=config.z_dim 
         nc=config.n_pet_channels
         im_size=config.pet_image_dim
