@@ -160,7 +160,7 @@ class Generator(nn.Module):
     def forward(self, input, context):
         context = context.unsqueeze(1)
         context = self.context_emb(context)
-        input = torch.cat((context, input), -1)
+        input = torch.cat((context, input), -1).unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
         feat_4   = self.init(input)
         feat_8   = self.feat_8(feat_4)
         feat_16  = self.feat_16(feat_8)
