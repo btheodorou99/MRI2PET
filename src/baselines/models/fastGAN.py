@@ -143,12 +143,10 @@ class Generator(nn.Module):
         self.feat_16  = UpBlock(nfc[8], nfc[16])
         self.feat_32  = UpBlockComp(nfc[16], nfc[32])
         self.feat_64  = UpBlock(nfc[32], nfc[64])
-        self.feat_128 = UpBlockComp(nfc[64], nfc[128])
 
         self.se_64  = SEBlock(nfc[4], nfc[64])
-        self.se_128 = SEBlock(nfc[8], nfc[128])
 
-        self.to_128 = conv3d(nfc[128], nc, 1, 1, 0, bias=False)
+        self.to_128 = conv3d(nfc[64], nc, 1, 1, 0, bias=False)
         self.to_big = conv3d(nfc[64], nc, 3, 1, 1, bias=False)
 
     def forward(self, input, context):
@@ -161,11 +159,9 @@ class Generator(nn.Module):
         feat_32  = self.feat_32(feat_16)
         feat_64  = self.feat_64(feat_32)
         feat_64  = self.se_64(feat_4, feat_64)
-        feat_128 = self.feat_128(feat_64)
-        feat_128 = self.se_128(feat_8, feat_128)
 
         im_big = torch.tanh(self.to_big(feat_64))
-        im_128 = torch.tanh(self.to_128(feat_128))
+        im_128 = torch.tanh(self.to_128(feat_64))
 
         return [im_big, im_128]
 
