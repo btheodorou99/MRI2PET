@@ -101,7 +101,8 @@ for e in tqdm(range(config.pretrain_epoch)):
             optimizer_G.zero_grad()
             g_loss.backward()
             optimizer_G.step()
-
+            break
+    break
     state = {
         'generator': generator.state_dict(),
         'discriminator': discriminator.state_dict(),
@@ -145,27 +146,24 @@ for i in range(0, len(probing_dataset), config.batch_size):
 
     optimizer_D.zero_grad()
     d_loss.backward()
-    
     optimizer_D.step()
 
-    if i % (config.generator_interval * config.batch_size) == 0:
-        # Train Generator
-        fake_imgs = generator(z, batch_context)
-        fake_validity = discriminator(fake_imgs, batch_context)
-        g_loss = -torch.mean(fake_validity)
+    fake_imgs = generator(z, batch_context)
+    fake_validity = discriminator(fake_imgs, batch_context)
+    g_loss = -torch.mean(fake_validity)
 
-        optimizer_G.zero_grad()
-        g_loss.backward()
-        optimizer_G.step()
+    optimizer_G.zero_grad()
+    g_loss.backward()
+    optimizer_G.step()
 
-state = {
-    'generator': generator.state_dict(),
-    'discriminator': discriminator.state_dict(),
-    'optimizer_G': optimizer_G,
-    'optimizer_D': optimizer_D,
-    'epoch': e
-}
-torch.save(state, f'./src/save/adamGAN_probing.pt')
+# state = {
+#     'generator': generator.state_dict(),
+#     'discriminator': discriminator.state_dict(),
+#     'optimizer_G': optimizer_G,
+#     'optimizer_D': optimizer_D,
+#     'epoch': e
+# }
+# torch.save(state, f'./src/save/adamGAN_probing.pt')
         
 probing_dataset = train_dataset[-5*config.batch_size:]
 filter_fisher_g = dict()        
@@ -420,6 +418,7 @@ for e in tqdm(range(config.epoch)):
             # ---------------------------------------------------------------------------------------
             
             optimizer_G.step()
+            raise Exception("Stop")
 
     state = {
         'generator': generator.state_dict(),
