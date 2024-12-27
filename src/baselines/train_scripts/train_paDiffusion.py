@@ -107,6 +107,8 @@ config.batch_size = config.batch_size // steps_per_batch
 #     torch.save(state, f'./src/save/paDiffusion_base.pt')
 
 model_S = deepcopy(model)
+for name, param in model_S.named_parameters():
+    param.requires_grad = True
 optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
 
 for e in tqdm(range(config.epoch)):
@@ -118,7 +120,8 @@ for e in tqdm(range(config.epoch)):
     for i in range(0, len(train_dataset), config.batch_size):
         batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
         l_simple, x_T = model(batch_context, batch_images, gen_loss=True, output_images=True)
-        _, x_S = model_S(batch_context, batch_images, gen_loss=True, output_images=True)
+        with torch.no_grad():
+            _, x_S = model_S(batch_context, batch_images, gen_loss=True, output_images=True)
         l_img = model.compute_pairwise_sim_loss(x_S, x_T)
         l_hf, l_hfmse = model.compute_high_freq_loss(x_S, x_T, batch_images)
         loss = l_simple + LAMBDA1 * l_img + LAMBDA2 * l_hf + LAMBDA3 * l_hfmse
