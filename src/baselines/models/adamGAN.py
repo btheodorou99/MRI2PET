@@ -99,8 +99,9 @@ class ConvTranspose3d_kml(nn.Module):
 class ImageEncoder(nn.Module):
     def __init__(self, config, is_mri=True):
         super(ImageEncoder, self).__init__()
-        self.n_channels = config.n_mri_channels if is_mri else config.n_pet_channels
-        self.image_dim = config.mri_image_dim if is_mri else config.pet_image_dim
+        self.is_mri = is_mri
+        self.depth = config.n_mri_channels if self.is_mri else config.n_pet_channels
+        self.image_dim = config.mri_image_dim if self.is_mri else config.pet_image_dim
 
         self.conv1 = Conv3d_kml(1, 8, kernel_size=3, stride=1, padding=1)
         self.conv2 = Conv3d_kml(8, 16, kernel_size=3, stride=1, padding=1)
@@ -169,6 +170,7 @@ class Generator(nn.Module):
         )
 
     def forward(self, noise, context_images):
+        context_images = context_images.unsqueeze(1)
         context = self.context_emb(context_images)
         gen_input = torch.cat((context, noise), -1)
         gen_input = self.init_map(gen_input)
