@@ -26,7 +26,7 @@ train_dataset = pickle.load(open('./src/data/trainDataset.pkl', 'rb'))
 val_dataset = pickle.load(open('./src/data/valDataset.pkl', 'rb'))
 
 policy = 'color,translation'
-percept = lpips.PerceptualLoss(model='net-lin', net='vgg', use_gpu=True)
+percept = lpips.LPIPS(net='vgg', spatial=False).to(device)
 
 def load_image(image_path, is_mri=True):
     img = np.load(image_path)
