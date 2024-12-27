@@ -63,7 +63,7 @@ def save_image(tensor, path, isGan=False):
     np.save(path, image)
 
 
-k = "maskedGAN"
+k = "cdcGAN"
 os.makedirs(f"/data/theodoroubp/MRI2PET/results/generated_datasets/{k}", exist_ok=True)
 model = Generator(config)
 model.load_state_dict(torch.load(f"./src/save/{k}.pt", map_location="cpu")["generator"])
