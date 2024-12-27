@@ -94,7 +94,7 @@ class Generator(nn.Module):
         act5 = self.gen5(act4)
         img = self.output(act5)
         img = img.squeeze(1)
-        return [act1.flatten(1), act2.flatten(1), act3.flatten(1), act4.flatten(1), act5.flatten(1)], img if finetune else img
+        return ([act1.flatten(1), act2.flatten(1), act3.flatten(1), act4.flatten(1), act5.flatten(1)], img) if finetune else img
     
     def compute_cdc_loss(self, acts_S, acts_T):
         loss = 0

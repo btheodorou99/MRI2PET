@@ -90,7 +90,7 @@ class Generator(nn.Module):
         act5 = self.gen5(act4)
         img = self.output(act5)
         img = img.squeeze(1)
-        return [act1.flatten(1), act2.flatten(1), act3.flatten(1), act4.flatten(1), act5.flatten(1)], img if finetune else img
+        return ([act1.flatten(1), act2.flatten(1), act3.flatten(1), act4.flatten(1), act5.flatten(1)], img) if finetune else img
     
     def compute_cdc_loss(self, acts_S, acts_T):
         loss = 0
@@ -169,7 +169,7 @@ class Discriminator(nn.Module):
         act4 = self.block4(act3)
         act5 = self.block5(act4)
         validity = self.final(act5)
-        return [act1, act2, act3, act4, act5], validity if finetune else validity
+        return ([act1, act2, act3, act4, act5], validity) if finetune else validity
     
     def compute_cdc_loss(self, acts_S, acts_T):
         loss = 0
