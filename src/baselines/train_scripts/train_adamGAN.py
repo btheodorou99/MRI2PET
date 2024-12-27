@@ -231,10 +231,9 @@ fc_names = ['init_map']
 print(filter_fisher_g.keys())
 print(filter_fisher_d.keys())
 for name in fc_names:
-    u_fim    = filter_fisher_g[f'{name}.u_vector'].mean()
-    v_fim    = filter_fisher_g[f'{name}.v_vector']
-    b_fim    = filter_fisher_g[f'{name}.b_vector']
-    fim      = (u_fim + v_fim + b_fim) / 2
+    u_fim    = filter_fisher_g[f'{name}.weight'].mean()
+    b_fim    = filter_fisher_g[f'{name}.bias']
+    fim      = (u_fim + b_fim) / 2
     grouped_fim_fc_g = np.concatenate((grouped_fim_fc_g, fim), axis=None)
 cutline_g_fc = np.percentile(grouped_fim_fc_g, q=FISHER_QUANTILE)
 
