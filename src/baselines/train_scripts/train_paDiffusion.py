@@ -119,6 +119,9 @@ for e in tqdm(range(config.epoch)):
     optimizer.zero_grad()
     for i in range(0, len(train_dataset), config.batch_size):
         batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
+        if len(batch_context) == 1:
+            continue
+        
         l_simple, x_T = model(batch_context, batch_images, gen_loss=True, output_images=True)
         with torch.no_grad():
             _, x_S = model_S(batch_context, batch_images, gen_loss=True, output_images=True)
