@@ -52,7 +52,7 @@ def get_batch(dataset, loc, batch_size):
 
 def shuffle_training_data(train_ehr_dataset):
     random.shuffle(train_ehr_dataset)
-    
+
 def get_subspace(init_z, bs):
     std = SUBSPACE_STD
     ind = np.random.randint(0, init_z.size(0), size=bs)
@@ -74,13 +74,19 @@ if os.path.exists(f"./src/save/maskedGAN.pt"):
     optimizer_G.load_state_dict(checkpoint['optimizer_g'])
     optimizer_D.load_state_dict(checkpoint['optimizer_d'])
 
+steps_per_batch = 2
+config.batch_size = config.batch_size // steps_per_batch
+
 # for e in tqdm(range(config.pretrain_epoch)):
 #     shuffle_training_data(pretrain_dataset)
 #     generator.train()
 #     discriminator.train()
+#     curr_step = 0
+#     optimizer_D.zero_grad()
+#     optimizer_G.zero_grad()
 #     for i in range(0, len(pretrain_dataset), config.batch_size):
 #         batch_context, batch_images = get_batch(pretrain_dataset, i, config.batch_size)
-        
+
 #         # Train Discriminator
 #         z = torch.randn(batch_context.size(0), config.z_dim, device=batch_context.device)
 #         fake_imgs = generator(z, batch_context)
@@ -89,20 +95,26 @@ if os.path.exists(f"./src/save/maskedGAN.pt"):
 #         fake_validity = discriminator(fake_imgs, batch_context)
 #         gradient_penalty = discriminator.compute_gradient_penalty(batch_images.data, fake_imgs.data, batch_context.data)
 #         d_loss = -torch.mean(real_validity) + torch.mean(fake_validity) + config.lambda_gp * gradient_penalty
-
-#         optimizer_D.zero_grad()
+#         d_loss = d_loss / steps_per_batch
 #         d_loss.backward()
-#         optimizer_D.step()
+#         curr_step += 1
+#         if curr_step % steps_per_batch == 0:
+#             torch.nn.utils.clip_grad_norm_(discriminator.parameters(), 0.5)
+#             optimizer_D.step()
+#             optimizer_D.zero_grad()
 
 #         if i % (config.generator_interval * config.batch_size) == 0:
 #             # Train Generator
 #             fake_imgs = generator(z, batch_context)
 #             fake_validity = discriminator(fake_imgs, batch_context)
 #             g_loss = -torch.mean(fake_validity)
-
-#             optimizer_G.zero_grad()
+#             g_loss = g_loss / steps_per_batch
 #             g_loss.backward()
-#             optimizer_G.step()
+#             if curr_step % (steps_per_batch * config.generator_interval) == 0:
+#                 torch.nn.utils.clip_grad_norm_(generator.parameters(), 0.5)
+#                 optimizer_G.step()
+#                 optimizer_G.zero_grad()
+#                 curr_step = 0
 
 #     state = {
 #         'generator': generator.state_dict(),
@@ -123,9 +135,12 @@ for e in tqdm(range(config.epoch*config.generator_interval)):
     shuffle_training_data(train_dataset)
     generator.train()
     discriminator.train()
+    optimizer_D.zero_grad()
+    optimizer_G.zero_grad()
+    curr_step = 0
     for i in range(0, len(train_dataset), config.batch_size):
         batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
-        which = i % SUBSPACE_FREQ
+        which = (i // config.batch_size) % SUBSPACE_FREQ
         
         if which == 0:
             z = torch.randn(batch_context.size(0), config.z_dim, device=batch_context.device)
@@ -140,10 +155,14 @@ for e in tqdm(range(config.epoch*config.generator_interval)):
         gradient_penalty = discriminator.compute_gradient_penalty(batch_images.data, fake_imgs.data, batch_context.data)
         cdc_loss = discriminator.compute_cdc_loss(acts_S, acts_T)
         d_loss = -torch.mean(real_validity) + torch.mean(fake_validity) + config.lambda_gp * gradient_penalty + CDC_LAMBDA * cdc_loss
-
-        optimizer_D.zero_grad()
+        d_loss = d_loss / steps_per_batch
         d_loss.backward()
-        optimizer_D.step()
+        curr_step += 1
+        if curr_step % steps_per_batch == 0:
+            torch.nn.utils.clip_grad_norm_(discriminator.parameters(), 0.5)
+            optimizer_D.step()
+            optimizer_D.zero_grad()
+
 
         if i % (config.generator_interval * config.batch_size) == 0:
             # Train Generator
@@ -152,10 +171,13 @@ for e in tqdm(range(config.epoch*config.generator_interval)):
             fake_validity = discriminator(fake_imgs, batch_context, finetune=False, flag=which)
             g_loss = -torch.mean(fake_validity)
             g_loss += CDC_LAMBDA * generator.compute_cdc_loss(acts_S, acts_T)
-
-            optimizer_G.zero_grad()
+            g_loss = g_loss / steps_per_batch
             g_loss.backward()
-            optimizer_G.step()
+            if curr_step % (steps_per_batch * config.generator_interval) == 0:
+                torch.nn.utils.clip_grad_norm_(generator.parameters(), 0.5)
+                optimizer_G.step()
+                optimizer_G.zero_grad()
+                curr_step = 0
             raise Exception("Stop")
 
     state = {
