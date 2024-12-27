@@ -158,6 +158,7 @@ class Generator(nn.Module):
             self.feat_1024 = UpBlock(nfc[512], nfc[1024])  
         
     def forward(self, input, context):
+        context = context.unsqueeze(1)
         context = self.context_emb(context)
         input = torch.cat((context, input), -1)
         feat_4   = self.init(input)
