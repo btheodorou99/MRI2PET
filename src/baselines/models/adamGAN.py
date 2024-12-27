@@ -198,7 +198,7 @@ class Generator(nn.Module):
             if p.requires_grad:
                 est_fisher_info[n] = p.detach().clone().zero_()
 
-        loglikelihood_grads = autograd.grad(loglikelihood, self.parameters(), retain_graph=True) 
+        loglikelihood_grads = autograd.grad(loglikelihood, [p for p in self.parameters() if p.requires_grad], retain_graph=True)
 
         # Square gradients and return
         for i, (n, p) in enumerate(self.named_parameters()):
@@ -243,7 +243,6 @@ class Discriminator(nn.Module):
         context_images = context_images.unsqueeze(1)
         context = self.context_emb(context_images)
         image = self.image_emb(img)
-        print(context.shape, image.shape, img.shape)
         disc_input = torch.cat((context, image), -1)
         validity = self.model(disc_input)
         return validity
