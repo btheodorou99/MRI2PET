@@ -97,9 +97,9 @@ class Generator(nn.Module):
         count = 0
         for layer in range(len(acts_S)):
             for i in range(acts_S[layer].shape[0]):
-                source_soft = torch.softmax([F.cosine_similarity(acts_S[layer][i], acts_S[layer][j]) for j in range(acts_S[layer].shape[0]) if j != i])
-                target_soft = torch.softmax([F.cosine_similarity(acts_T[layer][i], acts_T[layer][j]) for j in range(acts_T[layer].shape[0]) if j != i])
-                loss += F.kl_div(source_soft, target_soft)
+                source_soft = torch.softmax(torch.stack([F.cosine_similarity(acts_S[layer][i], acts_S[layer][j], dim=-1) for j in range(acts_S[layer].shape[0]) if j != i]), dim=0)
+                target_soft = torch.softmax(torch.stack([F.cosine_similarity(acts_T[layer][i], acts_T[layer][j], dim=-1) for j in range(acts_T[layer].shape[0]) if j != i]), dim=0)
+                loss += F.kl_div(source_soft, target_soft, reduction='batchmean')
                 count += 1
         loss /= count
         return loss
@@ -176,9 +176,9 @@ class Discriminator(nn.Module):
         count = 0
         for layer in range(len(acts_S)):
             for i in range(acts_S[layer].shape[0]):
-                source_soft = torch.softmax([F.cosine_similarity(acts_S[layer][i], acts_S[layer][j]) for j in range(acts_S[layer].shape[0]) if j != i])
-                target_soft = torch.softmax([F.cosine_similarity(acts_T[layer][i], acts_T[layer][j]) for j in range(acts_T[layer].shape[0]) if j != i])
-                loss += F.kl_div(source_soft, target_soft)
+                source_soft = torch.softmax(torch.stack([F.cosine_similarity(acts_S[layer][i], acts_S[layer][j], dim=-1) for j in range(acts_S[layer].shape[0]) if j != i]), dim=0)
+                target_soft = torch.softmax(torch.stack([F.cosine_similarity(acts_T[layer][i], acts_T[layer][j], dim=-1) for j in range(acts_T[layer].shape[0]) if j != i]), dim=0)
+                loss += F.kl_div(source_soft, target_soft, reduction='batchmean')
                 count += 1
         loss /= count
         return loss
