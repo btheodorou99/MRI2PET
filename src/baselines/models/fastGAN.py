@@ -130,6 +130,7 @@ class Generator(nn.Module):
         nfc_multi = {4:16, 8:8, 16:4, 32:2, 64:2, 128:1, 256:0.5, 512:0.25, 1024:0.125}
         nfc = {}
         for k, v in nfc_multi.items():
+            print(k, v)
             nfc[k] = int(v*ngf)
 
         self.im_size = im_size
