@@ -149,7 +149,6 @@ for e in tqdm(range(config.epoch*config.generator_interval)):
             optimizer_D.step()
             optimizer_D.zero_grad()
 
-        print(i, config.generator_interval * config.batch_size, i % (config.generator_interval * config.batch_size))
         if i % (config.generator_interval * config.batch_size) == 0:
             print("Train Generator", curr_step, steps_per_batch*config.generator_interval)
             # Train Generator
@@ -160,11 +159,12 @@ for e in tqdm(range(config.epoch*config.generator_interval)):
             g_loss += DCL_LAMBDA1 * generator.compute_dcl_loss(acts_S, acts_T, DCL_TAU)
             g_loss = g_loss / steps_per_batch
             g_loss.backward()
-            if curr_step % (steps_per_batch * config.generator_interval) == 0:
+            if (curr_step + 1) % (steps_per_batch * config.generator_interval) == 0:
                 torch.nn.utils.clip_grad_norm_(generator.parameters(), 0.5)
                 optimizer_G.step()
                 optimizer_G.zero_grad()
                 curr_step = 0
+                raise Exception("Stop")
 
     state = {
         'generator': generator.state_dict(),
