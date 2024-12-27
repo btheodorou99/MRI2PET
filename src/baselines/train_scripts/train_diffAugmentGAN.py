@@ -92,7 +92,6 @@ for e in tqdm(range(config.epoch*config.generator_interval)):
             optimizer_G.zero_grad()
             g_loss.backward()
             optimizer_G.step()
-            raise Exception("Stop")
 
     state = {
         'generator': generator.state_dict(),
