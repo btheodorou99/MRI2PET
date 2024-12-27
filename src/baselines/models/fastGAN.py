@@ -162,6 +162,7 @@ class Generator(nn.Module):
 
         im_big = torch.tanh(self.to_big(feat_64))
         im_128 = torch.tanh(self.to_128(feat_64))
+        print(im_big.shape, im_128.shape)
 
         return [im_big, im_128]
 
