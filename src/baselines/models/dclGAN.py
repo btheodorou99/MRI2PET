@@ -182,7 +182,7 @@ class Discriminator(nn.Module):
         image = self.image_emb(img)
         disc_input = torch.cat((context, image), -1)
         if finetune:
-            mask = torch.rand(disc_input.size()) > 0.66
+            mask = torch.rand(disc_input.size(), device=disc_input.device) > 0.66
             disc_input = disc_input * mask
         act1 = self.block1(disc_input)
         act2 = self.block2(act1)        
