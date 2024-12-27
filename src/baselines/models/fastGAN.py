@@ -92,7 +92,7 @@ class InitLayer(nn.Module):
                         batchNorm3d(channel*2), GLU() )
 
     def forward(self, noise):
-        noise = noise.view(noise.shape[0], -1, 1, 1)
+        noise = noise.view(noise.shape[0], -1, 1, 1, 1)
         return self.init(noise)
 
 
@@ -160,7 +160,7 @@ class Generator(nn.Module):
     def forward(self, input, context):
         context = context.unsqueeze(1)
         context = self.context_emb(context)
-        input = torch.cat((context, input), -1).unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
+        input = torch.cat((context, input), -1)
         feat_4   = self.init(input)
         feat_8   = self.feat_8(feat_4)
         feat_16  = self.feat_16(feat_8)
