@@ -120,16 +120,16 @@ class ImageEncoder(nn.Module):
     def forward(self, x):        
         # Convolution + ReLU + MaxPooling
         x = F.relu(self.conv1(x))
-        x = F.max_pool2d(x, 2)
+        x = F.max_pool3d(x, 2)
 
         x = F.relu(self.conv2(x))
-        x = F.max_pool2d(x, 2)
+        x = F.max_pool3d(x, 2)
 
         x = F.relu(self.conv3(x))
-        x = F.max_pool2d(x, 2)
+        x = F.max_pool3d(x, 2)
 
         x = F.relu(self.conv4(x))
-        x = F.max_pool2d(x, 2)
+        x = F.max_pool3d(x, 2)
 
         # Flattening the output
         x = x.view(-1, self.flat_dim)
