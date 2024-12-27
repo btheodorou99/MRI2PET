@@ -101,7 +101,7 @@ def UpBlock(in_planes, out_planes):
         nn.Upsample(scale_factor=2, mode='nearest'),
         conv3d(in_planes, out_planes*2, 3, 1, 1, bias=False),
         #convTranspose2d(in_planes, out_planes*2, 4, 2, 1, bias=False),
-        lambda x: batchNorm3d(out_planes*2)(x.contiguous()),
+        batchNorm3d(out_planes*2),
         GLU()
     )
     return block
