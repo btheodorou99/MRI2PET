@@ -243,7 +243,7 @@ class Discriminator(nn.Module):
         context_images = context_images.unsqueeze(1)
         context = self.context_emb(context_images)
         image = self.image_emb(img)
-        print(context.shape, image.shape)
+        print(context.shape, image.shape, img.shape)
         disc_input = torch.cat((context, image), -1)
         validity = self.model(disc_input)
         return validity
