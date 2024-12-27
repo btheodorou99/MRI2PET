@@ -74,7 +74,7 @@ if os.path.exists(f"./src/save/maskedGAN.pt"):
     optimizer_G.load_state_dict(checkpoint['optimizer_g'])
     optimizer_D.load_state_dict(checkpoint['optimizer_d'])
 
-steps_per_batch = 2
+steps_per_batch = 4
 config.batch_size = config.batch_size // steps_per_batch
 
 # for e in tqdm(range(config.pretrain_epoch)):
@@ -140,8 +140,10 @@ for e in tqdm(range(config.epoch*config.generator_interval)):
     curr_step = 0
     for i in range(0, len(train_dataset), config.batch_size):
         batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
-        which = (i // config.batch_size) % SUBSPACE_FREQ
+        if len(batch_context) == 1:
+            continue
         
+        which = (i // config.batch_size) % SUBSPACE_FREQ
         if which == 0:
             z = torch.randn(batch_context.size(0), config.z_dim, device=batch_context.device)
         else:
@@ -173,7 +175,7 @@ for e in tqdm(range(config.epoch*config.generator_interval)):
             g_loss += CDC_LAMBDA * generator.compute_cdc_loss(acts_S, acts_T)
             g_loss = g_loss / steps_per_batch
             g_loss.backward()
-            if curr_step % (steps_per_batch * config.generator_interval) == 0:
+            if (curr_step + 1) % (steps_per_batch * config.generator_interval) == 0:
                 torch.nn.utils.clip_grad_norm_(generator.parameters(), 0.5)
                 optimizer_G.step()
                 optimizer_G.zero_grad()
