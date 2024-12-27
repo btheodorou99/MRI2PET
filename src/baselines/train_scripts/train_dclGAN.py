@@ -132,7 +132,7 @@ for e in tqdm(range(config.epoch*config.generator_interval)):
         if len(batch_context) == 1:
             continue
         z = torch.randn(batch_context.size(0), config.z_dim, device=batch_context.device)
-        
+
         # Train Discriminator
         fake_imgs = generator(z, batch_context)
         acts_R, real_validity = discriminator(batch_images, batch_context, finetune=True)
@@ -149,6 +149,7 @@ for e in tqdm(range(config.epoch*config.generator_interval)):
             optimizer_D.step()
             optimizer_D.zero_grad()
 
+        print(i, config.generator_interval * config.batch_size, i % (config.generator_interval * config.batch_size))
         if i % (config.generator_interval * config.batch_size) == 0:
             print("Train Generator", curr_step, steps_per_batch*config.generator_interval)
             # Train Generator
