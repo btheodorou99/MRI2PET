@@ -149,7 +149,7 @@ for e in tqdm(range(config.epoch*config.generator_interval)):
             # Train Generator
             acts_T, fake_imgs = generator(z, batch_context, finetune=True)
             acts_S, _ = G_s(z, batch_context, finetune=True)
-            fake_validity = discriminator(fake_imgs, batch_context, finetune=True, flag=which)
+            fake_validity, _ = discriminator(fake_imgs, batch_context, finetune=True, flag=which)
             g_loss = -torch.mean(fake_validity)
             g_loss += CDC_LAMBDA * generator.compute_cdc_loss(acts_S, acts_T)
 
