@@ -236,9 +236,9 @@ class DiffusionModel(nn.Module):
         HH = torch.ger(H, H).view(1, 1, 2, 2, 1)
         
         # Expand filters to handle multiple channels
-        LH = LH.expand(-1, x_S.size(1), -1, -1, -1)
-        HL = HL.expand(-1, x_S.size(1), -1, -1, -1)
-        HH = HH.expand(-1, x_S.size(1), -1, -1, -1)
+        LH = LH.expand(-1, x_S.size(1), -1, -1, -1).to(x_S.device)
+        HL = HL.expand(-1, x_S.size(1), -1, -1, -1).to(x_S.device)
+        HH = HH.expand(-1, x_S.size(1), -1, -1, -1).to(x_S.device)
         
         # Apply 3D convolutions
         lh_S = F.conv3d(x_S.unsqueeze(-1), LH, stride=(2,2,1))
@@ -260,12 +260,13 @@ class DiffusionModel(nn.Module):
         hf_R = hf_R.flatten(1)
 
         hf_loss = 0
+        count = 0
         for i in range(hf_S.shape[0]):
-            source_soft = torch.softmax([F.cosine_similarity(hf_S[i], hf_S[j]) for j in range(hf_S.shape[0]) if j != i])
-            target_soft = torch.softmax([F.cosine_similarity(hf_T[i], hf_T[j]) for j in range(hf_T.shape[0]) if j != i])
-            hf_loss += F.kl_div(source_soft, target_soft)
+            source_soft = torch.softmax(torch.stack([F.cosine_similarity(hf_S[i], hf_S[j], dim=-1) for j in range(hf_S.shape[0]) if j != i]), dim=0)
+            target_soft = torch.softmax(torch.stack([F.cosine_similarity(hf_T[i], hf_T[j], dim=-1) for j in range(hf_T.shape[0]) if j != i]), dim=0)
+            hf_loss += F.kl_div(source_soft, target_soft, reduction='batchmean')
             count += 1
-        hf_loss /= x_S.shape[0]
+        hf_loss /= count
 
         hf_mse_loss = F.mse_loss(hf_T, hf_R)
 

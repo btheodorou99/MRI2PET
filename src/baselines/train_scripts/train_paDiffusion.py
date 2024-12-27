@@ -117,12 +117,12 @@ for e in tqdm(range(config.epoch)):
     optimizer.zero_grad()
     for i in range(0, len(train_dataset), config.batch_size):
         batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
-        train_losses.append(loss.cpu().detach().item())
         l_simple, x_T = model(batch_context, batch_images, gen_loss=True, output_images=True)
         _, x_S = model_S(batch_context, batch_images, gen_loss=True, output_images=True)
         l_img = model.compute_pairwise_sim_loss(x_S, x_T)
         l_hf, l_hfmse = model.compute_high_freq_loss(x_S, x_T, batch_images)
         loss = l_simple + LAMBDA1 * l_img + LAMBDA2 * l_hf + LAMBDA3 * l_hfmse
+        train_losses.append(loss.cpu().detach().item())
         loss = loss / steps_per_batch
         loss.backward()
         curr_step += 1
