@@ -32,6 +32,7 @@ def getID(path):
 adni_labels = pd.read_csv('./src/data/DXSUM_PDXCONV.csv')
 adni_labels = {row.PTID: row.DIAGNOSIS for row in adni_labels.itertuples()}
 adni_labels = {p: int(int(l - 1) == 2) for p, l in adni_labels.items() if l == l}
+config.downstream_dim = 1
 
 real_paired_dataset = [(m, p) for (m, p) in pickle.load(open('./src/data/trainDataset.pkl', 'rb')) + pickle.load(open('./src/data/valDataset.pkl', 'rb')) if getID(m) in adni_labels]
 test_dataset = [(m, p) for (m, p) in pickle.load(open('./src/data/testDataset.pkl', 'rb')) if getID(m) in adni_labels]
@@ -56,14 +57,14 @@ def get_batch(dataset, loc, batch_size, has_mri=False, has_pet=False):
     bs = len(image_paths)
     batch_mri = torch.zeros(bs, config.n_mri_channels, config.mri_image_dim, config.mri_image_dim, dtype=torch.float)
     batch_pet = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float)
-    batch_labels = torch.zeros(bs, dtype=torch.long)
+    batch_labels = torch.zeros(bs, 1, dtype=torch.float)
     for i, (m, p) in enumerate(image_paths):
         batch_labels[i] = adni_labels[getID(m)]
         if has_mri:
             batch_mri[i] = load_image(m)
         if has_pet:
             batch_pet[i] = load_image(p)
-        
+
     return batch_mri.to(device), batch_pet.to(device), batch_labels.to(device)
 
 def shuffle_training_data(train_ehr_dataset):
@@ -80,7 +81,7 @@ def train_model(train_data, has_mri, has_pet, key, seed):
     train_data, val_data = train_data[:int(0.8*len(train_data))], train_data[int(0.8*len(train_data)):]
     model = ImageClassifier(config, has_mri, has_pet).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=config.downstream_lr)
-    criterion = torch.nn.CrossEntropyLoss()
+    criterion = torch.nn.BCEWithLogitsLoss()
     best_loss = float('inf')
     curr_patience = 0
     for e in tqdm(range(config.downstream_epoch), desc=f"Training {key} Model", leave=False):
@@ -123,15 +124,14 @@ def evaluate_model(model, data, has_mri, has_pet):
         for i in range(0, len(data), config.downstream_batch_size):
             mri, pet, labels = get_batch(data, i, config.batch_size, has_mri, has_pet)
             output = model(mri, pet)
-            probs = torch.softmax(output, -1)
+            probs = torch.sigmoid(output)
             prob_list.extend(probs.tolist())
             label_list.extend(labels.tolist())
 
     probs = np.array(prob_list)
     labels = np.array(label_list)
-    preds = np.argmax(probs, axis=1)
-    
-    
+    preds = np.round(probs)
+
     accuracy = metrics.accuracy_score(labels, preds)
     precision = metrics.precision_score(labels, preds, zero_division=0.0)
     recall = metrics.recall_score(labels, preds, zero_division=0.0)
