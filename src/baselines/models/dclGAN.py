@@ -121,8 +121,8 @@ class Generator(nn.Module):
         acts_T = acts_T[random_layer]
         loss = 0
         for i in range(acts_S.shape[0]):
-            pos_cl = torch.exp(F.cosine_similarity(acts_S[i], acts_T[i]) / tau)
-            neg_cl = torch.sum([torch.exp(F.cosine_similarity(acts_S[j], acts_T[i]) / tau) for j in range(acts_S.shape[0]) if j != i])
+            pos_cl = torch.exp(F.cosine_similarity(acts_S[i], acts_T[i], dim=-1) / tau)
+            neg_cl = torch.sum([torch.exp(F.cosine_similarity(acts_S[j], acts_T[i], dim=-1) / tau) for j in range(acts_S.shape[0]) if j != i])
             loss += - torch.log(pos_cl / neg_cl)
         loss /= acts_S.shape[0]
         return loss
@@ -199,8 +199,8 @@ class Discriminator(nn.Module):
         acts_R = acts_R[random_layer]
         loss = 0
         for i in range(acts_S.shape[0]):
-            pos_cl = torch.exp(F.cosine_similarity(acts_S[i], acts_T[i]) / tau)
-            neg_cl = pos_cl + torch.sum([torch.exp(F.cosine_similarity(acts_T[i], acts_R[j]) / tau) for j in range(acts_S.shape[0]) if j != i])
+            pos_cl = torch.exp(F.cosine_similarity(acts_S[i], acts_T[i], dim=-1) / tau)
+            neg_cl = pos_cl + torch.sum([torch.exp(F.cosine_similarity(acts_T[i], acts_R[j]) / tau, dim=-1) for j in range(acts_S.shape[0]) if j != i])
             loss += - torch.log(pos_cl / neg_cl)
         loss /= acts_S.shape[0]
         return loss
