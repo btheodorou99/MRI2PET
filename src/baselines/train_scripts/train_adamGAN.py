@@ -184,9 +184,8 @@ for i in range(0, len(probing_dataset), config.batch_size):
 
         # 1) Obtain predicted results
         img_fake = generator(img_noise, img_context)
-        print(img_fake.shape, img_noise.shape, img_context.shape, img_real.shape)
-        fake_pred_fisher = discriminator(img_fake, batch_context)
-        real_pred_fisher = discriminator(img_real, batch_context)
+        fake_pred_fisher = discriminator(img_fake, img_context)
+        real_pred_fisher = discriminator(img_real, img_context)
         g_loss_fisher = -torch.mean(fake_pred_fisher)
         d_loss_fisher = -torch.mean(real_pred_fisher) + torch.mean(fake_pred_fisher)
 
