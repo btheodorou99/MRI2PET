@@ -72,18 +72,24 @@ class ConvTranspose3d_kml(nn.Module):
         super(ConvTranspose3d_kml, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
-        self.kernel_size = kernel_size
+
+        if isinstance(kernel_size, int):
+            self.kernel_size = (kernel_size, kernel_size, kernel_size)
+        else:
+            self.kernel_size = kernel_size
+
         self.stride = stride
         self.padding = padding
-        
-        self.W = nn.Parameter(torch.randn(in_channels, out_channels, kernel_size, kernel_size, kernel_size))
+
+        self.W = nn.Parameter(torch.randn(in_channels, out_channels, *self.kernel_size))
         if bias:
             self.bias = nn.Parameter(torch.zeros(out_channels))
         else:
             self.register_parameter('bias', None)
-            
-        self.u_vector = nn.Parameter(torch.randn(in_channels) * 1e-7)
-        self.v_vector = nn.Parameter(torch.randn(out_channels * kernel_size * kernel_size * kernel_size) * 1e-7)
+
+        kernel_size_prod = self.kernel_size[0] * self.kernel_size[1] * self.kernel_size[2]
+        self.u_vector = nn.Parameter(torch.randn(in_channels * kernel_size_prod) * 1e-7)
+        self.v_vector = nn.Parameter(torch.randn(out_channels) * 1e-7)
         if bias:
             self.b_vector = nn.Parameter(torch.zeros(self.out_channels))
         else:
