@@ -271,7 +271,6 @@ for key in filter_fisher_g:
         idx_ft_filter_fisher_g[key.replace('u_vector', 'b_vector')]  = np.where(fim <=  cutline_g_fc)[0]
 
 # D: FC
-print(filter_fisher_d.keys())
 grouped_fim_fc_d = []
 fc_names = ['context_emb.fc1', 'context_emb.fc2', 'image_emb.fc1', 'image_emb.fc2', 'model.0', 'model.2', 'model.5', 'model.8', 'model.11', 'model.14']
 for name in fc_names:
