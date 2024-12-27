@@ -135,7 +135,7 @@ class Generator(nn.Module):
         self.im_size = im_size
 
         self.context_emb = ImageEncoder(config, is_mri=True)
-        self.init = InitLayer(2*nz, channel=nfc[4])
+        self.init = InitLayer(nz+config.embed_dim, channel=nfc[4])
                                 
         self.feat_8   = UpBlockComp(nfc[4], nfc[8])
         self.feat_16  = UpBlock(nfc[8], nfc[16])
