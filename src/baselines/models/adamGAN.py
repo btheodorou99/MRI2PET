@@ -27,7 +27,7 @@ class Linear_kml(nn.Module):
     def forward(self, input):
         W_hat  = torch.ger(self.u_vector, self.v_vector).view(self.W.shape)
         weight = self.W * (torch.ones_like(self.W) + W_hat)
-        bias   = self.bias + self.b_vector
+        bias   = self.bias + self.b_vector if self.bias is not None else None
         out = F.linear(input, weight, bias=bias)
         return out
 
@@ -98,7 +98,7 @@ class ConvTranspose3d_kml(nn.Module):
     def forward(self, input):
         W_hat  = torch.ger(self.u_vector, self.v_vector).view(self.W.shape)
         weight = self.W * (torch.ones_like(self.W) + W_hat)
-        bias   = self.bias + self.b_vector
+        bias   = self.bias + self.b_vector if self.bias is not None else None
         out = F.conv_transpose3d(input, weight, bias=bias, stride=self.stride, padding=self.padding)
         return out
 
