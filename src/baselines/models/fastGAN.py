@@ -122,7 +122,7 @@ def UpBlockComp(in_planes, out_planes):
 class Generator(nn.Module):
     def __init__(self, config):
         super(Generator, self).__init__()
-        ngf=64, 
+        ngf=64
         nz=config.z_dim 
         nc=config.n_pet_channels
         im_size=config.pet_image_dim
@@ -130,7 +130,6 @@ class Generator(nn.Module):
         nfc_multi = {4:16, 8:8, 16:4, 32:2, 64:2, 128:1, 256:0.5, 512:0.25, 1024:0.125}
         nfc = {}
         for k, v in nfc_multi.items():
-            print(k, v)
             nfc[k] = int(v*ngf)
 
         self.im_size = im_size
