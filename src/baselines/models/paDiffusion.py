@@ -218,35 +218,44 @@ class DiffusionModel(nn.Module):
         x_S = x_S.flatten(1)
         x_T = x_T.flatten(1)
         loss = 0
+        count = 0
         for i in range(x_S.shape[0]):
-            source_soft = torch.softmax([F.cosine_similarity(x_S[i], x_S[j]) for j in range(x_S.shape[0]) if j != i])
-            target_soft = torch.softmax([F.cosine_similarity(x_T[i], x_T[j]) for j in range(x_T.shape[0]) if j != i])
-            loss += F.kl_div(source_soft, target_soft)
+            source_soft = torch.softmax(torch.stack([F.cosine_similarity(x_S[i], x_S[j], dim=-1) for j in range(x_S.shape[0]) if j != i]), dim=0)
+            target_soft = torch.softmax(torch.stack([F.cosine_similarity(x_T[i], x_T[j], dim=-1) for j in range(x_T.shape[0]) if j != i]), dim=0)
+            loss += F.kl_div(source_soft, target_soft, reduction='batchmean')
             count += 1
-        loss /= x_S.shape[0]
+        loss /= count
         return loss
 
     def compute_high_freq_loss(self, x_S, x_T, x_R):
         L = torch.tensor([1, 1], dtype=torch.float32) / np.sqrt(2)
         H = torch.tensor([1, -1], dtype=torch.float32) / np.sqrt(2)
         # LL = torch.ger(L, L).view(1, 1, 2, 2)
-        LH = torch.ger(L, H).view(1, 1, 2, 2)
-        HL = torch.ger(H, L).view(1, 1, 2, 2)
-        HH = torch.ger(H, H).view(1, 1, 2, 2)
-        # ll_S = F.conv2d(x_S, LL, stride=2)
-        lh_S = F.conv2d(x_S, LH, stride=2)
-        hl_S = F.conv2d(x_S, HL, stride=2)
-        hh_S = F.conv2d(x_S, HH, stride=2)
+        LH = torch.ger(L, H).view(1, 1, 2, 2, 1)
+        HL = torch.ger(H, L).view(1, 1, 2, 2, 1) 
+        HH = torch.ger(H, H).view(1, 1, 2, 2, 1)
+        
+        # Expand filters to handle multiple channels
+        LH = LH.expand(-1, x_S.size(1), -1, -1, -1)
+        HL = HL.expand(-1, x_S.size(1), -1, -1, -1)
+        HH = HH.expand(-1, x_S.size(1), -1, -1, -1)
+        
+        # Apply 3D convolutions
+        lh_S = F.conv3d(x_S.unsqueeze(-1), LH, stride=(2,2,1))
+        hl_S = F.conv3d(x_S.unsqueeze(-1), HL, stride=(2,2,1))
+        hh_S = F.conv3d(x_S.unsqueeze(-1), HH, stride=(2,2,1))
         hf_S = lh_S + hl_S + hh_S
         hf_S = hf_S.flatten(1)
-        lh_T = F.conv2d(x_T, LH, stride=2)
-        hl_T = F.conv2d(x_T, HL, stride=2)
-        hh_T = F.conv2d(x_T, HH, stride=2)
+
+        lh_T = F.conv3d(x_T.unsqueeze(-1), LH, stride=(2,2,1))
+        hl_T = F.conv3d(x_T.unsqueeze(-1), HL, stride=(2,2,1))
+        hh_T = F.conv3d(x_T.unsqueeze(-1), HH, stride=(2,2,1))
         hf_T = lh_T + hl_T + hh_T
         hf_T = hf_T.flatten(1)
-        lh_R = F.conv2d(x_R, LH, stride=2)
-        hl_R = F.conv2d(x_R, HL, stride=2)
-        hh_R = F.conv2d(x_R, HH, stride=2)
+
+        lh_R = F.conv3d(x_R.unsqueeze(-1), LH, stride=(2,2,1))
+        hl_R = F.conv3d(x_R.unsqueeze(-1), HL, stride=(2,2,1))
+        hh_R = F.conv3d(x_R.unsqueeze(-1), HH, stride=(2,2,1))
         hf_R = lh_R + hl_R + hh_R
         hf_R = hf_R.flatten(1)
 
