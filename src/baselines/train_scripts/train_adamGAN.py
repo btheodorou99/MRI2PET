@@ -228,6 +228,8 @@ for key in filter_fisher_d:
 # G: FC
 grouped_fim_fc_g = []
 fc_names = ['init_map']
+print(filter_fisher_g.keys())
+print(filter_fisher_d.keys())
 for name in fc_names:
     u_fim    = filter_fisher_g[f'{name}.u_vector'].mean()
     v_fim    = filter_fisher_g[f'{name}.v_vector']
