@@ -63,6 +63,10 @@ class NoiseInjection(nn.Module):
             batch, _, depth, height, width = feat.shape
             noise = torch.randn(batch, 1, depth, height, width).to(feat.device)
 
+        # Ensure inputs are contiguous for CUDNN
+        feat = feat.contiguous()
+        noise = noise.contiguous() 
+
         return feat + self.weight * noise
 
 
