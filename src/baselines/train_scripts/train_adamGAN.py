@@ -260,7 +260,7 @@ for key in filter_fisher_g:
         idx_kml_filter_fisher_g[key.replace('u_vector', 'v_vector')] = np.where(fim >   cutline_g_conv)[0]
         idx_ft_filter_fisher_g[key.replace('u_vector', 'v_vector')]  = np.where(fim <=  cutline_g_conv)[0]
 
-    elif any([name in key for name in fc_names]) in key and 'u_vector' in key:  # for FC layer with u_vector in name
+    elif any([name in key for name in fc_names]) and 'u_vector' in key:  # for FC layer with u_vector in name
         # resemble FIM
         u_fim    = filter_fisher_g[key].mean()
         v_fim    = filter_fisher_g[key.replace('u_vector', 'v_vector')]
