@@ -78,7 +78,7 @@ for name, param in discriminator.named_parameters():
 #     discriminator.train()
 #     for i in range(0, len(pretrain_dataset), config.batch_size):
 #         batch_context, batch_images = get_batch(pretrain_dataset, i, config.batch_size)
-        
+
 #         # Train Discriminator
 #         z = torch.randn(batch_context.size(0), config.z_dim, device=batch_context.device)
 #         fake_imgs = generator(z, batch_context)
@@ -111,7 +111,6 @@ for name, param in discriminator.named_parameters():
 #     torch.save(state, f'./src/save/adamGAN_base.pt')
 
 
-
 ################################
 ### IMPORTANCE PROBING STAGE ###
 ################################
@@ -121,19 +120,19 @@ for name, param in generator.named_parameters():
         param.requires_grad = True
     else:
         param.requires_grad = False
-        
+
 for name, param in discriminator.named_parameters():
     if '_vector' in name:
         param.requires_grad = True
     else:
         param.requires_grad = False
-        
+
 # One Epoch of Fine Tuning
 # print("Probing stage")
 # probing_dataset = train_dataset[:-5*config.batch_size]
 # for i in range(0, len(probing_dataset), config.batch_size):
 #     batch_context, batch_images = get_batch(probing_dataset, i, config.batch_size)
-    
+
 #     # Train Discriminator
 #     z = torch.randn(batch_context.size(0), config.z_dim, device=batch_context.device)
 #     fake_imgs = generator(z, batch_context)
@@ -163,7 +162,13 @@ for name, param in discriminator.named_parameters():
 #     'epoch': e
 # }
 # torch.save(state, f'./src/save/adamGAN_probing.pt')
-        
+
+for name, param in generator.named_parameters():
+    param.requires_grad = True
+
+for name, param in discriminator.named_parameters():
+    param.requires_grad = True
+
 probing_dataset = train_dataset[-5*config.batch_size:]
 filter_fisher_g = dict()        
 filter_fisher_d = dict()
@@ -210,9 +215,9 @@ for i in range(0, len(probing_dataset), config.batch_size):
 
 # avg
 # for key in filter_grad_g:
-#     filter_grad_g[key]    /= (len(probing_dataset)) 
+#     filter_grad_g[key]    /= (len(probing_dataset))
 # for key in filter_grad_d:
-#     filter_grad_d[key]    /= (len(probing_dataset)) 
+#     filter_grad_d[key]    /= (len(probing_dataset))
 
 for key in filter_fisher_g:
     filter_fisher_g[key]  /= (len(probing_dataset)) 
@@ -265,7 +270,7 @@ for key in filter_fisher_g:
         idx_ft_filter_fisher_g[key.replace('u_vector', 'v_vector')]  = np.where(fim <=  cutline_g_fc)[0]
         idx_kml_filter_fisher_g[key.replace('u_vector', 'b_vector')] = np.where(fim >   cutline_g_fc)[0]
         idx_ft_filter_fisher_g[key.replace('u_vector', 'b_vector')]  = np.where(fim <=  cutline_g_fc)[0]
-    
+
 # D: FC
 grouped_fim_fc_d = []
 filter_fisher_d = dict()
@@ -312,7 +317,6 @@ for key in filter_fisher_d:
         idx_ft_filter_fisher_d[key.replace('u_vector', 'v_vector')]  = np.where(fim <=  cutline_d_fc)[0]
         idx_kml_filter_fisher_d[key.replace('u_vector', 'b_vector')] = np.where(fim >   cutline_d_fc)[0]
         idx_ft_filter_fisher_d[key.replace('u_vector', 'b_vector')]  = np.where(fim <=  cutline_d_fc)[0]
-
 
 
 #############################
