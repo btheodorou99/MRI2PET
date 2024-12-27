@@ -133,10 +133,10 @@ def evaluate_model(model, data, has_mri, has_pet):
     
     
     accuracy = metrics.accuracy_score(labels, preds)
-    precision = metrics.precision_score(labels, preds, average="macro", zero_division=0.0)
-    recall = metrics.recall_score(labels, preds, average="macro", zero_division=0.0)
-    f1 = metrics.f1_score(labels, preds, average="macro", zero_division=0.0)
-    auroc = metrics.roc_auc_score(labels, probs, average="macro", multi_class="ovr")
+    precision = metrics.precision_score(labels, preds, zero_division=0.0)
+    recall = metrics.recall_score(labels, preds, zero_division=0.0)
+    f1 = metrics.f1_score(labels, preds, zero_division=0.0)
+    auroc = metrics.roc_auc_score(labels, probs)
     
     metrics_dict = {
         'Accuracy': accuracy,
