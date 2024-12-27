@@ -241,8 +241,8 @@ cutline_g_fc = np.percentile(grouped_fim_fc_g, q=FISHER_QUANTILE)
 grouped_fim_conv_g = []
 conv_names = list(set(['.'.join(name.split('.')[:-1]) for name in filter_fisher_g.keys() if '.'.join(name).split('.')[:-1] not in fc_names]))
 for name in conv_names:
-    u_fim    = filter_fisher_g[f'{name}.u_vector'].mean()
-    v_fim    = filter_fisher_g[f'{name}.v_vector']
+    u_fim    = filter_fisher_g[f'{name}.u_vector'].mean() if f'{name}.u_vector' in filter_fisher_g else filter_fisher_g[f'{name}.weight'].mean()
+    v_fim    = filter_fisher_g[f'{name}.v_vector'] if f'{name}.v_vector' in filter_fisher_g else filter_fisher_g[f'{name}.bias']
     fim      = u_fim + v_fim
     grouped_fim_conv_g = np.concatenate((grouped_fim_conv_g, fim), axis=None)
 cutline_g_conv = np.percentile(grouped_fim_conv_g, q=FISHER_QUANTILE)
