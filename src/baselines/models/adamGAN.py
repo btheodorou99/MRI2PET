@@ -201,10 +201,9 @@ class Generator(nn.Module):
         loglikelihood_grads = autograd.grad(loglikelihood, [p for p in self.parameters() if p.requires_grad], retain_graph=True)
 
         # Square gradients and return
-        for i, (n, p) in enumerate(self.named_parameters()):
-            if p.requires_grad:
-                if loglikelihood_grads[i] is not None:
-                    est_fisher_info[n] = loglikelihood_grads[i].detach() ** 2
+        for i, (n, p) in enumerate([p for p in self.named_parameters() if p.requires_grad]):
+            if loglikelihood_grads[i] is not None:
+                est_fisher_info[n] = loglikelihood_grads[i].detach() ** 2
 
         return loglikelihood_grads, est_fisher_info
 
