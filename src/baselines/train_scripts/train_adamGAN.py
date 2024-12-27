@@ -72,45 +72,43 @@ for name, param in discriminator.named_parameters():
     if '_vector' in name:
         param.requires_grad = False
 
-for e in tqdm(range(config.pretrain_epoch)):
-    shuffle_training_data(pretrain_dataset)
-    generator.train()
-    discriminator.train()
-    for i in range(0, len(pretrain_dataset), config.batch_size):
-        batch_context, batch_images = get_batch(pretrain_dataset, i, config.batch_size)
+# for e in tqdm(range(config.pretrain_epoch)):
+#     shuffle_training_data(pretrain_dataset)
+#     generator.train()
+#     discriminator.train()
+#     for i in range(0, len(pretrain_dataset), config.batch_size):
+#         batch_context, batch_images = get_batch(pretrain_dataset, i, config.batch_size)
         
-        # Train Discriminator
-        z = torch.randn(batch_context.size(0), config.z_dim, device=batch_context.device)
-        fake_imgs = generator(z, batch_context)
+#         # Train Discriminator
+#         z = torch.randn(batch_context.size(0), config.z_dim, device=batch_context.device)
+#         fake_imgs = generator(z, batch_context)
 
-        real_validity = discriminator(batch_images, batch_context)
-        fake_validity = discriminator(fake_imgs, batch_context)
-        gradient_penalty = discriminator.compute_gradient_penalty(batch_images.data, fake_imgs.data, batch_context.data)
-        d_loss = -torch.mean(real_validity) + torch.mean(fake_validity) + config.lambda_gp * gradient_penalty
+#         real_validity = discriminator(batch_images, batch_context)
+#         fake_validity = discriminator(fake_imgs, batch_context)
+#         gradient_penalty = discriminator.compute_gradient_penalty(batch_images.data, fake_imgs.data, batch_context.data)
+#         d_loss = -torch.mean(real_validity) + torch.mean(fake_validity) + config.lambda_gp * gradient_penalty
 
-        optimizer_D.zero_grad()
-        d_loss.backward()
-        optimizer_D.step()
+#         optimizer_D.zero_grad()
+#         d_loss.backward()
+#         optimizer_D.step()
 
-        if i % (config.generator_interval * config.batch_size) == 0:
-            # Train Generator
-            fake_imgs = generator(z, batch_context)
-            fake_validity = discriminator(fake_imgs, batch_context)
-            g_loss = -torch.mean(fake_validity)
+#         if i % (config.generator_interval * config.batch_size) == 0:
+#             # Train Generator
+#             fake_imgs = generator(z, batch_context)
+#             fake_validity = discriminator(fake_imgs, batch_context)
+#             g_loss = -torch.mean(fake_validity)
 
-            optimizer_G.zero_grad()
-            g_loss.backward()
-            optimizer_G.step()
-            break
-    break
-    state = {
-        'generator': generator.state_dict(),
-        'discriminator': discriminator.state_dict(),
-        'optimizer_G': optimizer_G,
-        'optimizer_D': optimizer_D,
-        'epoch': e
-    }
-    torch.save(state, f'./src/save/adamGAN_base.pt')
+#             optimizer_G.zero_grad()
+#             g_loss.backward()
+#             optimizer_G.step()
+#     state = {
+#         'generator': generator.state_dict(),
+#         'discriminator': discriminator.state_dict(),
+#         'optimizer_G': optimizer_G,
+#         'optimizer_D': optimizer_D,
+#         'epoch': e
+#     }
+#     torch.save(state, f'./src/save/adamGAN_base.pt')
 
 
 
@@ -131,30 +129,31 @@ for name, param in discriminator.named_parameters():
         param.requires_grad = False
         
 # One Epoch of Fine Tuning
-probing_dataset = train_dataset[:-5*config.batch_size]
-for i in range(0, len(probing_dataset), config.batch_size):
-    batch_context, batch_images = get_batch(probing_dataset, i, config.batch_size)
+# print("Probing stage")
+# probing_dataset = train_dataset[:-5*config.batch_size]
+# for i in range(0, len(probing_dataset), config.batch_size):
+#     batch_context, batch_images = get_batch(probing_dataset, i, config.batch_size)
     
-    # Train Discriminator
-    z = torch.randn(batch_context.size(0), config.z_dim, device=batch_context.device)
-    fake_imgs = generator(z, batch_context)
+#     # Train Discriminator
+#     z = torch.randn(batch_context.size(0), config.z_dim, device=batch_context.device)
+#     fake_imgs = generator(z, batch_context)
 
-    real_validity = discriminator(batch_images, batch_context)
-    fake_validity = discriminator(fake_imgs, batch_context)
-    gradient_penalty = discriminator.compute_gradient_penalty(batch_images.data, fake_imgs.data, batch_context.data)
-    d_loss = -torch.mean(real_validity) + torch.mean(fake_validity) + config.lambda_gp * gradient_penalty
+#     real_validity = discriminator(batch_images, batch_context)
+#     fake_validity = discriminator(fake_imgs, batch_context)
+#     gradient_penalty = discriminator.compute_gradient_penalty(batch_images.data, fake_imgs.data, batch_context.data)
+#     d_loss = -torch.mean(real_validity) + torch.mean(fake_validity) + config.lambda_gp * gradient_penalty
 
-    optimizer_D.zero_grad()
-    d_loss.backward()
-    optimizer_D.step()
+#     optimizer_D.zero_grad()
+#     d_loss.backward()
+#     optimizer_D.step()
 
-    fake_imgs = generator(z, batch_context)
-    fake_validity = discriminator(fake_imgs, batch_context)
-    g_loss = -torch.mean(fake_validity)
+#     fake_imgs = generator(z, batch_context)
+#     fake_validity = discriminator(fake_imgs, batch_context)
+#     g_loss = -torch.mean(fake_validity)
 
-    optimizer_G.zero_grad()
-    g_loss.backward()
-    optimizer_G.step()
+#     optimizer_G.zero_grad()
+#     g_loss.backward()
+#     optimizer_G.step()
 
 # state = {
 #     'generator': generator.state_dict(),
@@ -180,15 +179,15 @@ for i in range(0, len(probing_dataset), config.batch_size):
         generator.zero_grad()
         discriminator.zero_grad()
         img_noise = noise_fisher[fisher_idx].view(1,-1)
-        img_context = batch_context[fisher_idx].view(1,config.n_mir_channels,config.mri_image_dim,config.mri_image_dim)
+        img_context = batch_context[fisher_idx].view(1,config.n_mri_channels,config.mri_image_dim,config.mri_image_dim)
         img_real = batch_images[fisher_idx].view(1,config.n_pet_channels,config.pet_image_dim,config.pet_image_dim)
 
         # 1) Obtain predicted results
         img_fake, _ = generator(img_noise, img_context)
         fake_pred_fisher = discriminator(img_fake, batch_context)
         real_pred_fisher = discriminator(img_real, batch_context)
-        g_loss_fisher = -torch.mean(fake_validity)
-        d_loss_fisher = -torch.mean(real_validity) + torch.mean(fake_validity)
+        g_loss_fisher = -torch.mean(fake_pred_fisher)
+        d_loss_fisher = -torch.mean(real_pred_fisher) + torch.mean(fake_pred_fisher)
 
         # 2) Estimate the fisher information and grad of each parameter
         g_grads, est_fisher_info_g   = generator.estimate_fisher(loglikelihood=g_loss_fisher)
