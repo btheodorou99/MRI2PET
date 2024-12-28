@@ -31,7 +31,7 @@ def getID(path):
 
 adni_labels = pd.read_csv('./src/data/DXSUM_PDXCONV.csv')
 adni_labels = {row.PTID: row.DIAGNOSIS for row in adni_labels.itertuples()}
-adni_labels = {p: int(int(l - 1) == 2) for p, l in adni_labels.items() if l == l}
+adni_labels = {p: int(int(l - 1) == 3) for p, l in adni_labels.items() if l == l}
 config.downstream_dim = 1
 
 real_paired_dataset = [(m, p) for (m, p) in pickle.load(open('./src/data/trainDataset.pkl', 'rb')) + pickle.load(open('./src/data/valDataset.pkl', 'rb')) if getID(m) in adni_labels]
