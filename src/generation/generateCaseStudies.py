@@ -150,7 +150,7 @@ model = model.to(device)
 model.eval()
 config.batch_size = config.batch_size // 5
 os.makedirs("./src/results/case_study_samples", exist_ok=True)
-for i in tqdm(range(len(0, test_dataset, config.batch_size))):
+for i in tqdm(range(0, len(test_dataset), config.batch_size)):
     sample_contexts, real_images = get_batch(test_dataset, i, config.batch_size)
     with torch.no_grad():
         generated_pet = model.generate(sample_contexts.to(device))
