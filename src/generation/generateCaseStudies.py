@@ -23,12 +23,12 @@ if torch.cuda.is_available():
 
 def getID(path):
     fname = path.split("/")[-1]
-    subject = fname.split("-")[1]
+    subject = fname.split("--")[0]
     return subject
 
 def getDate(path):
     fname = path.split("/")[-1]
-    date = fname.split("-")[0]
+    date = fname.split("--")[1]
     return date
 
 adni_labels = pd.read_csv("./src/data/DXSUM_PDXCONV.csv")
@@ -148,17 +148,19 @@ model = DiffusionModel(config)
 model.load_state_dict(torch.load(f"./src/save/{k}.pt", map_location="cpu")["model"])
 model = model.to(device)
 model.eval()
-
-for i in tqdm(range(len(test_dataset))):
-    sample_contexts, real_images = get_batch(test_dataset, i, 1)
-    fpath = test_dataset[i][1]
-    subject = getID(fpath)
-    date = getDate(fpath)
-    ad_status = adni_labels.get(subject, "Unknown")
-    real_pet = tensor_to_numpy(real_images[0].cpu())
-    real_mri = resize_array(sample_contexts[0].cpu().clone().numpy().transpose((1, 2, 0)), real_pet.shape[0])
-    real_mri = align_mri(real_mri, real_pet)
+config.batch_size = config.batch_size // 5
+os.makedirs("./src/results/case_study_samples", exist_ok=True)
+for i in tqdm(range(len(0, test_dataset, config.batch_size))):
+    sample_contexts, real_images = get_batch(test_dataset, i, config.batch_size)
     with torch.no_grad():
         generated_pet = model.generate(sample_contexts.to(device))
-        generated_pet = tensor_to_numpy(generated_pet[0].cpu())
-    save_slice_plots(real_mri, real_pet, generated_pet, f"./src/results/case_study_samples/", f"{subject}_{date}_{ad_status}")
+    for j in range(sample_contexts.size(0)):
+        fpath = test_dataset[i+j][1]
+        subject = getID(fpath)
+        date = getDate(fpath)
+        ad_status = adni_labels.get(subject, "Unknown")
+        real_pet = tensor_to_numpy(real_images[j].cpu())
+        real_mri = resize_array(sample_contexts[j].cpu().clone().numpy().transpose((1, 2, 0)), real_pet.shape[0])
+        real_mri = align_mri(real_mri, real_pet)
+        generated_pet = tensor_to_numpy(generated_pet[j].cpu())
+        save_slice_plots(real_mri, real_pet, generated_pet, f"./src/results/case_study_samples/", f"{subject}_{date}_{ad_status}")
