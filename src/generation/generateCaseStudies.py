@@ -153,7 +153,7 @@ os.makedirs("./src/results/case_study_samples", exist_ok=True)
 for i in tqdm(range(0, len(test_dataset), config.batch_size)):
     sample_contexts, real_images = get_batch(test_dataset, i, config.batch_size)
     with torch.no_grad():
-        generated_pet = model.generate(sample_contexts.to(device)).cpu()
+        generated_batch = model.generate(sample_contexts.to(device)).cpu()
     for j in range(sample_contexts.size(0)):
         fpath = test_dataset[i+j][1]
         subject = getID(fpath)
@@ -162,5 +162,5 @@ for i in tqdm(range(0, len(test_dataset), config.batch_size)):
         real_pet = tensor_to_numpy(real_images[j].cpu())
         real_mri = resize_array(sample_contexts[j].cpu().clone().numpy().transpose((1, 2, 0)), real_pet.shape[0])
         real_mri = align_mri(real_mri, real_pet)
-        generated_pet = tensor_to_numpy(generated_pet[j])
+        generated_pet = tensor_to_numpy(generated_batch[j])
         save_slice_plots(real_mri, real_pet, generated_pet, f"./src/results/case_study_samples/", f"{subject}_{date}_{ad_status}")
