@@ -150,7 +150,7 @@ model = model.to(device)
 model.eval()
 
 for i in tqdm(range(len(test_dataset))):
-    sample_contexts, real_images = get_batch(test_dataset, 0, len(test_dataset))
+    sample_contexts, real_images = get_batch(test_dataset, i, 1)
     fpath = test_dataset[i][1]
     subject = getID(fpath)
     date = getDate(fpath)
