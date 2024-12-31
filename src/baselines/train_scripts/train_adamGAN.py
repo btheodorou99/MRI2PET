@@ -52,63 +52,63 @@ generator = Generator(config).to(device)
 discriminator = Discriminator(config).to(device)
 optimizer_G = torch.optim.Adam(generator.parameters(), lr=config.lr)
 optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=config.lr)
-if os.path.exists(f"./src/save/adamGAN.pt"):
-    print("Loading previous model")
-    checkpoint = torch.load(f'./src/save/adamGAN.pt', map_location=torch.device(device))
-    generator.load_state_dict(checkpoint['generator'])
-    discriminator.load_state_dict(checkpoint['discriminator'])
-    optimizer_G.load_state_dict(checkpoint['optimizer_G'])
-    optimizer_D.load_state_dict(checkpoint['optimizer_D'])
+# if os.path.exists(f"./src/save/adamGAN_base.pt"):
+#     print("Loading previous model")
+#     checkpoint = torch.load(f'./src/save/adamGAN_base.pt', map_location=torch.device(device))
+#     generator.load_state_dict(checkpoint['generator'])
+#     discriminator.load_state_dict(checkpoint['discriminator'])
+#     optimizer_G.load_state_dict(checkpoint['optimizer_G'])
+#     optimizer_D.load_state_dict(checkpoint['optimizer_D'])
 
-#########################
-### PRETRAINING STAGE ###
-#########################
+# #########################
+# ### PRETRAINING STAGE ###
+# #########################
 
-for name, param in generator.named_parameters():
-    if '_vector' in name:
-        param.requires_grad = False
+# for name, param in generator.named_parameters():
+#     if '_vector' in name:
+#         param.requires_grad = False
 
-for name, param in discriminator.named_parameters():
-    if '_vector' in name:
-        param.requires_grad = False
+# for name, param in discriminator.named_parameters():
+#     if '_vector' in name:
+#         param.requires_grad = False
 
-for e in tqdm(range(config.pretrain_epoch)):
-    shuffle_training_data(pretrain_dataset)
-    generator.train()
-    discriminator.train()
-    for i in range(0, len(pretrain_dataset), config.batch_size):
-        batch_context, batch_images = get_batch(pretrain_dataset, i, config.batch_size)
+# for e in tqdm(range(config.pretrain_epoch)):
+#     shuffle_training_data(pretrain_dataset)
+#     generator.train()
+#     discriminator.train()
+#     for i in range(0, len(pretrain_dataset), config.batch_size):
+#         batch_context, batch_images = get_batch(pretrain_dataset, i, config.batch_size)
 
-        # Train Discriminator
-        z = torch.randn(batch_context.size(0), config.z_dim, device=batch_context.device)
-        fake_imgs = generator(z, batch_context)
+#         # Train Discriminator
+#         z = torch.randn(batch_context.size(0), config.z_dim, device=batch_context.device)
+#         fake_imgs = generator(z, batch_context)
 
-        real_validity = discriminator(batch_images, batch_context)
-        fake_validity = discriminator(fake_imgs, batch_context)
-        gradient_penalty = discriminator.compute_gradient_penalty(batch_images.data, fake_imgs.data, batch_context.data)
-        d_loss = -torch.mean(real_validity) + torch.mean(fake_validity) + config.lambda_gp * gradient_penalty
+#         real_validity = discriminator(batch_images, batch_context)
+#         fake_validity = discriminator(fake_imgs, batch_context)
+#         gradient_penalty = discriminator.compute_gradient_penalty(batch_images.data, fake_imgs.data, batch_context.data)
+#         d_loss = -torch.mean(real_validity) + torch.mean(fake_validity) + config.lambda_gp * gradient_penalty
 
-        optimizer_D.zero_grad()
-        d_loss.backward()
-        optimizer_D.step()
+#         optimizer_D.zero_grad()
+#         d_loss.backward()
+#         optimizer_D.step()
 
-        if i % (config.generator_interval * config.batch_size) == 0:
-            # Train Generator
-            fake_imgs = generator(z, batch_context)
-            fake_validity = discriminator(fake_imgs, batch_context)
-            g_loss = -torch.mean(fake_validity)
+#         if i % (config.generator_interval * config.batch_size) == 0:
+#             # Train Generator
+#             fake_imgs = generator(z, batch_context)
+#             fake_validity = discriminator(fake_imgs, batch_context)
+#             g_loss = -torch.mean(fake_validity)
 
-            optimizer_G.zero_grad()
-            g_loss.backward()
-            optimizer_G.step()
-    state = {
-        'generator': generator.state_dict(),
-        'discriminator': discriminator.state_dict(),
-        'optimizer_G': optimizer_G,
-        'optimizer_D': optimizer_D,
-        'epoch': e
-    }
-    torch.save(state, f'./src/save/adamGAN_base.pt')
+#             optimizer_G.zero_grad()
+#             g_loss.backward()
+#             optimizer_G.step()
+#     state = {
+#         'generator': generator.state_dict(),
+#         'discriminator': discriminator.state_dict(),
+#         'optimizer_G': optimizer_G,
+#         'optimizer_D': optimizer_D,
+#         'epoch': e
+#     }
+#     torch.save(state, f'./src/save/adamGAN_base.pt')
 
 
 ################################
@@ -128,40 +128,47 @@ for name, param in discriminator.named_parameters():
         param.requires_grad = False
 
 # One Epoch of Fine Tuning
-print("Probing stage")
-probing_dataset = train_dataset[:-5*config.batch_size]
-for i in range(0, len(probing_dataset), config.batch_size):
-    batch_context, batch_images = get_batch(probing_dataset, i, config.batch_size)
+# print("Probing stage")
+# probing_dataset = train_dataset[:-5*config.batch_size]
+# for i in range(0, len(probing_dataset), config.batch_size):
+#     batch_context, batch_images = get_batch(probing_dataset, i, config.batch_size)
 
-    # Train Discriminator
-    z = torch.randn(batch_context.size(0), config.z_dim, device=batch_context.device)
-    fake_imgs = generator(z, batch_context)
+#     # Train Discriminator
+#     z = torch.randn(batch_context.size(0), config.z_dim, device=batch_context.device)
+#     fake_imgs = generator(z, batch_context)
 
-    real_validity = discriminator(batch_images, batch_context)
-    fake_validity = discriminator(fake_imgs, batch_context)
-    gradient_penalty = discriminator.compute_gradient_penalty(batch_images.data, fake_imgs.data, batch_context.data)
-    d_loss = -torch.mean(real_validity) + torch.mean(fake_validity) + config.lambda_gp * gradient_penalty
+#     real_validity = discriminator(batch_images, batch_context)
+#     fake_validity = discriminator(fake_imgs, batch_context)
+#     gradient_penalty = discriminator.compute_gradient_penalty(batch_images.data, fake_imgs.data, batch_context.data)
+#     d_loss = -torch.mean(real_validity) + torch.mean(fake_validity) + config.lambda_gp * gradient_penalty
 
-    optimizer_D.zero_grad()
-    d_loss.backward()
-    optimizer_D.step()
+#     optimizer_D.zero_grad()
+#     d_loss.backward()
+#     optimizer_D.step()
 
-    fake_imgs = generator(z, batch_context)
-    fake_validity = discriminator(fake_imgs, batch_context)
-    g_loss = -torch.mean(fake_validity)
+#     fake_imgs = generator(z, batch_context)
+#     fake_validity = discriminator(fake_imgs, batch_context)
+#     g_loss = -torch.mean(fake_validity)
 
-    optimizer_G.zero_grad()
-    g_loss.backward()
-    optimizer_G.step()
+#     optimizer_G.zero_grad()
+#     g_loss.backward()
+#     optimizer_G.step()
 
-state = {
-    'generator': generator.state_dict(),
-    'discriminator': discriminator.state_dict(),
-    'optimizer_G': optimizer_G,
-    'optimizer_D': optimizer_D,
-    'epoch': e
-}
-torch.save(state, f'./src/save/adamGAN_probing.pt')
+# state = {
+#     'generator': generator.state_dict(),
+#     'discriminator': discriminator.state_dict(),
+#     'optimizer_G': optimizer_G,
+#     'optimizer_D': optimizer_D,
+# }
+# torch.save(state, f'./src/save/adamGAN_probing.pt')
+        
+if os.path.exists(f"./src/save/adamGAN_probing.pt"):
+    print("Loading previous model")
+    checkpoint = torch.load(f'./src/save/adamGAN_probing.pt', map_location=torch.device(device))
+    generator.load_state_dict(checkpoint['generator'])
+    discriminator.load_state_dict(checkpoint['discriminator'])
+    optimizer_G.load_state_dict(checkpoint['optimizer_G'])
+    optimizer_D.load_state_dict(checkpoint['optimizer_D'])
 
 for name, param in generator.named_parameters():
     param.requires_grad = True
@@ -338,10 +345,16 @@ for name, param in discriminator.named_parameters():
         with torch.no_grad():
             param[idx_ft_filter_fisher_d[name]] = 0 # zero-out kml value
 
+steps_per_batch = 4
+config.batch_size = config.batch_size // steps_per_batch
+
 for e in tqdm(range(config.epoch)):
     shuffle_training_data(train_dataset)
     generator.train()
     discriminator.train()
+    curr_step = 0
+    optimizer_D.zero_grad()
+    optimizer_G.zero_grad()
     for i in range(0, len(train_dataset), config.batch_size):
         batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
         
@@ -353,72 +366,74 @@ for e in tqdm(range(config.epoch)):
         fake_validity = discriminator(fake_imgs, batch_context)
         gradient_penalty = discriminator.compute_gradient_penalty(batch_images.data, fake_imgs.data, batch_context.data)
         d_loss = -torch.mean(real_validity) + torch.mean(fake_validity) + config.lambda_gp * gradient_penalty
-
-        optimizer_D.zero_grad()
+        d_loss = d_loss / steps_per_batch
         d_loss.backward()
-        
-        # ---------------------------------------------------------------------------------------
-        # D: zero-out grad for KML filters with *low* KML FIM
-        for name, param in discriminator.named_parameters():
-            if name in idx_ft_filter_fisher_d.keys():
-                param.grad[idx_ft_filter_fisher_d[name]] = 0
+        curr_step += 1
+        if curr_step % steps_per_batch == 0:
+            torch.nn.utils.clip_grad_norm_(discriminator.parameters(), 0.5)
+            # ---------------------------------------------------------------------------------------
+            # D: zero-out grad for KML filters with *low* KML FIM
+            for name, param in discriminator.named_parameters():
+                if name in idx_ft_filter_fisher_d.keys():
+                    param.grad[idx_ft_filter_fisher_d[name]] = 0
 
-        # D: zero-out grad for pretrained filters with *high* KML FIM
-        filter_name = []
-        for name, _ in discriminator.named_parameters():
-            if name in idx_kml_filter_fisher_d.keys():    
-                if 'v_vector' in name:        
-                    filter_name.append(name.replace('v_vector', 'W'))
-                elif 'b_vector' in name:
-                    filter_name.append(name.replace('b_vector', 'bias'))
+            # D: zero-out grad for pretrained filters with *high* KML FIM
+            filter_name = []
+            for name, _ in discriminator.named_parameters():
+                if name in idx_kml_filter_fisher_d.keys():    
+                    if 'v_vector' in name:        
+                        filter_name.append(name.replace('v_vector', 'W'))
+                    elif 'b_vector' in name:
+                        filter_name.append(name.replace('b_vector', 'bias'))
 
-        for name, param in discriminator.named_parameters():
-            if name in filter_name:
-                if 'weight' in name:
-                    corresponding_kml_name = name.replace('W', 'v_vector')
-                    param.grad[idx_kml_filter_fisher_d[corresponding_kml_name]] = 0
-                elif 'bias' in name:
-                    corresponding_kml_name = name.replace('bias', 'b_vector')
-                    param.grad[idx_kml_filter_fisher_d[corresponding_kml_name]] = 0   
-        # ---------------------------------------------------------------------------------------
-        
-        optimizer_D.step()
+            for name, param in discriminator.named_parameters():
+                if name in filter_name:
+                    if 'weight' in name:
+                        corresponding_kml_name = name.replace('W', 'v_vector')
+                        param.grad[idx_kml_filter_fisher_d[corresponding_kml_name]] = 0
+                    elif 'bias' in name:
+                        corresponding_kml_name = name.replace('bias', 'b_vector')
+                        param.grad[idx_kml_filter_fisher_d[corresponding_kml_name]] = 0   
+            # ---------------------------------------------------------------------------------------
+            optimizer_D.step()
+            optimizer_D.zero_grad()
 
         if i % (config.generator_interval * config.batch_size) == 0:
             # Train Generator
             fake_imgs = generator(z, batch_context)
             fake_validity = discriminator(fake_imgs, batch_context)
             g_loss = -torch.mean(fake_validity)
-
-            optimizer_G.zero_grad()
+            g_loss = g_loss / steps_per_batch
             g_loss.backward()
-            
-            # ---------------------------------------------------------------------------------------
-            # G: zero-out grad for KML filters with *low* KML FIM
-            for name, param in generator.named_parameters():
-                if name in idx_ft_filter_fisher_g.keys():
-                    param.grad[idx_ft_filter_fisher_g[name]] = 0
+            if (curr_step + 1) % (steps_per_batch * config.generator_interval) == 0:
+                torch.nn.utils.clip_grad_norm_(generator.parameters(), 0.5)
+                # ---------------------------------------------------------------------------------------
+                # G: zero-out grad for KML filters with *low* KML FIM
+                for name, param in generator.named_parameters():
+                    if name in idx_ft_filter_fisher_g.keys():
+                        param.grad[idx_ft_filter_fisher_g[name]] = 0
 
-            # G: zero-out grad for pretrained filters with *high* KML FIM
-            filter_name = []
-            for name, _ in generator.named_parameters():
-                if name in idx_kml_filter_fisher_g.keys():    
-                    if 'v_vector' in name:        
-                        filter_name.append(name.replace('v_vector', 'W'))
-                    elif 'b_vector' in name:
-                        filter_name.append(name.replace('b_vector', 'bias'))
+                # G: zero-out grad for pretrained filters with *high* KML FIM
+                filter_name = []
+                for name, _ in generator.named_parameters():
+                    if name in idx_kml_filter_fisher_g.keys():    
+                        if 'v_vector' in name:        
+                            filter_name.append(name.replace('v_vector', 'W'))
+                        elif 'b_vector' in name:
+                            filter_name.append(name.replace('b_vector', 'bias'))
 
-            for name, param in generator.named_parameters():
-                if name in filter_name:
-                    if 'weight' in name:
-                        corresponding_kml_name = name.replace('W', 'v_vector')
-                        param.grad[idx_kml_filter_fisher_g[corresponding_kml_name]] = 0
-                    elif 'bias' in name:
-                        corresponding_kml_name = name.replace('bias', 'b_vector')
-                        param.grad[idx_kml_filter_fisher_g[corresponding_kml_name]] = 0   
-            # ---------------------------------------------------------------------------------------
-            
-            optimizer_G.step()
+                for name, param in generator.named_parameters():
+                    if name in filter_name:
+                        if 'weight' in name:
+                            corresponding_kml_name = name.replace('W', 'v_vector')
+                            param.grad[idx_kml_filter_fisher_g[corresponding_kml_name]] = 0
+                        elif 'bias' in name:
+                            corresponding_kml_name = name.replace('bias', 'b_vector')
+                            param.grad[idx_kml_filter_fisher_g[corresponding_kml_name]] = 0   
+                # ---------------------------------------------------------------------------------------
+                optimizer_G.step()
+                optimizer_G.zero_grad()
+                curr_step = 0
 
     state = {
         'generator': generator.state_dict(),
