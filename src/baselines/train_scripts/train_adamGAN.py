@@ -167,8 +167,6 @@ if os.path.exists(f"./src/save/adamGAN_probing.pt"):
     checkpoint = torch.load(f'./src/save/adamGAN_probing.pt', map_location=torch.device(device))
     generator.load_state_dict(checkpoint['generator'])
     discriminator.load_state_dict(checkpoint['discriminator'])
-    optimizer_G.load_state_dict(checkpoint['optimizer_G'])
-    optimizer_D.load_state_dict(checkpoint['optimizer_D'])
 
 for name, param in generator.named_parameters():
     param.requires_grad = True
