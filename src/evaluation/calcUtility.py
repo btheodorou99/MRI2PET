@@ -146,13 +146,13 @@ def evaluate_model(model, data, has_mri, has_pet):
     return metrics_dict
 
 experiments = [
-    ('RealMRI', True, False, mri_dataset),
-    ('RealLimitedMRI', True, False, real_paired_dataset),
-    ('RealPET', False, True, real_paired_dataset),
-    ('RealPaired', True, True, real_paired_dataset),
-    ('SyntheticPET', False, True, synthetic_paired_dataset),
-    ('AugmentedPET', False, True, augmented_paired_dataset),
-    ('SyntheticPaired', True, True, synthetic_paired_dataset),
+    # ('RealMRI', True, False, mri_dataset),
+    # ('RealLimitedMRI', True, False, real_paired_dataset),
+    # ('RealPET', False, True, real_paired_dataset),
+    # ('RealPaired', True, True, real_paired_dataset),
+    # ('SyntheticPET', False, True, synthetic_paired_dataset),
+    # ('AugmentedPET', False, True, augmented_paired_dataset),
+    # ('SyntheticPaired', True, True, synthetic_paired_dataset),
     ('AugmentedPaired', True, True, augmented_paired_dataset),
 ]
 
