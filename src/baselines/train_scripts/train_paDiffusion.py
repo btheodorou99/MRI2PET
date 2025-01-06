@@ -69,10 +69,15 @@ def shuffle_training_data(train_ehr_dataset):
     random.shuffle(train_ehr_dataset)
 
 model = DiffusionModel(config).to(device)
-if os.path.exists(f"./src/save/mri2pet_base.pt"):
+optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
+if os.path.exists(f"./src/save/paDiffusion.pt"):
     print("Loading previous model")
-    checkpoint = torch.load(f'./src/save/mri2pet_base.pt', map_location=torch.device(device))
+    checkpoint = torch.load(f'./src/save/paDiffusion.pt', map_location=torch.device(device))
     model.load_state_dict(checkpoint['model'])
+    optimizer.load_state_dict(checkpoint['optimizer'])
+    model_S = DiffusionModel(config).to(device)
+    checkpoint_s = torch.load(f'./src/save/mri2pet_base.pt', map_location=torch.device(device))
+    model_S.load_state_dict(checkpoint_s['model'])
 
 steps_per_batch = 8
 config.batch_size = config.batch_size // steps_per_batch
@@ -106,12 +111,12 @@ config.batch_size = config.batch_size // steps_per_batch
 #     }
 #     torch.save(state, f'./src/save/paDiffusion_base.pt')
 
-model_S = deepcopy(model)
+# model_S = deepcopy(model)
 for name, param in model_S.named_parameters():
     param.requires_grad = True
-optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
+# optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
 
-for e in tqdm(range(config.epoch)):
+for e in tqdm(range(3906, config.epoch)):
     shuffle_training_data(train_dataset)
     train_losses = []
     model.train()

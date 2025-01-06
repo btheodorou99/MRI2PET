@@ -63,7 +63,7 @@ if os.path.exists(f"./src/save/diffAugmentGAN.pt"):
 steps_per_batch = 2
 config.batch_size = config.batch_size // steps_per_batch
 
-for e in tqdm(range(config.epoch*config.generator_interval)):
+for e in tqdm(range(config.epoch)):
     shuffle_training_data(train_dataset)
     generator.train()
     discriminator.train()

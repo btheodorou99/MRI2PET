@@ -1,3 +1,10 @@
+To Run:
+-- cdcGAN tuning to 5000
+- dclGAN tuning to 5000
+- maskedGAN tuning to 5000
+- paDiffusion tuning
+- diffAugmentGAN retrain to 5000?
+
 FID:
     baseDiffusion FID: 62.430 $\pm$ 0.027
     baseGAN FID: 303.763 $\pm$ 0.058
