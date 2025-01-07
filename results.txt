@@ -1,5 +1,5 @@
 To Run:
--- cdcGAN tuning to 5000
+- cdcGAN tuning to 5000
 - dclGAN tuning to 5000
 - maskedGAN tuning to 5000
 - paDiffusion tuning

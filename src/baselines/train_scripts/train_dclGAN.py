@@ -62,8 +62,8 @@ if os.path.exists(f"./src/save/dclGAN.pt"):
     checkpoint = torch.load(f'./src/save/dclGAN.pt', map_location=torch.device(device))
     generator.load_state_dict(checkpoint['generator'])
     discriminator.load_state_dict(checkpoint['discriminator'])
-    optimizer_G.load_state_dict(checkpoint['optimizer_G'])
-    optimizer_D.load_state_dict(checkpoint['optimizer_D'])
+    optimizer_G.load_state_dict(checkpoint['optimizer_G'].state_dict())
+    optimizer_D.load_state_dict(checkpoint['optimizer_D'].state_dict())
     start_epoch = checkpoint['epoch']
 
     G_s = Generator(config).to(device)
@@ -117,8 +117,8 @@ config.batch_size = config.batch_size // steps_per_batch
 #     state = {
 #         'generator': generator.state_dict(),
 #         'discriminator': discriminator.state_dict(),
-#         'optimizer_G': optimizer_G,
-#         'optimizer_D': optimizer_D,
+#         'optimizer_G': optimizer_G.state_dict(),
+#         'optimizer_D': optimizer_D.state_dict(),
 #         'epoch': e
 #     }
 #     torch.save(state, f'./src/save/dclGAN_base.pt')
@@ -173,8 +173,8 @@ for e in tqdm(range(start_epoch+1, config.epoch)):
     state = {
         'generator': generator.state_dict(),
         'discriminator': discriminator.state_dict(),
-        'optimizer_G': optimizer_G,
-        'optimizer_D': optimizer_D,
+        'optimizer_G': optimizer_G.state_dict(),
+        'optimizer_D': optimizer_D.state_dict(),
         'epoch': e
     }
     torch.save(state, f'./src/save/dclGAN.pt')
