@@ -83,7 +83,7 @@ if os.path.exists(f"./src/save/maskedGAN.pt"):
 else:
     start_epoch = -1
 
-steps_per_batch = 4
+steps_per_batch = 8
 config.batch_size = config.batch_size // steps_per_batch
 
 # for e in tqdm(range(config.pretrain_epoch)):
