@@ -147,6 +147,8 @@ for e in tqdm(range(start_epoch+1, config.epoch)):
     for i in range(0, len(train_dataset), config.batch_size):
         batch_context, batch_images = get_batch(train_dataset, i, config.batch_size)
         which = i % SUBSPACE_FREQ
+        if len(batch_context) == 1:
+            continue
         
         if which == 0:
             z = torch.randn(batch_context.size(0), config.z_dim, device=batch_context.device)
