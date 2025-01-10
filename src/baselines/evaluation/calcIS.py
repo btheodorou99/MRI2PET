@@ -62,10 +62,10 @@ def get_inception_score(model, dataset):
 
 model_keys = [
     "paDiffusion",
-    "maskedGAN",
+    # "maskedGAN",
     "diffAugmentGAN",
     "dclGAN",
-    "cdcGAN",
+    # "cdcGAN",
     "adamGAN",
 ]
 

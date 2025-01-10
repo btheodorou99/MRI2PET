@@ -63,10 +63,10 @@ test_act = get_inception_features(model, test_dataset)
 
 model_keys = [
     "paDiffusion",
-    "maskedGAN",
+    # "maskedGAN",
     "diffAugmentGAN",
     "dclGAN",
-    "cdcGAN",
+    # "cdcGAN",
     "adamGAN",
 ]
 

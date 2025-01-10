@@ -10,7 +10,11 @@
 #SBATCH --output=baselineEval.out
 
 module load python
+echo "FID"
 python -m src.baselines.evaluation.calcFID
+echo "IS"
 python -m src.baselines.evaluation.calcIS
+echo "PSNR"
 python -m src.baselines.evaluation.calcPSNR
+echo "SSIM"
 python -m src.baselines.evaluation.calcSSIM
