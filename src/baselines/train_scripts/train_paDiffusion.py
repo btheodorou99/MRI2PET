@@ -81,40 +81,40 @@ if os.path.exists(f"./src/save/paDiffusion.pt"):
 
 steps_per_batch = 8
 config.batch_size = config.batch_size // steps_per_batch
-# optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
+optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
 
-# for e in tqdm(range(config.pretrain_epoch)):
-#     shuffle_training_data(pretrain_dataset)
-#     pretrain_losses = []
-#     model.train()
-#     curr_step = 0
-#     optimizer.zero_grad()
-#     for i in range(0, len(pretrain_dataset), config.batch_size):
-#         batch_context, batch_images = get_batch(pretrain_dataset, i, config.batch_size)
-#         loss, _ = model(batch_context, batch_images, gen_loss=True)
-#         pretrain_losses.append(loss.cpu().detach().item())
-#         loss = loss / steps_per_batch
-#         loss.backward()
-#         curr_step += 1
-#         if curr_step % steps_per_batch == 0:
-#             torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
-#             optimizer.step()
-#             optimizer.zero_grad()
-#             curr_step = 0
+for e in tqdm(range(config.pretrain_epoch)):
+    shuffle_training_data(pretrain_dataset)
+    pretrain_losses = []
+    model.train()
+    curr_step = 0
+    optimizer.zero_grad()
+    for i in range(0, len(pretrain_dataset), config.batch_size):
+        batch_context, batch_images = get_batch(pretrain_dataset, i, config.batch_size)
+        loss, _ = model(batch_context, batch_images, gen_loss=True)
+        pretrain_losses.append(loss.cpu().detach().item())
+        loss = loss / steps_per_batch
+        loss.backward()
+        curr_step += 1
+        if curr_step % steps_per_batch == 0:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
+            optimizer.step()
+            optimizer.zero_grad()
+            curr_step = 0
 
-#     cur_pretrain_loss = np.mean(pretrain_losses)
-#     print("Epoch %d Training Loss:%.7f"%(e, cur_pretrain_loss), flush=True)
-#     state = {
-#         'model': model.state_dict(),
-#         'optimizer': optimizer.state_dict(),
-#         'mode': 'pretrain'
-#     }
-#     torch.save(state, f'./src/save/paDiffusion_base.pt')
+    cur_pretrain_loss = np.mean(pretrain_losses)
+    print("Epoch %d Training Loss:%.7f"%(e, cur_pretrain_loss), flush=True)
+    state = {
+        'model': model.state_dict(),
+        'optimizer': optimizer.state_dict(),
+        'mode': 'pretrain'
+    }
+    torch.save(state, f'./src/save/paDiffusion_base.pt')
 
-# model_S = deepcopy(model)
+model_S = deepcopy(model)
 for name, param in model_S.named_parameters():
     param.requires_grad = True
-# optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
+optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
 
 for e in tqdm(range(3906, config.epoch)):
     shuffle_training_data(train_dataset)
