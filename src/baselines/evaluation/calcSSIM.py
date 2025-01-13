@@ -4,7 +4,7 @@ import pickle
 import numpy as np
 from tqdm import tqdm
 from sklearn.utils import resample
-from ..config import MRI2PETConfig
+from src.config import MRI2PETConfig
 from skimage.metrics import structural_similarity as ssim
 
 config = MRI2PETConfig()

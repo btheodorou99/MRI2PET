@@ -5,7 +5,7 @@ import numpy as np
 from tqdm import tqdm
 from scipy import linalg
 from sklearn.utils import resample
-from ..config import MRI2PETConfig
+from src.config import MRI2PETConfig
 from torchvision.models import inception_v3
 from torchvision.transforms import Compose, Resize, CenterCrop, Normalize
 
