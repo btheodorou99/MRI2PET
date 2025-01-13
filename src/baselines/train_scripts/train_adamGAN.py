@@ -64,13 +64,13 @@ if os.path.exists(f"./src/save/adamGAN_base.pt"):
 ### PRETRAINING STAGE ###
 #########################
 
-for name, param in generator.named_parameters():
-    if '_vector' in name:
-        param.requires_grad = False
+# for name, param in generator.named_parameters():
+#     if '_vector' in name:
+#         param.requires_grad = False
 
-for name, param in discriminator.named_parameters():
-    if '_vector' in name:
-        param.requires_grad = False
+# for name, param in discriminator.named_parameters():
+#     if '_vector' in name:
+#         param.requires_grad = False
 
 for e in tqdm(range(config.pretrain_epoch)):
     shuffle_training_data(pretrain_dataset)
@@ -104,8 +104,8 @@ for e in tqdm(range(config.pretrain_epoch)):
     state = {
         'generator': generator.state_dict(),
         'discriminator': discriminator.state_dict(),
-        'optimizer_G': optimizer_G,
-        'optimizer_D': optimizer_D,
+        'optimizer_G': optimizer_G.state_dict(),
+        'optimizer_D': optimizer_D.state_dict(),
         'epoch': e
     }
     torch.save(state, f'./src/save/adamGAN_base.pt')
@@ -157,8 +157,8 @@ for i in range(0, len(probing_dataset), config.batch_size):
 state = {
     'generator': generator.state_dict(),
     'discriminator': discriminator.state_dict(),
-    'optimizer_G': optimizer_G,
-    'optimizer_D': optimizer_D,
+    'optimizer_G': optimizer_G.state_dict(),
+    'optimizer_D': optimizer_D.state_dict(),
 }
 torch.save(state, f'./src/save/adamGAN_probing.pt')
         
@@ -436,8 +436,8 @@ for e in tqdm(range(config.epoch)):
     state = {
         'generator': generator.state_dict(),
         'discriminator': discriminator.state_dict(),
-        'optimizer_G': optimizer_G,
-        'optimizer_D': optimizer_D,
+        'optimizer_G': optimizer_G.state_dict(),
+        'optimizer_D': optimizer_D.state_dict(),
         'epoch': e
     }
     torch.save(state, f'./src/save/adamGAN.pt')
