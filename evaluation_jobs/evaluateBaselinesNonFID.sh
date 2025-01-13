@@ -8,8 +8,6 @@
 #SBATCH --output=baselineNonFID.out
 
 module load python
-echo "IS"
-python -m src.baselines.evaluation.calcIS
 echo "PSNR"
 python -m src.baselines.evaluation.calcPSNR
 echo "SSIM"
