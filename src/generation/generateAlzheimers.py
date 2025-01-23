@@ -36,7 +36,7 @@ adni_labels = {row.PTID: row.DIAGNOSIS for row in adni_labels.itertuples()}
 adni_labels = {p: int(l - 1) for p, l in adni_labels.items() if l == l}
 
 test_dataset = pickle.load(open("./src/data/testDataset.pkl", "rb"))
-test_dataset = [x for x in test_dataset if adni_labels.get(getID(x[0]), -1) == 2]
+test_dataset = [x for x in test_dataset if adni_labels.get(getID(x[1]), -1) == 2]
 global_mean = pickle.load(open("./src/data/globalMean.pkl", "rb"))
 global_std = pickle.load(open("./src/data/globalStd.pkl", "rb"))
 

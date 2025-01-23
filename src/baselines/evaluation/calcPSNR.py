@@ -25,11 +25,11 @@ test_dataset = pickle.load(open('./src/data/testDataset.pkl', 'rb'))
 test_dataset = [pet_path for (mri_path, pet_path) in test_dataset]
 
 model_keys = [
-    "paDiffusion",
-    # "maskedGAN",
-    "diffAugmentGAN",
-    "dclGAN",
-    # "cdcGAN",
+    # "paDiffusion",
+    "maskedGAN",
+    # "diffAugmentGAN",
+    # "dclGAN",
+    "cdcGAN",
     "adamGAN",
 ]
 

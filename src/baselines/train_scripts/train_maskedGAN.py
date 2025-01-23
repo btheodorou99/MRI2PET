@@ -71,13 +71,13 @@ if os.path.exists(f"./src/save/maskedGAN.pt"):
     checkpoint = torch.load(f'./src/save/maskedGAN.pt', map_location=torch.device(device))
     generator.load_state_dict(checkpoint['generator'])
     discriminator.load_state_dict(checkpoint['discriminator'])
-    optimizer_G.load_state_dict(checkpoint['optimizer_G'].state_dict())
-    optimizer_D.load_state_dict(checkpoint['optimizer_D'].state_dict())
+    optimizer_G.load_state_dict(checkpoint['optimizer_G'])
+    optimizer_D.load_state_dict(checkpoint['optimizer_D'])
     start_epoch = checkpoint['epoch']
 
     G_s = Generator(config).to(device)
     D_s = Discriminator(config).to(device)
-    checkpoint_s = torch.load(f'./src/save/cdcGAN_base.pt', map_location=torch.device(device))
+    checkpoint_s = torch.load(f'./src/save/maskedGAN_base.pt', map_location=torch.device(device))
     G_s.load_state_dict(checkpoint_s['generator'])
     D_s.load_state_dict(checkpoint_s['discriminator'])
 else:
