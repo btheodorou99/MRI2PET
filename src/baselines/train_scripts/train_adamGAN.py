@@ -59,6 +59,9 @@ if os.path.exists(f"./src/save/adamGAN_base.pt"):
     discriminator.load_state_dict(checkpoint['discriminator'])
     optimizer_G.load_state_dict(checkpoint['optimizer_G'])
     optimizer_D.load_state_dict(checkpoint['optimizer_D'])
+    start_epoch = checkpoint['epoch']
+else:
+    start_epoch = -1
 
 #########################
 ### PRETRAINING STAGE ###
@@ -72,7 +75,7 @@ if os.path.exists(f"./src/save/adamGAN_base.pt"):
 #     if '_vector' in name:
 #         param.requires_grad = False
 
-for e in tqdm(range(config.pretrain_epoch)):
+for e in tqdm(range(start_epoch+1, config.pretrain_epoch)):
     shuffle_training_data(pretrain_dataset)
     generator.train()
     discriminator.train()
