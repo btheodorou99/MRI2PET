@@ -60,3 +60,41 @@ class ImageClassifier(nn.Module):
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
         return x
+
+class ImageRegressor(nn.Module):
+    def __init__(self, config, has_mri=True, has_pet=True):
+        super().__init__()
+        self.has_mri = has_mri
+        self.has_pet = has_pet
+        input_size = 0
+        
+        if has_mri:
+            self.mri_encoder = nn.Sequential(
+                ImageEncoder(config, is_mri=True)
+            )
+            input_size += config.feature_dim
+            
+        if has_pet:
+            self.pet_encoder = nn.Sequential(
+                ImageEncoder(config, is_mri=False)
+            )
+            input_size += config.feature_dim
+            
+        self.regressor = nn.Sequential(
+            nn.Linear(input_size, 256),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(256, 64),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(64, 1)  # Single output for MMSE score
+        )
+    
+    def forward(self, mri, pet):
+        features = []
+        if self.has_mri:
+            features.append(self.mri_encoder(mri))
+        if self.has_pet:
+            features.append(self.pet_encoder(pet))
+        x = torch.cat(features, dim=1)
+        return self.regressor(x).squeeze()
