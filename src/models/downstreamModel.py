@@ -64,37 +64,26 @@ class ImageClassifier(nn.Module):
 class ImageRegressor(nn.Module):
     def __init__(self, config, has_mri=True, has_pet=True):
         super().__init__()
-        self.has_mri = has_mri
-        self.has_pet = has_pet
-        input_size = 0
-        
+        assert has_pet or has_mri, "At least one of MRI or PET must be present"
         if has_mri:
-            self.mri_encoder = nn.Sequential(
-                ImageEncoder(config, is_mri=True)
-            )
-            input_size += config.feature_dim
-            
+            self.mri_encoder = ImageEncoder(config, is_mri=True)
         if has_pet:
-            self.pet_encoder = nn.Sequential(
-                ImageEncoder(config, is_mri=False)
-            )
-            input_size += config.feature_dim
-            
+            self.pet_encoder = ImageEncoder(config, is_mri=False)
+
         self.regressor = nn.Sequential(
-            nn.Linear(input_size, 256),
+            nn.Linear(2*config.embed_dim if has_pet and has_mri else config.embed_dim, config.embed_dim),
             nn.ReLU(),
             nn.Dropout(0.5),
-            nn.Linear(256, 64),
+            nn.Linear(config.embed_dim, config.embed_dim),
             nn.ReLU(),
             nn.Dropout(0.5),
-            nn.Linear(64, 1)  # Single output for MMSE score
+            nn.Linear(config.embed_dim, 1)  # Single output for MMSE score
         )
     
     def forward(self, mri, pet):
-        features = []
         if self.has_mri:
-            features.append(self.mri_encoder(mri))
+            mri = self.mri_encoder(mri)
         if self.has_pet:
-            features.append(self.pet_encoder(pet))
-        x = torch.cat(features, dim=1)
+            pet = self.pet_encoder(pet)
+        x = torch.cat([mri, pet], dim=1) if self.has_pet and self.has_mri else mri if self.has_mri else pet
         return self.regressor(x).squeeze()
