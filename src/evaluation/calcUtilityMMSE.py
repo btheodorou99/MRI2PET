@@ -1,7 +1,3 @@
-# GOALS:
-# Synthetic performs similar to real PET in limited data settings
-# Generated PET unlocks larger dataset to perform better than limited settings
-
 import torch
 import pickle
 import random
@@ -27,10 +23,9 @@ if torch.cuda.is_available():
 
 def getID(path):
     fname = path.split('/')[-1]
-    subject = fname.split('-')[1]
-    date_str = fname.split('-')[2]
+    subject, date_str = fname.split('-')[1:3]
     # Convert date string to datetime object
-    date = datetime.strptime(date_str, '%Y%m%d')  # Adjust format if needed
+    date = datetime.strptime(date_str, '%Y%m%d')
     return subject, date
 
 # Load and process MMSE scores
@@ -39,6 +34,10 @@ adni_scores = pd.read_csv('./src/data/MMSE.csv')
 adni_scores['VISDATE'] = pd.to_datetime(adni_scores['VISDATE'])
 # Filter valid MMSE scores
 adni_scores = adni_scores[(adni_scores['MMSCORE'] >= 1) & (adni_scores['MMSCORE'] <= 30)]
+
+real_paired_dataset = pickle.load(open('./src/data/trainDataset.pkl', 'rb')) + pickle.load(open('./src/data/valDataset.pkl', 'rb'))
+test_dataset = pickle.load(open('./src/data/testDataset.pkl', 'rb'))
+synthetic_dataset = pickle.load(open('./src/data/syntheticDataset.pkl', 'rb'))
 
 # Create dictionary to store scores by subject
 adni_scores_dict = {}
@@ -54,8 +53,8 @@ def get_closest_score(subject, date):
     scores = adni_scores_dict[subject]
     # Find closest date
     closest_score = min(scores, key=lambda x: abs((x[0] - date).days))
-    # Only use scores within 6 months (180 days) of the scan
-    if abs((closest_score[0] - date).days) > 180:
+    # Only use scores within 1 year of the scan
+    if abs((closest_score[0] - date).days) > 365:
         return None
     return closest_score[1]
 
@@ -71,11 +70,11 @@ for dataset in [real_paired_dataset, test_dataset, synthetic_dataset]:
 # Filter datasets to only include images with valid MMSE scores
 real_paired_dataset = [(m, p) for (m, p) in real_paired_dataset if m in adni_labels]
 test_dataset = [(m, p) for (m, p) in test_dataset if m in adni_labels]
-synthetic_dataset = [(m, p) for (m, p) in synthetic_dataset if m in adni_labels]
-
-# Update derived datasets
 train_mri = set([m for (m, p) in real_paired_dataset])
 test_mri = set([m for (m, p) in test_dataset])
+
+# Update derived datasets
+synthetic_dataset = [(m, p) for (m, p) in synthetic_dataset if m in adni_labels and m not in test_mri]
 synthetic_paired_dataset = [(m, p) for (m, p) in synthetic_dataset if m in train_mri]
 augmented_paired_dataset = real_paired_dataset + [(m, p) for (m, p) in synthetic_dataset if m not in train_mri]
 mri_dataset = [(m, None) for m in pickle.load(open('./src/data/mriDataset.pkl', 'rb')) 
@@ -93,7 +92,7 @@ def get_batch(dataset, loc, batch_size, has_mri=False, has_pet=False):
     bs = len(image_paths)
     batch_mri = torch.zeros(bs, config.n_mri_channels, config.mri_image_dim, config.mri_image_dim, dtype=torch.float)
     batch_pet = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float)
-    batch_labels = torch.zeros(bs, dtype=torch.long)
+    batch_labels = torch.zeros(bs, dtype=torch.float)
     for i, (m, p) in enumerate(image_paths):
         batch_labels[i] = adni_labels[m]
         if has_mri:
@@ -213,18 +212,18 @@ for key, hasMRI, hasPET, data in tqdm(experiments):
     pickle.dump(metrics_dict, open(f'./src/results/quantitative_evaluations/utility_mmse_{key}.pkl', 'wb'))
 
 # Additional comparison between real and synthetic predictions
-synthetic_test = {m: p for m, p in pickle.load(open('./src/data/syntheticDataset.pkl', 'rb')) if getID(m)[0] in adni_labels and m in test_mri}
-synthetic_test = [(m, synthetic_test[m]) for (m, _) in test_dataset]
+synthetic_test_dataset = {m: p for m, p in pickle.load(open('./src/data/syntheticDataset.pkl', 'rb')) if m in adni_labels and m in test_mri}
+synthetic_test_dataset = [(m, synthetic_test_dataset[m]) for (m, _) in test_dataset]
 
 model = ImageRegressor(config, False, True).to(device)
 model.load_state_dict(torch.load(f'./src/save/downstream_mmse_RealPET.pt'))
 _, real_preds_pet = evaluate_model(model, test_dataset, False, True, return_predictions=True)
-_, syn_preds_pet = evaluate_model(model, synthetic_test, False, True, return_predictions=True)
+_, syn_preds_pet = evaluate_model(model, synthetic_test_dataset, False, True, return_predictions=True)
 
 model = ImageRegressor(config, True, True).to(device)
 model.load_state_dict(torch.load(f'./src/save/downstream_mmse_RealPaired.pt'))
 _, real_preds_paired = evaluate_model(model, test_dataset, True, True, return_predictions=True)
-_, syn_preds_paired = evaluate_model(model, synthetic_test, True, True, return_predictions=True)
+_, syn_preds_paired = evaluate_model(model, synthetic_test_dataset, True, True, return_predictions=True)
 
 # Calculate Pearson correlations
 pet_correlation = np.corrcoef(real_preds_pet, syn_preds_pet)[0,1]
@@ -241,7 +240,7 @@ plt.xlabel('Real PET Predictions')
 plt.ylabel('Synthetic PET Predictions')
 plt.title(f'PET Model (r={pet_correlation:.4f})')
 plt.tight_layout()
-plt.savefig('./src/results/figures/mmse_pet_correlation.png')
+plt.savefig('./src/results/quantitative_evaluations/mmse_pet_correlation.png')
 plt.close()
 
 # Plot paired model results 
@@ -252,7 +251,7 @@ plt.xlabel('Real Paired Predictions')
 plt.ylabel('Synthetic Paired Predictions')
 plt.title(f'Paired Model (r={paired_correlation:.4f})')
 plt.tight_layout()
-plt.savefig('./src/results/figures/mmse_paired_correlation.png')
+plt.savefig('./src/results/quantitative_evaluations/mmse_paired_correlation.png')
 plt.close()
 
 # Save results for plotting and future analysis

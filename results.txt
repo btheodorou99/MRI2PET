@@ -1,10 +1,3 @@
-To Run:
-- cdcGAN tuning to 5000
-- dclGAN tuning to 5000
-- maskedGAN tuning to 5000
-- paDiffusion tuning
-- diffAugmentGAN retrain to 5000?
-
 FID:
     baseDiffusion FID: 62.430 $\pm$ 0.027
     baseGAN FID: 303.763 $\pm$ 0.058
@@ -26,6 +19,9 @@ FID:
     mri2pet_noLoss_pScale_tweaked FID: 61.213 $\pm$ 0.029
     selfPretrainedDiffusion_pScale_tweaked FID: 62.753 $\pm$ 0.029
     noisyPretrainedDiffusion_pScale_tweaked FID: 62.569 $\pm$ 0.025
+    paDiffusion FID: 265.000 \pm 0.051
+    diffAugmentGAN FID: 309.005 \pm 0.052
+    dclGAN FID: 269.323 \pm 0.045
 
 SSIM
     baseDiffusion SSIM: 0.764 $\pm$ 0.005
@@ -48,6 +44,10 @@ SSIM
     mri2pet_noLoss_pScale_tweaked SSIM: 0.827 $\pm$ 0.004
     selfPretrainedDiffusion_pScale_tweaked SSIM: 0.863 $\pm$ 0.004
     noisyPretrainedDiffusion_pScale_tweaked SSIM: 0.854 $\pm$ 0.004
+    paDiffusion SSIM: 0.035 \pm 0.000
+    diffAugmentGAN SSIM: 0.055 \pm 0.001
+    dclGAN SSIM: 0.076 \pm 0.002
+    adamGAN SSIM: nan \pm nan
 
 PSNR
     baseDiffusion psnr: 21.005 $\pm$ 0.137
@@ -70,6 +70,10 @@ PSNR
     mri2pet_noLoss_pScale_tweaked psnr: 23.156 $\pm$ 0.120
     selfPretrainedDiffusion_pScale_tweaked psnr: 24.743 $\pm$ 0.124
     noisyPretrainedDiffusion_pScale_tweaked psnr: 24.615 $\pm$ 0.130
+    paDiffusion psnr: 8.108 \pm 0.041
+    diffAugmentGAN psnr: 7.901 \pm 0.028
+    dclGAN psnr: 0.958 \pm 0.015
+    adamGAN psnr: nan \pm nan
 
 IS:
     baseDiffusion Inception Score: 1.811 $\pm$ 0.001
@@ -140,3 +144,106 @@ Utility:
         Recall: 0.59563 \pm 0.00637
         F1: 0.59569 \pm 0.00648
         AUROC: 0.78195 \pm 0.00365
+
+
+
+Utility 2nd Run:
+    RealMRI
+        Accuracy: 0.57269 \pm 0.00676
+        Precision: 0.57693 \pm 0.00707
+        Recall: 0.56508 \pm 0.00735
+        F1: 0.56677 \pm 0.00698
+        AUROC: 0.75747 \pm 0.00473
+    RealLimitedMRI
+        Accuracy: 0.44867 \pm 0.00947
+        Precision: 0.38310 \pm 0.02596
+        Recall: 0.40129 \pm 0.01168
+        F1: 0.36898 \pm 0.02012
+        AUROC: 0.61050 \pm 0.01423
+    RealPET
+        Accuracy: 0.56064 \pm 0.00450
+        Precision: 0.52089 \pm 0.00393
+        Recall: 0.52395 \pm 0.00443
+        F1: 0.50990 \pm 0.00412
+        AUROC: 0.71264 \pm 0.00448
+    RealPaired
+        Accuracy: 0.57847 \pm 0.00497
+        Precision: 0.55242 \pm 0.00634
+        Recall: 0.54775 \pm 0.00568
+        F1: 0.54082 \pm 0.00651
+        AUROC: 0.73171 \pm 0.00399
+    SyntheticPET
+        Accuracy: 0.55614 \pm 0.00658
+        Precision: 0.50611 \pm 0.01556
+        Recall: 0.51403 \pm 0.00823
+        F1: 0.49234 \pm 0.01239
+        AUROC: 0.69970 \pm 0.00883
+    AugmentedPET
+        Accuracy: 0.50667 \pm 0.00711
+        Precision: 0.46003 \pm 0.00620
+        Recall: 0.46999 \pm 0.00555
+        F1: 0.44484 \pm 0.00457
+        AUROC: 0.65851 \pm 0.00469
+    SyntheticPaired
+        Accuracy: 0.54329 \pm 0.00887
+        Precision: 0.49775 \pm 0.02188
+        Recall: 0.50755 \pm 0.01190
+        F1: 0.49108 \pm 0.01834
+        AUROC: 0.69553 \pm 0.01220
+    AugmentedPaired
+        Accuracy: 0.60498 \pm 0.00686
+        Precision: 0.60543 \pm 0.00800
+        Recall: 0.59372 \pm 0.00780
+        F1: 0.59514 \pm 0.00763
+        AUROC: 0.78012 \pm 0.00457
+
+
+Utility Binary:
+    RealMRI
+        Accuracy: 0.82570 \pm 0.00379
+        Precision: 0.75726 \pm 0.00845
+        Recall: 0.58944 \pm 0.01631
+        F1: 0.65882 \pm 0.01078
+        AUROC: 0.86481 \pm 0.00382
+    RealLimitedMRI
+        Accuracy: 0.72273 \pm 0.00355
+        Precision: 0.46330 \pm 0.05602
+        Recall: 0.11667 \pm 0.02411
+        F1: 0.17089 \pm 0.03189
+        AUROC: 0.71328 \pm 0.01819
+    RealPET
+        Accuracy: 0.78265 \pm 0.00394
+        Precision: 0.66897 \pm 0.02760
+        Recall: 0.43889 \pm 0.02197
+        F1: 0.52768 \pm 0.02374
+        AUROC: 0.83562 \pm 0.01477
+    RealPaired
+        Accuracy: 0.79004 \pm 0.00459
+        Precision: 0.70118 \pm 0.02945
+        Recall: 0.43444 \pm 0.02310
+        F1: 0.53293 \pm 0.02501
+        AUROC: 0.86167 \pm 0.01422
+    SyntheticPET
+        Accuracy: 0.77574 \pm 0.00365
+        Precision: 0.68109 \pm 0.00784
+        Recall: 0.42111 \pm 0.02013
+        F1: 0.51326 \pm 0.01722
+        AUROC: 0.83072 \pm 0.00402
+    AugmentedPET
+        Accuracy: 0.75727 \pm 0.00364
+        Precision: 0.69116 \pm 0.01359
+        Recall: 0.30667 \pm 0.02098
+        F1: 0.41131 \pm 0.02024
+        AUROC: 0.79596 \pm 0.00492
+    SyntheticPaired
+        Accuracy: 0.78233 \pm 0.00471
+        Precision: 0.68059 \pm 0.02936
+        Recall: 0.42333 \pm 0.02250
+        F1: 0.51781 \pm 0.02478
+        AUROC: 0.85168 \pm 0.01049
+    AugmentedPaired
+        Accuracy: 0.84723 \pm 0.00323
+        Precision: 0.80031 \pm 0.00856
+        Recall: 0.63222 \pm 0.01202
+        F1: 0.70409 \pm 0.00782
+        AUROC: 0.89791 \pm 0.00277
