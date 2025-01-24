@@ -65,6 +65,8 @@ class ImageRegressor(nn.Module):
     def __init__(self, config, has_mri=True, has_pet=True):
         super().__init__()
         assert has_pet or has_mri, "At least one of MRI or PET must be present"
+        self.has_mri = has_mri
+        self.has_pet = has_pet
         if has_mri:
             self.mri_encoder = ImageEncoder(config, is_mri=True)
         if has_pet:
