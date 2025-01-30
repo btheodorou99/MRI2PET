@@ -25,12 +25,11 @@ test_dataset = pickle.load(open('./src/data/testDataset.pkl', 'rb'))
 test_dataset = [pet_path for (mri_path, pet_path) in test_dataset]
 
 model_keys = [
-    # "paDiffusion",
+    "paDiffusion",
     "maskedGAN",
-    # "diffAugmentGAN",
-    # "dclGAN",
+    "diffAugmentGAN",
+    "dclGAN",
     "cdcGAN",
-    "adamGAN",
 ]
 
 for k in tqdm(model_keys):

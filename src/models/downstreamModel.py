@@ -62,7 +62,7 @@ class ImageClassifier(nn.Module):
         return x
 
 class ImageRegressor(nn.Module):
-    def __init__(self, config, has_mri=True, has_pet=True):
+    def __init__(self, config, has_mri=True, has_pet=True, has_dropout=True):
         super().__init__()
         assert has_pet or has_mri, "At least one of MRI or PET must be present"
         self.has_mri = has_mri
@@ -72,15 +72,24 @@ class ImageRegressor(nn.Module):
         if has_pet:
             self.pet_encoder = ImageEncoder(config, is_mri=False)
 
-        self.regressor = nn.Sequential(
+        if has_dropout:
+            self.regressor = nn.Sequential(
             nn.Linear(2*config.embed_dim if has_pet and has_mri else config.embed_dim, config.embed_dim),
             nn.ReLU(),
-            nn.Dropout(0.5),
             nn.Linear(config.embed_dim, config.embed_dim),
             nn.ReLU(),
-            nn.Dropout(0.5),
             nn.Linear(config.embed_dim, 1)  # Single output for MMSE score
         )
+        else:
+            self.regressor = nn.Sequential(
+                nn.Linear(2*config.embed_dim if has_pet and has_mri else config.embed_dim, config.embed_dim),
+                nn.ReLU(),
+                nn.Dropout(0.5),
+                nn.Linear(config.embed_dim, config.embed_dim),
+                nn.ReLU(),
+                nn.Dropout(0.5),
+                nn.Linear(config.embed_dim, 1)  # Single output for MMSE score
+            )
     
     def forward(self, mri, pet):
         if self.has_mri:

@@ -22,6 +22,8 @@ FID:
     paDiffusion FID: 265.000 \pm 0.051
     diffAugmentGAN FID: 309.005 \pm 0.052
     dclGAN FID: 269.323 \pm 0.045
+    maskedGAN FID: 302.071 \pm 0.048
+    cdcGAN FID: 287.531 \pm 0.067
 
 SSIM
     baseDiffusion SSIM: 0.764 $\pm$ 0.005
@@ -47,7 +49,8 @@ SSIM
     paDiffusion SSIM: 0.035 \pm 0.000
     diffAugmentGAN SSIM: 0.055 \pm 0.001
     dclGAN SSIM: 0.076 \pm 0.002
-    adamGAN SSIM: nan \pm nan
+    maskedGAN SSIM: 0.016 \pm 0.000
+    cdcGAN SSIM: 0.021 \pm 0.000
 
 PSNR
     baseDiffusion psnr: 21.005 $\pm$ 0.137
@@ -73,7 +76,8 @@ PSNR
     paDiffusion psnr: 8.108 \pm 0.041
     diffAugmentGAN psnr: 7.901 \pm 0.028
     dclGAN psnr: 0.958 \pm 0.015
-    adamGAN psnr: nan \pm nan
+    maskedGAN psnr: 4.629 \pm 0.020
+    cdcGAN psnr: 7.780 \pm 0.040
 
 IS:
     baseDiffusion Inception Score: 1.811 $\pm$ 0.001
@@ -247,3 +251,50 @@ Utility Binary:
         Recall: 0.63222 \pm 0.01202
         F1: 0.70409 \pm 0.00782
         AUROC: 0.89791 \pm 0.00277
+
+
+
+Utility MMSE: 
+    RealMRI
+        MSE: 12.14326 \pm 0.23945
+        MAE: 2.75743 \pm 0.04288
+        R2: -0.06215 \pm 0.02094
+        Correlation: 0.13872 \pm 0.02833
+    RealLimitedMRI
+        MSE: 13.11005 \pm 0.16671
+        MAE: 2.63242 \pm 0.03713
+        R2: -0.14671 \pm 0.01458
+        Correlation: -0.01203 \pm 0.00517
+    RealPET
+        MSE: 13.09326 \pm 0.22203
+        MAE: 2.64891 \pm 0.03360
+        R2: -0.14524 \pm 0.01942
+        Correlation: -0.06217 \pm 0.00435
+    RealPaired
+        MSE: 13.30819 \pm 0.13298
+        MAE: 2.62075 \pm 0.03060
+        R2: -0.16404 \pm 0.01163
+        Correlation: -0.03138 \pm 0.00561
+    SyntheticPET
+        MSE: 14.20200 \pm 0.26841
+        MAE: 2.83709 \pm 0.03635
+        R2: -0.24222 \pm 0.02348
+        Correlation: -0.06695 \pm 0.00374
+    AugmentedPET
+        MSE: 13.77954 \pm 0.23740
+        MAE: 3.00610 \pm 0.04067
+        R2: -0.20527 \pm 0.02076
+        Correlation: -0.03339 \pm 0.01066
+    SyntheticPaired
+        MSE: 13.48873 \pm 0.17197
+        MAE: 2.69851 \pm 0.03405
+        R2: -0.17983 \pm 0.01504
+        Correlation: -0.03027 \pm 0.00554
+    AugmentedPaired
+        MSE: 12.96208 \pm 0.28121
+        MAE: 2.89971 \pm 0.04092
+        R2: -0.13377 \pm 0.02460
+        Correlation: 0.07005 \pm 0.02735
+
+    PET Model Correlation: 0.3369
+    Paired Model Correlation: 0.9997
