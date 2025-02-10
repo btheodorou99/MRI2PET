@@ -8,7 +8,7 @@ from sklearn import metrics
 from datetime import datetime
 import matplotlib.pyplot as plt
 from ..config import MRI2PETConfig
-from ..models.downstreamModel import ImageRegressor
+from ..models.downstreamModel import ImageClassifier
 
 SEED = 4
 NUM_RUNS = 25
@@ -33,8 +33,10 @@ adni_scores = pd.read_csv('./src/data/MMSE.csv')
 # Convert VISDATE to datetime
 adni_scores['VISDATE'] = pd.to_datetime(adni_scores['VISDATE'])
 # Filter valid MMSE scores
-adni_scores = adni_scores[(adni_scores['MMSCORE'] >= 20) & (adni_scores['MMSCORE'] <= 30)]
-adni_scores['MMSCORE'] = adni_scores['MMSCORE'] - 20
+adni_scores = adni_scores[(adni_scores['MMSCORE'] >= 1) & (adni_scores['MMSCORE'] <= 30)]
+orig_scores = adni_scores.copy()
+adni_scores['MMSCORE'] = (adni_scores['MMSCORE'] >= 25).astype(int)
+config.downstream_dim = 1
 
 real_paired_dataset = pickle.load(open('./src/data/trainDataset.pkl', 'rb')) + pickle.load(open('./src/data/valDataset.pkl', 'rb'))
 test_dataset = pickle.load(open('./src/data/testDataset.pkl', 'rb'))
@@ -115,9 +117,9 @@ def train_model(train_data, has_mri, has_pet, key, seed):
 
     shuffle_training_data(train_data)
     train_data, val_data = train_data[:int(0.8*len(train_data))], train_data[int(0.8*len(train_data)):]
-    model = ImageRegressor(config, has_mri, has_pet).to(device)
+    model = ImageClassifier(config, has_mri, has_pet).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=config.downstream_lr)
-    criterion = torch.nn.MSELoss()
+    criterion = torch.nn.BCEWithLogitsLoss()
     best_loss = float('inf')
     curr_patience = 0
     for e in tqdm(range(config.downstream_epoch), desc=f"Training {key} Model", leave=False):
@@ -142,44 +144,48 @@ def train_model(train_data, has_mri, has_pet, key, seed):
         if val_loss < best_loss:
             best_loss = val_loss
             curr_patience = 0
-            torch.save(model.state_dict(), f'./src/save/downstream_mmse_highScores_{key}.pt')
+            torch.save(model.state_dict(), f'./src/save/downstream_mmse_binary_{key}.pt')
         else:
             curr_patience += 1
 
         if curr_patience >= config.downstream_patience:
             break
 
-    model.load_state_dict(torch.load(f'./src/save/downstream_mmse_highScores_{key}.pt'))
+    model.load_state_dict(torch.load(f'./src/save/downstream_mmse_binary_{key}.pt'))
     return model
 
 def evaluate_model(model, data, has_mri, has_pet, return_predictions=False):
     model.eval()
-    pred_list = []
+    prob_list = []
     label_list = []
     with torch.no_grad():
         for i in range(0, len(data), config.downstream_batch_size):
             mri, pet, labels = get_batch(data, i, config.batch_size, has_mri, has_pet)
             output = model(mri, pet)
-            pred_list.extend(output.cpu().numpy().flatten())
+            probs = torch.sigmoid(output)
+            prob_list.extend(probs.cpu().numpy().flatten())
             label_list.extend(labels.cpu().numpy().flatten())
 
-    preds = np.array(pred_list)
+    probs = np.array(prob_list)
     labels = np.array(label_list)
-    
-    mse = metrics.mean_squared_error(labels, preds)
-    mae = metrics.mean_absolute_error(labels, preds)
-    r2 = metrics.r2_score(labels, preds)
-    correlation = np.corrcoef(labels, preds)[0,1]
-    
+    preds = np.round(probs)
+
+    accuracy = metrics.accuracy_score(labels, preds)
+    precision = metrics.precision_score(labels, preds, zero_division=0.0)
+    recall = metrics.recall_score(labels, preds, zero_division=0.0)
+    f1 = metrics.f1_score(labels, preds, zero_division=0.0)
+    auroc = metrics.roc_auc_score(labels, probs)
+
     metrics_dict = {
-        'MSE': mse,
-        'MAE': mae,
-        'R2': r2,
-        'Correlation': correlation,
+        'Accuracy': accuracy,
+        'Precision': precision,
+        'Recall': recall,
+        'F1': f1,
+        'AUROC': auroc,
     }
-    
+
     if return_predictions:
-        return metrics_dict, preds
+        return metrics_dict, probs
     return metrics_dict
 
 # Original experiments
@@ -210,19 +216,19 @@ for key, hasMRI, hasPET, data in tqdm(experiments):
     for k, v in metrics_dict.items():
         print(f"\t{k}: {v[0]:.5f} \\pm {v[1]:.5f}")
 
-    pickle.dump(metrics_dict, open(f'./src/results/quantitative_evaluations/utility_mmse_highScores_{key}.pkl', 'wb'))
+    pickle.dump(metrics_dict, open(f'./src/results/quantitative_evaluations/utility_mmse_binary_{key}.pkl', 'wb'))
 
 # Additional comparison between real and synthetic predictions
 synthetic_test_dataset = {m: p for m, p in pickle.load(open('./src/data/syntheticDataset.pkl', 'rb')) if m in adni_labels and m in test_mri}
 synthetic_test_dataset = [(m, synthetic_test_dataset[m]) for (m, _) in test_dataset]
 
-model = ImageRegressor(config, False, True).to(device)
-model.load_state_dict(torch.load(f'./src/save/downstream_mmse_highScores_RealPET.pt'))
+model = ImageClassifier(config, False, True).to(device)
+model.load_state_dict(torch.load(f'./src/save/downstream_mmse_binary_RealPET.pt'))
 _, real_preds_pet = evaluate_model(model, test_dataset, False, True, return_predictions=True)
 _, syn_preds_pet = evaluate_model(model, synthetic_test_dataset, False, True, return_predictions=True)
 
-model = ImageRegressor(config, True, True).to(device)
-model.load_state_dict(torch.load(f'./src/save/downstream_mmse_highScores_RealPaired.pt'))
+model = ImageClassifier(config, True, True).to(device)
+model.load_state_dict(torch.load(f'./src/save/downstream_mmse_binary_RealPaired.pt'))
 _, real_preds_paired = evaluate_model(model, test_dataset, True, True, return_predictions=True)
 _, syn_preds_paired = evaluate_model(model, synthetic_test_dataset, True, True, return_predictions=True)
 
@@ -241,10 +247,10 @@ plt.xlabel('Real PET Predictions')
 plt.ylabel('Synthetic PET Predictions')
 plt.title(f'PET Model (r={pet_correlation:.4f})')
 plt.tight_layout()
-plt.savefig('./src/results/quantitative_evaluations/mmse_highScores_pet_correlation.png')
+plt.savefig('./src/results/quantitative_evaluations/mmse_binary_pet_correlation.png')
 plt.close()
 
-# Plot paired model results 
+# Plot paired model results
 plt.figure(figsize=(6,5))
 plt.scatter(real_preds_paired, syn_preds_paired, alpha=0.5)
 plt.plot([0, 30], [0, 30], 'r--')  # Identity line
@@ -252,7 +258,7 @@ plt.xlabel('Real Paired Predictions')
 plt.ylabel('Synthetic Paired Predictions')
 plt.title(f'Paired Model (r={paired_correlation:.4f})')
 plt.tight_layout()
-plt.savefig('./src/results/quantitative_evaluations/mmse_highScores_paired_correlation.png')
+plt.savefig('./src/results/quantitative_evaluations/mmse_binary_paired_correlation.png')
 plt.close()
 
 # Save results for plotting and future analysis
@@ -264,4 +270,4 @@ comparison_results = {
     'pet_correlation': pet_correlation,
     'paired_correlation': paired_correlation
 }
-pickle.dump(comparison_results, open('./src/results/quantitative_evaluations/mmse_highScores_real_vs_synthetic_comparison.pkl', 'wb'))
+pickle.dump(comparison_results, open('./src/results/quantitative_evaluations/mmse_binary_real_vs_synthetic_comparison.pkl', 'wb'))

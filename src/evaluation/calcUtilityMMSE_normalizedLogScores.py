@@ -33,8 +33,8 @@ adni_scores = pd.read_csv('./src/data/MMSE.csv')
 # Convert VISDATE to datetime
 adni_scores['VISDATE'] = pd.to_datetime(adni_scores['VISDATE'])
 # Filter valid MMSE scores
-adni_scores = adni_scores[(adni_scores['MMSCORE'] >= 20) & (adni_scores['MMSCORE'] <= 30)]
-adni_scores['MMSCORE'] = adni_scores['MMSCORE'] - 20
+adni_scores = adni_scores[(adni_scores['MMSCORE'] >= 0) & (adni_scores['MMSCORE'] <= 30)]
+adni_scores['MMSCORE'] = (np.log(adni_scores['MMSCORE']) - np.mean(np.log(adni_scores['MMSCORE']))) / np.std(np.log(adni_scores['MMSCORE']))
 
 real_paired_dataset = pickle.load(open('./src/data/trainDataset.pkl', 'rb')) + pickle.load(open('./src/data/valDataset.pkl', 'rb'))
 test_dataset = pickle.load(open('./src/data/testDataset.pkl', 'rb'))
@@ -142,14 +142,14 @@ def train_model(train_data, has_mri, has_pet, key, seed):
         if val_loss < best_loss:
             best_loss = val_loss
             curr_patience = 0
-            torch.save(model.state_dict(), f'./src/save/downstream_mmse_highScores_{key}.pt')
+            torch.save(model.state_dict(), f'./src/save/downstream_mmse_normalizedLogScores_{key}.pt')
         else:
             curr_patience += 1
 
         if curr_patience >= config.downstream_patience:
             break
 
-    model.load_state_dict(torch.load(f'./src/save/downstream_mmse_highScores_{key}.pt'))
+    model.load_state_dict(torch.load(f'./src/save/downstream_mmse_normalizedLogScores_{key}.pt'))
     return model
 
 def evaluate_model(model, data, has_mri, has_pet, return_predictions=False):
@@ -210,19 +210,19 @@ for key, hasMRI, hasPET, data in tqdm(experiments):
     for k, v in metrics_dict.items():
         print(f"\t{k}: {v[0]:.5f} \\pm {v[1]:.5f}")
 
-    pickle.dump(metrics_dict, open(f'./src/results/quantitative_evaluations/utility_mmse_highScores_{key}.pkl', 'wb'))
+    pickle.dump(metrics_dict, open(f'./src/results/quantitative_evaluations/utility_mmse_normalizedLogScores_{key}.pkl', 'wb'))
 
 # Additional comparison between real and synthetic predictions
 synthetic_test_dataset = {m: p for m, p in pickle.load(open('./src/data/syntheticDataset.pkl', 'rb')) if m in adni_labels and m in test_mri}
 synthetic_test_dataset = [(m, synthetic_test_dataset[m]) for (m, _) in test_dataset]
 
 model = ImageRegressor(config, False, True).to(device)
-model.load_state_dict(torch.load(f'./src/save/downstream_mmse_highScores_RealPET.pt'))
+model.load_state_dict(torch.load(f'./src/save/downstream_mmse_normalizedLogScores_RealPET.pt'))
 _, real_preds_pet = evaluate_model(model, test_dataset, False, True, return_predictions=True)
 _, syn_preds_pet = evaluate_model(model, synthetic_test_dataset, False, True, return_predictions=True)
 
 model = ImageRegressor(config, True, True).to(device)
-model.load_state_dict(torch.load(f'./src/save/downstream_mmse_highScores_RealPaired.pt'))
+model.load_state_dict(torch.load(f'./src/save/downstream_mmse_normalizedLogScores_RealPaired.pt'))
 _, real_preds_paired = evaluate_model(model, test_dataset, True, True, return_predictions=True)
 _, syn_preds_paired = evaluate_model(model, synthetic_test_dataset, True, True, return_predictions=True)
 
@@ -241,7 +241,7 @@ plt.xlabel('Real PET Predictions')
 plt.ylabel('Synthetic PET Predictions')
 plt.title(f'PET Model (r={pet_correlation:.4f})')
 plt.tight_layout()
-plt.savefig('./src/results/quantitative_evaluations/mmse_highScores_pet_correlation.png')
+plt.savefig('./src/results/quantitative_evaluations/mmse_normalizedLogScores_pet_correlation.png')
 plt.close()
 
 # Plot paired model results 
@@ -252,7 +252,7 @@ plt.xlabel('Real Paired Predictions')
 plt.ylabel('Synthetic Paired Predictions')
 plt.title(f'Paired Model (r={paired_correlation:.4f})')
 plt.tight_layout()
-plt.savefig('./src/results/quantitative_evaluations/mmse_highScores_paired_correlation.png')
+plt.savefig('./src/results/quantitative_evaluations/mmse_normalizedLogScores_paired_correlation.png')
 plt.close()
 
 # Save results for plotting and future analysis
@@ -264,4 +264,4 @@ comparison_results = {
     'pet_correlation': pet_correlation,
     'paired_correlation': paired_correlation
 }
-pickle.dump(comparison_results, open('./src/results/quantitative_evaluations/mmse_highScores_real_vs_synthetic_comparison.pkl', 'wb'))
+pickle.dump(comparison_results, open('./src/results/quantitative_evaluations/mmse_normalizedLogScores_real_vs_synthetic_comparison.pkl', 'wb'))
