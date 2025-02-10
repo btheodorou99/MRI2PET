@@ -34,7 +34,9 @@ adni_scores = pd.read_csv('./src/data/MMSE.csv')
 adni_scores['VISDATE'] = pd.to_datetime(adni_scores['VISDATE'])
 # Filter valid MMSE scores
 adni_scores = adni_scores[(adni_scores['MMSCORE'] >= 0) & (adni_scores['MMSCORE'] <= 30)]
-adni_scores['MMSCORE'] = (np.log(adni_scores['MMSCORE']) - np.mean(np.log(adni_scores['MMSCORE']))) / np.std(np.log(adni_scores['MMSCORE']))
+adni_scores['MMSCORE'] = np.log(adni_scores['MMSCORE'])
+adni_scores = adni_scores[adni_scores['MMSCORE'] != -np.inf]
+adni_scores['MMSCORE'] = (adni_scores['MMSCORE'] - np.mean(adni_scores['MMSCORE'])) / np.std(adni_scores['MMSCORE'])
 
 real_paired_dataset = pickle.load(open('./src/data/trainDataset.pkl', 'rb')) + pickle.load(open('./src/data/valDataset.pkl', 'rb'))
 test_dataset = pickle.load(open('./src/data/testDataset.pkl', 'rb'))
