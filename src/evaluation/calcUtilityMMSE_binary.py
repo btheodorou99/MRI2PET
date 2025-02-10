@@ -95,7 +95,7 @@ def get_batch(dataset, loc, batch_size, has_mri=False, has_pet=False):
     bs = len(image_paths)
     batch_mri = torch.zeros(bs, config.n_mri_channels, config.mri_image_dim, config.mri_image_dim, dtype=torch.float)
     batch_pet = torch.zeros(bs, config.n_pet_channels, config.pet_image_dim, config.pet_image_dim, dtype=torch.float)
-    batch_labels = torch.zeros(bs, dtype=torch.float)
+    batch_labels = torch.zeros(bs, 1, dtype=torch.float)
     for i, (m, p) in enumerate(image_paths):
         batch_labels[i] = adni_labels[m]
         if has_mri:
