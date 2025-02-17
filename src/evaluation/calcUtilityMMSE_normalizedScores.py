@@ -194,23 +194,23 @@ experiments = [
     ('AugmentedPaired', True, True, augmented_paired_dataset),
 ]
 
-# Run original experiments
-for key, hasMRI, hasPET, data in tqdm(experiments):
-    print(key)
+# # Run original experiments
+# for key, hasMRI, hasPET, data in tqdm(experiments):
+#     print(key)
     
-    metrics_dict = {}
-    for run in tqdm(range(NUM_RUNS), desc="Training Runs", leave=False):
-        seed = run * SEED
-        model = train_model(data, hasMRI, hasPET, key, seed)
-        run_dict = evaluate_model(model, test_dataset, hasMRI, hasPET)
-        for k in run_dict:
-            metrics_dict[k] = metrics_dict.get(k, []) + [run_dict[k]]
+#     metrics_dict = {}
+#     for run in tqdm(range(NUM_RUNS), desc="Training Runs", leave=False):
+#         seed = run * SEED
+#         model = train_model(data, hasMRI, hasPET, key, seed)
+#         run_dict = evaluate_model(model, test_dataset, hasMRI, hasPET)
+#         for k in run_dict:
+#             metrics_dict[k] = metrics_dict.get(k, []) + [run_dict[k]]
 
-    metrics_dict = {k: (np.mean(v), np.std(v) / np.sqrt(NUM_RUNS)) for k, v in metrics_dict.items()}
-    for k, v in metrics_dict.items():
-        print(f"\t{k}: {v[0]:.5f} \\pm {v[1]:.5f}")
+#     metrics_dict = {k: (np.mean(v), np.std(v) / np.sqrt(NUM_RUNS)) for k, v in metrics_dict.items()}
+#     for k, v in metrics_dict.items():
+#         print(f"\t{k}: {v[0]:.5f} \\pm {v[1]:.5f}")
 
-    pickle.dump(metrics_dict, open(f'./src/results/quantitative_evaluations/utility_mmse_normalizedScores_{key}.pkl', 'wb'))
+#     pickle.dump(metrics_dict, open(f'./src/results/quantitative_evaluations/utility_mmse_normalizedScores_{key}.pkl', 'wb'))
 
 # Additional comparison between real and synthetic predictions
 synthetic_test_dataset = {m: p for m, p in pickle.load(open('./src/data/syntheticDataset.pkl', 'rb')) if m in adni_labels and m in test_mri}
