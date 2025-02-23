@@ -298,3 +298,97 @@ Utility MMSE:
 
     PET Model Correlation: 0.3369
     Paired Model Correlation: 0.9997
+
+
+
+Utility MMSE High Scores:
+    RealMRI
+        MSE: 5.53824 \pm 0.14785
+        MAE: 1.89715 \pm 0.03663
+        R2: 0.12506 \pm 0.02336
+        Correlation: 0.35552 \pm 0.03357
+    RealLimitedMRI
+        MSE: 6.27078 \pm 0.02707
+        MAE: 1.98632 \pm 0.00705
+        R2: 0.00933 \pm 0.00428
+        Correlation: 0.11011 \pm 0.01338
+    RealPET
+        MSE: 5.88008 \pm 0.11306
+        MAE: 1.91608 \pm 0.02033
+        R2: 0.07106 \pm 0.01786
+        Correlation: 0.22488 \pm 0.03473
+    RealPaired
+        MSE: 5.60103 \pm 0.13270
+        MAE: 1.87343 \pm 0.02516
+        R2: 0.11514 \pm 0.02096
+        Correlation: 0.29408 \pm 0.03770
+    SyntheticPET
+        MSE: 6.14825 \pm 0.06635
+        MAE: 2.00604 \pm 0.01342
+        R2: 0.02869 \pm 0.01048
+        Correlation: 0.14823 \pm 0.02635
+    AugmentedPET
+        MSE: 6.59472 \pm 0.03596
+        MAE: 2.15959 \pm 0.01004
+        R2: -0.04184 \pm 0.00568
+        Correlation: 0.02857 \pm 0.00912
+    SyntheticPaired
+        MSE: 5.74248 \pm 0.12906
+        MAE: 1.90692 \pm 0.02469
+        R2: 0.09279 \pm 0.02039
+        Correlation: 0.25158 \pm 0.03788
+    AugmentedPaired
+        MSE: 4.98152 \pm 0.11636
+        MAE: 1.76238 \pm 0.02472
+        R2: 0.21301 \pm 0.01838
+        Correlation: 0.45847 \pm 0.02354
+    
+    PET Model Correlation: 0.2730
+    Paired Model Correlation: 0.2559
+
+
+
+Utility MMSE Normalized Scores:
+    RealMRI
+        MSE: 0.45166 \pm 0.00528
+        MAE: 0.48395 \pm 0.00325
+        R2: 0.41849 \pm 0.00680
+        Correlation: 0.65108 \pm 0.00485
+    RealLimitedMRI
+        MSE: 0.65711 \pm 0.01543
+        MAE: 0.56902 \pm 0.00673
+        R2: 0.15398 \pm 0.01986
+        Correlation: 0.37275 \pm 0.03291
+    RealPET
+        MSE: 0.58484 \pm 0.00903
+        MAE: 0.53069 \pm 0.00483
+        R2: 0.24703 \pm 0.01162
+        Correlation: 0.49220 \pm 0.02033
+    RealPaired
+        MSE: 0.54173 \pm 0.00594
+        MAE: 0.51422 \pm 0.00275
+        R2: 0.30252 \pm 0.00764
+        Correlation: 0.55926 \pm 0.00675
+    SyntheticPET
+        MSE: 0.64016 \pm 0.01362
+        MAE: 0.55539 \pm 0.00661
+        R2: 0.17580 \pm 0.01753
+        Correlation: 0.38371 \pm 0.03979
+    AugmentedPET
+        MSE: 0.69678 \pm 0.00784
+        MAE: 0.61616 \pm 0.00541
+        R2: 0.10290 \pm 0.01009
+        Correlation: 0.37192 \pm 0.01774
+    SyntheticPaired
+        MSE: 0.59398 \pm 0.01635
+        MAE: 0.54166 \pm 0.00767
+        R2: 0.23526 \pm 0.02105
+        Correlation: 0.46560 \pm 0.03583
+    AugmentedPaired
+        MSE: 0.44505 \pm 0.00519
+        MAE: 0.48501 \pm 0.00389
+        R2: 0.42700 \pm 0.00668
+        Correlation: 0.65689 \pm 0.00493
+        
+    PET Model Correlation: 0.2027
+    Paired Model Correlation: 0.5414
