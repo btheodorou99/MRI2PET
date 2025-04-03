@@ -7,6 +7,7 @@ import pickle
 import random
 import numpy as np
 import pandas as pd
+import argparse
 from tqdm import tqdm
 from sklearn import metrics
 from ..config import MRI2PETConfig
@@ -130,18 +131,23 @@ def evaluate_model(model, data, has_mri, has_pet):
     labels = np.array(label_list)
     preds = np.argmax(probs, axis=1)
     
+    # Calculate metrics
     accuracy = metrics.accuracy_score(labels, preds)
     precision = metrics.precision_score(labels, preds, average="macro", zero_division=0.0)
     recall = metrics.recall_score(labels, preds, average="macro", zero_division=0.0)
     f1 = metrics.f1_score(labels, preds, average="macro", zero_division=0.0)
     auroc = metrics.roc_auc_score(labels, probs, average="macro", multi_class="ovr")
+    balanced_accuracy = metrics.balanced_accuracy_score(labels, preds)
+    conf_matrix = metrics.confusion_matrix(labels, preds)
     
     metrics_dict = {
         'Accuracy': accuracy,
+        'Balanced_Accuracy': balanced_accuracy,
         'Precision': precision,
         'Recall': recall,
         'F1': f1,
         'AUROC': auroc,
+        'Confusion_Matrix': conf_matrix
     }
     return metrics_dict
 
@@ -156,19 +162,38 @@ experiments = [
     ('AugmentedPaired', True, True, augmented_paired_dataset),
 ]
 
-for key, hasMRI, hasPET, data in tqdm(experiments):
-    print(key)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--experiment_idx', type=int, required=True, help='Index of experiment to run')
+    args = parser.parse_args()
+
+    # Get the experiment to run
+    experiment = experiments[args.experiment_idx]
+    key, hasMRI, hasPET, data = experiment
+    
+    print(f"Running experiment {key} (index {args.experiment_idx})")
     
     metrics_dict = {}
+    all_runs_metrics = []  # Store metrics for each run
+    
     for run in tqdm(range(NUM_RUNS), desc="Training Runs", leave=False):
         seed = run * SEED
         model = train_model(data, hasMRI, hasPET, key, seed)
         run_dict = evaluate_model(model, test_dataset, hasMRI, hasPET)
+        all_runs_metrics.append(run_dict)  # Store metrics for this run
+        
+        # Aggregate metrics across runs
         for k in run_dict:
-            metrics_dict[k] = metrics_dict.get(k, []) + [run_dict[k]]
+            if k != 'Confusion_Matrix':
+                metrics_dict[k] = metrics_dict.get(k, []) + [run_dict[k]]
 
+    # Calculate mean and std for metrics
     metrics_dict = {k: (np.mean(v), np.std(v) / np.sqrt(NUM_RUNS)) for k, v in metrics_dict.items()}
     for k, v in metrics_dict.items():
         print(f"\t{k}: {v[0]:.5f} \\pm {v[1]:.5f}")
 
-    pickle.dump(metrics_dict, open(f'./src/results/quantitative_evaluations/utility_{key}.pkl', 'wb'))
+    # Save both aggregated metrics and per-run metrics
+    pickle.dump({
+        'aggregated_metrics': metrics_dict,
+        'per_run_metrics': all_runs_metrics
+    }, open(f'./src/results/quantitative_evaluations/utilityFullPiecewise_{key}.pkl', 'wb'))

@@ -151,57 +151,6 @@ Utility:
 
 
 
-Utility 2nd Run:
-    RealMRI
-        Accuracy: 0.57269 \pm 0.00676
-        Precision: 0.57693 \pm 0.00707
-        Recall: 0.56508 \pm 0.00735
-        F1: 0.56677 \pm 0.00698
-        AUROC: 0.75747 \pm 0.00473
-    RealLimitedMRI
-        Accuracy: 0.44867 \pm 0.00947
-        Precision: 0.38310 \pm 0.02596
-        Recall: 0.40129 \pm 0.01168
-        F1: 0.36898 \pm 0.02012
-        AUROC: 0.61050 \pm 0.01423
-    RealPET
-        Accuracy: 0.56064 \pm 0.00450
-        Precision: 0.52089 \pm 0.00393
-        Recall: 0.52395 \pm 0.00443
-        F1: 0.50990 \pm 0.00412
-        AUROC: 0.71264 \pm 0.00448
-    RealPaired
-        Accuracy: 0.57847 \pm 0.00497
-        Precision: 0.55242 \pm 0.00634
-        Recall: 0.54775 \pm 0.00568
-        F1: 0.54082 \pm 0.00651
-        AUROC: 0.73171 \pm 0.00399
-    SyntheticPET
-        Accuracy: 0.55614 \pm 0.00658
-        Precision: 0.50611 \pm 0.01556
-        Recall: 0.51403 \pm 0.00823
-        F1: 0.49234 \pm 0.01239
-        AUROC: 0.69970 \pm 0.00883
-    AugmentedPET
-        Accuracy: 0.50667 \pm 0.00711
-        Precision: 0.46003 \pm 0.00620
-        Recall: 0.46999 \pm 0.00555
-        F1: 0.44484 \pm 0.00457
-        AUROC: 0.65851 \pm 0.00469
-    SyntheticPaired
-        Accuracy: 0.54329 \pm 0.00887
-        Precision: 0.49775 \pm 0.02188
-        Recall: 0.50755 \pm 0.01190
-        F1: 0.49108 \pm 0.01834
-        AUROC: 0.69553 \pm 0.01220
-    AugmentedPaired
-        Accuracy: 0.60498 \pm 0.00686
-        Precision: 0.60543 \pm 0.00800
-        Recall: 0.59372 \pm 0.00780
-        F1: 0.59514 \pm 0.00763
-        AUROC: 0.78012 \pm 0.00457
-
-
 Utility Binary:
     RealMRI
         Accuracy: 0.82570 \pm 0.00379
@@ -345,50 +294,3 @@ Utility MMSE High Scores:
     
     PET Model Correlation: 0.2730
     Paired Model Correlation: 0.2559
-
-
-
-Utility MMSE Normalized Scores:
-    RealMRI
-        MSE: 0.45166 \pm 0.00528
-        MAE: 0.48395 \pm 0.00325
-        R2: 0.41849 \pm 0.00680
-        Correlation: 0.65108 \pm 0.00485
-    RealLimitedMRI
-        MSE: 0.65711 \pm 0.01543
-        MAE: 0.56902 \pm 0.00673
-        R2: 0.15398 \pm 0.01986
-        Correlation: 0.37275 \pm 0.03291
-    RealPET
-        MSE: 0.58484 \pm 0.00903
-        MAE: 0.53069 \pm 0.00483
-        R2: 0.24703 \pm 0.01162
-        Correlation: 0.49220 \pm 0.02033
-    RealPaired
-        MSE: 0.54173 \pm 0.00594
-        MAE: 0.51422 \pm 0.00275
-        R2: 0.30252 \pm 0.00764
-        Correlation: 0.55926 \pm 0.00675
-    SyntheticPET
-        MSE: 0.64016 \pm 0.01362
-        MAE: 0.55539 \pm 0.00661
-        R2: 0.17580 \pm 0.01753
-        Correlation: 0.38371 \pm 0.03979
-    AugmentedPET
-        MSE: 0.69678 \pm 0.00784
-        MAE: 0.61616 \pm 0.00541
-        R2: 0.10290 \pm 0.01009
-        Correlation: 0.37192 \pm 0.01774
-    SyntheticPaired
-        MSE: 0.59398 \pm 0.01635
-        MAE: 0.54166 \pm 0.00767
-        R2: 0.23526 \pm 0.02105
-        Correlation: 0.46560 \pm 0.03583
-    AugmentedPaired
-        MSE: 0.44505 \pm 0.00519
-        MAE: 0.48501 \pm 0.00389
-        R2: 0.42700 \pm 0.00668
-        Correlation: 0.65689 \pm 0.00493
-        
-    PET Model Correlation: 0.2027
-    Paired Model Correlation: 0.5414
