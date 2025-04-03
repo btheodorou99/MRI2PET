@@ -28,7 +28,7 @@ def getID(path):
     subject = fname.split('-')[1]
     return subject
 
-adni_labels = pd.read_csv('./src/data/DXSUM_PDXCONV.csv')
+adni_labels = pd.read_csv('./src/data/DIAGNOSIS.csv')
 adni_labels = {row.PTID: row.DIAGNOSIS for row in adni_labels.itertuples()}
 adni_labels = {p: int(l - 1) for p, l in adni_labels.items() if l == l}
 
